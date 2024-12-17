@@ -5,6 +5,8 @@ import upload from "../controllers/uploadFiles.js";
 import {
   createRegistration,
   updateRegistrationById,
+  getAllRegistration,
+  deleteRegistrationById,
 } from "../controllers/Registration/index.js";
 
 const router = express.Router();
@@ -33,5 +35,7 @@ router.put(
   Middleware,
   updateRegistrationById
 );
+router.get("/registration", Middleware, getAllRegistration);
+router.delete("/registration/:id", Middleware, deleteRegistrationById);
 
 export default router;

@@ -55,6 +55,27 @@ async function updateById(req, res) {
     ];
 
     const updatedFields = {};
+    let identityProofType = "";
+
+    if (req.body.aadharOrPassportNo) {
+      const aadharOrPassportNo = req.body.aadharOrPassportNo;
+      const aadhaarPattern = /^\d{12}$/;
+      const passportPattern = /^[A-Z]\d{7}$/;
+
+      if (aadhaarPattern.test(aadharOrPassportNo)) {
+        identityProofType = "Aadhar Number";
+      } else if (passportPattern.test(aadharOrPassportNo)) {
+        identityProofType = "Passport Number";
+      } else {
+        return res.status(400).json({
+          hasError: true,
+          message: "Invalid Aadhar or Passport Number format.",
+        });
+      }
+    } else {
+      identityProofType = existingRegistration.identityProofType;
+    }
+
     fieldsToUpdate.forEach((field) => {
       if (req.body[field]) {
         updatedFields[field] = req.body[field];
@@ -62,6 +83,8 @@ async function updateById(req, res) {
         updatedFields[field] = existingRegistration[field];
       }
     });
+
+    updatedFields.identityProofType = identityProofType;
 
     const fileMappings = {
       resultOfPreviousSchoolUrl: "/Documents/ResultOfPreviousSchool",

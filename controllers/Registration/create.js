@@ -57,6 +57,22 @@ async function create(req, res) {
       });
     }
 
+    const aadhaarPattern = /^\d{12}$/;
+    const passportPattern = /^[A-Z]\d{7}$/;
+
+    let identityProofType = "";
+
+    if (aadhaarPattern.test(aadharOrPassportNo)) {
+      identityProofType = "Aadhar Number";
+    } else if (passportPattern.test(aadharOrPassportNo)) {
+      identityProofType = "Passport Number";
+    } else {
+      return res.status(400).json({
+        hasError: true,
+        message: "Invalid Aadhar or Passport Number format.",
+      });
+    }
+
     const resultOfPreviousSchoolPath = "/Documents/ResultOfPreviousSchool";
     const resultOfPreviousSchoolUrl = `${resultOfPreviousSchoolPath}/${req.files.resultOfPreviousSchoolUrl[0].filename}`;
 
@@ -103,6 +119,7 @@ async function create(req, res) {
       tcCertificateUrl,
       aadharOrPassportUrl,
       signatureUrl,
+      identityProofType: identityProofType,
     });
 
     await newRegistration.save();

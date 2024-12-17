@@ -30,6 +30,11 @@ const RegistrationSchema = new mongoose.Schema(
 
     aadharOrPassportNo: { type: String, required: true },
 
+    identityProofType: {
+      type: String,
+      required: true,
+      enum: ["Aadhar Number", "Passport Number"],
+    },
     understanding: { type: Boolean, required: true },
 
     name: { type: String, required: true },

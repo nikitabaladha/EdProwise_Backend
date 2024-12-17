@@ -123,12 +123,23 @@ const RegistrationCreateValidator = Joi.object({
     "any.required": "This field is required.",
   }),
 
-  aadharOrPassportNo: Joi.string().required().messages({
-    "string.base": "Aadhar/Passport number must be a string.",
-    "string.empty": "Aadhar/Passport number cannot be empty.",
-    "any.required": "Aadhar/Passport number is required.",
-  }),
+  aadharOrPassportNo: Joi.string()
+    .required()
+    .custom((value, helpers) => {
+      const aadharPattern = /^\d{12}$/;
+      const passportPattern = /^[A-Z]\d{7}$/;
 
+      if (!aadharPattern.test(value) && !passportPattern.test(value)) {
+        return helpers.message(
+          "Identity number must be a valid Aadhaar number (12 digits) or a valid Passport number (1 letter followed by 7 digits)."
+        );
+      }
+      return value;
+    })
+    .messages({
+      "string.base": "Identity number must be a string.",
+      "any.required": "Identity number is required.",
+    }),
   understanding: Joi.boolean().required().messages({
     "boolean.base": "Understanding must be a boolean.",
     "any.required": "Acknowledgment is required.",
@@ -296,11 +307,22 @@ const RegistrationUpdateValidator = Joi.object({
     "any.required": "This field is required.",
   }),
 
-  aadharOrPassportNo: Joi.string().required().messages({
-    "string.base": "Aadhar/Passport number must be a string.",
-    "string.empty": "Aadhar/Passport number cannot be empty.",
-    "any.required": "Aadhar/Passport number is required.",
-  }),
+  aadharOrPassportNo: Joi.string()
+    .required()
+    .custom((value, helpers) => {
+      const aadharPattern = /^\d{12}$/;
+      const passportPattern = /^[A-Z]\d{7}$/;
+      if (!aadharPattern.test(value) && !passportPattern.test(value)) {
+        return helpers.message(
+          "Identity number must be a valid Aadhaar number (12 digits) or a valid Passport number (1 letter followed by 7 digits)."
+        );
+      }
+      return value;
+    })
+    .messages({
+      "string.base": "Identity number must be a string.",
+      "any.required": "Identity number is required.",
+    }),
 
   understanding: Joi.boolean().required().messages({
     "boolean.base": "Understanding must be a boolean.",
