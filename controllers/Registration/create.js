@@ -3,7 +3,6 @@ import RegistrationValidator from "../../validators/RegistrationValidator/Regist
 
 async function create(req, res) {
   try {
-    // Validate the request body using the validator
     const { error } =
       RegistrationValidator.RegistrationCreateValidator.validate(req.body);
 
@@ -12,7 +11,6 @@ async function create(req, res) {
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
-    // Destructure fields from req.body
     const {
       firstName,
       middleName,
@@ -71,7 +69,6 @@ async function create(req, res) {
     const signaturePath = "/Images/Signature";
     const signatureUrl = `${signaturePath}/${req.files.signatureUrl[0].filename}`;
 
-    // Create a new Registration object
     const newRegistration = new Registration({
       firstName,
       middleName,
@@ -108,10 +105,8 @@ async function create(req, res) {
       signatureUrl,
     });
 
-    // Save the registration to the database
     await newRegistration.save();
 
-    // Respond with success
     return res.status(201).json({
       message: "Registration created successfully!",
       data: newRegistration,

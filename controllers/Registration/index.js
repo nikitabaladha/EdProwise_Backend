@@ -1,2 +1,4 @@
 import createRegistration from "./create.js";
-export { createRegistration };
+import updateRegistrationById from "./updateById.js";
+
+export { createRegistration, updateRegistrationById };

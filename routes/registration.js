@@ -1,7 +1,11 @@
 import express from "express";
 import Middleware from "../middleware/index.js";
-import { createRegistration } from "../controllers/Registration/index.js";
 import upload from "../controllers/uploadFiles.js";
+
+import {
+  createRegistration,
+  updateRegistrationById,
+} from "../controllers/Registration/index.js";
 
 const router = express.Router();
 
@@ -23,5 +27,11 @@ const uploadFiles = (req, res, next) => {
 };
 
 router.post("/registration", uploadFiles, Middleware, createRegistration);
+router.put(
+  "/registration/:id",
+  uploadFiles,
+  Middleware,
+  updateRegistrationById
+);
 
 export default router;
