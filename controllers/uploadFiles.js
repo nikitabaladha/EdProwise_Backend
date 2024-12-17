@@ -1,29 +1,37 @@
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const employeePhotoDir = "./Images/employeePhoto";
-const employeeCertificateDir = "./Documents/employeeCertificates";
-const employeeResumeDir = "./Documents/employeeResume";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
-if (!fs.existsSync(employeePhotoDir)) {
-  fs.mkdirSync(employeePhotoDir, { recursive: true });
+const signatureDir = "./Images/signature";
+const resultOfPreviousSchoolDir = "./Documents/resultOfPreviousSchool";
+const tcCertificateDir = "./Documents/tcCertificate";
+const aadharOrPassportDir = "./Documents/aadharOrPassport";
+
+if (!fs.existsSync(signatureDir)) {
+  fs.mkdirSync(signatureDir, { recursive: true });
 }
-if (!fs.existsSync(employeeCertificateDir)) {
-  fs.mkdirSync(employeeCertificateDir, { recursive: true });
+if (!fs.existsSync(resultOfPreviousSchoolDir)) {
+  fs.mkdirSync(resultOfPreviousSchoolDir, { recursive: true });
 }
-if (!fs.existsSync(employeeResumeDir)) {
-  fs.mkdirSync(employeeResumeDir, { recursive: true });
+if (!fs.existsSync(tcCertificateDir)) {
+  fs.mkdirSync(tcCertificateDir, { recursive: true });
+}
+
+if (!fs.existsSync(aadharOrPassportDir)) {
+  fs.mkdirSync(aadharOrPassportDir, { recursive: true });
 }
 
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      if (file.fieldname === "employeePhotoUrl") {
-        cb(null, employeePhotoDir);
-      } else if (file.fieldname === "employeeCertificateUrl") {
-        cb(null, employeeCertificateDir);
-      } else if (file.fieldname === "employeeResumeUrl") {
-        cb(null, employeeResumeDir);
+      if (file.fieldname === "signatureUrl") {
+        cb(null, signatureDir);
+      } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
+        cb(null, resultOfPreviousSchoolDir);
+      } else if (file.fieldname === "tcCertificateUrl") {
+        cb(null, tcCertificateDir);
+      } else if (file.fieldname === "aadharOrPassportUrl") {
+        cb(null, aadharOrPassportDir);
       } else {
         cb(new Error("Invalid file fieldname"));
       }
@@ -44,9 +52,11 @@ const upload = multer({
       }
     },
   }),
+
   limits: { fileSize: 10 * 1024 * 1024 },
+
   fileFilter: (req, file, cb) => {
-    if (file.fieldname === "employeePhotoUrl") {
+    if (file.fieldname === "signatureUrl") {
       const allowedFileTypes = /jpeg|jpg|png/;
       const mimeType = allowedFileTypes.test(file.mimetype);
       const extName = allowedFileTypes.test(
@@ -55,36 +65,46 @@ const upload = multer({
       if (mimeType && extName) {
         cb(null, true);
       } else {
-        cb(
-          new Error(
-            "Only JPEG, JPG, or PNG files are allowed for employee photos"
-          )
-        );
+        cb(new Error("Only JPEG, JPG, or PNG files are allowed for Signature"));
       }
-    } else if (file.fieldname === "employeeCertificateUrl") {
+    } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
       const allowedFileTypes = /application\/pdf/;
       const mimeType = allowedFileTypes.test(file.mimetype);
-
-      console.log("PDF upload - MIME Type:", file.mimetype);
 
       if (mimeType) {
         cb(null, true);
       } else {
-        cb(new Error("Only PDF files are allowed for employee certificates"));
+        cb(
+          new Error(
+            "Only PDF files are allowed for Previous School Result certificates"
+          )
+        );
       }
-    } else if (file.fieldname === "employeeResumeUrl") {
+    } else if (file.fieldname === "tcCertificateUrl") {
       const allowedFileTypes =
         /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
       const mimeType = allowedFileTypes.test(file.mimetype);
 
-      console.log("Resume upload - MIME Type:", file.mimetype);
+      if (mimeType) {
+        cb(null, true);
+      } else {
+        cb(
+          new Error(
+            "Only PDF, DOC, or DOCX files are allowed for TC CertificateUrl"
+          )
+        );
+      }
+    } else if (file.fieldname === "aadharOrPassportUrl") {
+      const allowedFileTypes =
+        /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
+      const mimeType = allowedFileTypes.test(file.mimetype);
 
       if (mimeType) {
         cb(null, true);
       } else {
         cb(
           new Error(
-            "Only PDF, DOC, or DOCX files are allowed for employee resumes"
+            "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
           )
         );
       }
@@ -94,4 +114,4 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+export default upload;

@@ -1,5 +1,7 @@
-const userRoutes = require("./user");
+import registrationRoutes from "./registration.js";
+import userRoutes from "./user.js";
 
-module.exports = (app) => {
+export default (app) => {
   app.use("/api", userRoutes);
+  app.use("/api", registrationRoutes);
 };
