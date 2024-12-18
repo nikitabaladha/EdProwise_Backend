@@ -2,11 +2,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const signatureDir = "./Images/signature";
-const resultOfPreviousSchoolDir = "./Documents/resultOfPreviousSchool";
-const tcCertificateDir = "./Documents/tcCertificate";
-const aadharOrPassportDir = "./Documents/aadharOrPassport";
-const castCertificateDir = "./Documents/castCertificate";
+const signatureDir = "./Images/Signature";
+const resultOfPreviousSchoolDir = "./Documents/ResultOfPreviousSchool";
+const tcCertificateDir = "./Documents/TcCertificate";
+const aadharOrPassportDir = "./Documents/AadharOrPassport";
+const castCertificateDir = "./Documents/CastCertificate";
 
 if (!fs.existsSync(signatureDir)) {
   fs.mkdirSync(signatureDir, { recursive: true });

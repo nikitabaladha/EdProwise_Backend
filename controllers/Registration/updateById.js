@@ -91,6 +91,7 @@ async function updateById(req, res) {
       tcCertificateUrl: "/Documents/TcCertificate",
       aadharOrPassportUrl: "/Documents/AadharOrPassport",
       signatureUrl: "/Images/Signature",
+      castCertificateUrl: "/Documents/CastCertificate",
     };
 
     Object.entries(fileMappings).forEach(([field, path]) => {
