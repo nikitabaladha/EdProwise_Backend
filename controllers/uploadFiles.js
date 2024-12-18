@@ -6,6 +6,7 @@ const signatureDir = "./Images/signature";
 const resultOfPreviousSchoolDir = "./Documents/resultOfPreviousSchool";
 const tcCertificateDir = "./Documents/tcCertificate";
 const aadharOrPassportDir = "./Documents/aadharOrPassport";
+const castCertificateDir = "./Documents/castCertificate";
 
 if (!fs.existsSync(signatureDir)) {
   fs.mkdirSync(signatureDir, { recursive: true });
@@ -21,6 +22,10 @@ if (!fs.existsSync(aadharOrPassportDir)) {
   fs.mkdirSync(aadharOrPassportDir, { recursive: true });
 }
 
+if (!fs.existsSync(castCertificateDir)) {
+  fs.mkdirSync(castCertificateDir, { recursive: true });
+}
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -32,6 +37,8 @@ const upload = multer({
         cb(null, tcCertificateDir);
       } else if (file.fieldname === "aadharOrPassportUrl") {
         cb(null, aadharOrPassportDir);
+      } else if (file.fieldname === "castCertificateUrl") {
+        cb(null, castCertificateDir);
       } else {
         cb(new Error("Invalid file fieldname"));
       }
@@ -95,6 +102,20 @@ const upload = multer({
         );
       }
     } else if (file.fieldname === "aadharOrPassportUrl") {
+      const allowedFileTypes =
+        /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
+      const mimeType = allowedFileTypes.test(file.mimetype);
+
+      if (mimeType) {
+        cb(null, true);
+      } else {
+        cb(
+          new Error(
+            "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
+          )
+        );
+      }
+    } else if (file.fieldname === "castCertificateUrl") {
       const allowedFileTypes =
         /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
       const mimeType = allowedFileTypes.test(file.mimetype);

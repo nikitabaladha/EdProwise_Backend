@@ -82,6 +82,9 @@ async function create(req, res) {
     const aadharOrPassportPath = "/Documents/AadharOrPassport";
     const aadharOrPassportUrl = `${aadharOrPassportPath}/${req.files.aadharOrPassportUrl[0].filename}`;
 
+    const castCertificatePath = "/Documents/CastCertificate";
+    const castCertificateUrl = `${castCertificatePath}/${req.files.castCertificateUrl[0].filename}`;
+
     const signaturePath = "/Images/Signature";
     const signatureUrl = `${signaturePath}/${req.files.signatureUrl[0].filename}`;
 
@@ -119,6 +122,7 @@ async function create(req, res) {
       tcCertificateUrl,
       aadharOrPassportUrl,
       signatureUrl,
+      castCertificateUrl,
       identityProofType: identityProofType,
     });
 

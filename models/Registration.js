@@ -20,7 +20,6 @@ const RegistrationSchema = new mongoose.Schema(
     previousSchool: { type: String },
     previousSchoolBoard: { type: String },
     addressOfPreviousSchool: { type: String },
-
     caste: {
       type: String,
       required: true,
@@ -57,6 +56,9 @@ const RegistrationSchema = new mongoose.Schema(
     aadharOrPassportUrl: {
       type: String,
       required: true,
+    },
+    castCertificateUrl: {
+      type: String,
     },
     signatureUrl: { type: String, required: true },
   },
