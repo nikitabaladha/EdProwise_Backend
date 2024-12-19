@@ -2,7 +2,12 @@ import express from "express";
 import Middleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SchoolFiles.js";
 
-import { createSchool } from "../../controllers/AdminUser/SchoolRegistration/index.js";
+import {
+  createSchool,
+  getAll,
+  updateById,
+  deleteById,
+} from "../../controllers/AdminUser/SchoolRegistration/index.js";
 
 const router = express.Router();
 
@@ -23,5 +28,8 @@ const uploadFiles = (req, res, next) => {
 };
 
 router.post("/school", uploadFiles, Middleware, createSchool);
+router.get("/school", Middleware, getAll);
+router.put("/school/:id", uploadFiles, Middleware, updateById);
+router.delete("/school/:id", Middleware, deleteById);
 
 export default router;

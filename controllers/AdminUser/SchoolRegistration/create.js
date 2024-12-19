@@ -3,6 +3,7 @@ import User from "../../../models/AdminUser/User.js";
 import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolRegistrationValidator.js";
 import crypto from "crypto";
 import saltFunction from "../../../validators/saltFunction.js";
+import Counter from "../../../models/AdminUser/Counter.js";
 
 function generateRandomUserId() {
   return Math.floor(Math.random() * 1e10)
@@ -13,7 +14,7 @@ function generateRandomUserId() {
 async function create(req, res) {
   try {
     const { error } =
-      SchoolRegistrationValidator.SchoolRegistrationValidator.validate(
+      SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(
         req.body
       );
 
@@ -63,14 +64,16 @@ async function create(req, res) {
     const profileImagePath = "/Images/SchoolProfile";
     const profileImage = `${profileImagePath}/${req.files.profileImage[0].filename}`;
 
-    const lastSchool = await SchoolRegistration.findOne()
-      .sort({ id: -1 })
-      .limit(1);
-    const lastSchoolId = lastSchool ? lastSchool.schoolId : "SID00000";
-    const nextSchoolIdNumber = parseInt(lastSchoolId.replace("SID", "")) + 1;
-    const nextSchoolId = `SID${nextSchoolIdNumber.toString().padStart(5, "0")}`;
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "schoolIdCounter" },
+      { $inc: { sequenceValue: 1 } },
+      { new: true, upsert: true }
+    );
 
-    // Save the School Information
+    const nextSchoolId = `SID${counter.sequenceValue
+      .toString()
+      .padStart(5, "0")}`;
+
     const newSchoolRegistration = new SchoolRegistration({
       schoolId: nextSchoolId,
       schoolName,
@@ -87,32 +90,31 @@ async function create(req, res) {
 
     await newSchoolRegistration.save();
 
-    // Generate and save user credentials
     const roles = [
       { role: "IdForSchool", userRole: "School" },
       { role: "IdForAudit", userRole: "Audit" },
-      { role: "IdForUser1", userRole: "User" },
-      { role: "IdForUser2", userRole: "User" },
+      { role: "IdForUser 1", userRole: "User" },
+      { role: "IdForUser 2", userRole: "User" },
     ];
 
-    for (const { role, userRole } of roles) {
+    const usersToSave = roles.map(({ userRole }) => {
       const userId = generateRandomUserId();
       const password = crypto.randomBytes(8).toString("hex");
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
-      const newUser = new User({
+      return new User({
         schoolId: newSchoolRegistration._id,
         userId,
         password: hashedPassword,
         salt,
         role: userRole,
       });
+    });
 
-      await newUser.save();
-    }
+    await User.insertMany(usersToSave);
 
     return res.status(201).json({
-      message: "School Registration created successfully!",
+      message: "School Registration created successfully with users!",
       data: newSchoolRegistration,
       hasError: false,
     });

@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-const SchoolRegistrationValidator = Joi.object({
+const SchoolRegistrationCreateValidator = Joi.object({
   schoolName: Joi.string().required().messages({
     "string.base": "School name must be a string.",
     "string.empty": "School name cannot be empty.",
@@ -68,7 +68,7 @@ const SchoolRegistrationValidator = Joi.object({
 });
 
 const SchoolRegistrationUpdateValidator = Joi.object({
-  schoolName: Joi.string().required().messages({
+  schoolName: Joi.string().optional().messages({
     "string.base": "School name must be a string.",
     "string.empty": "School name cannot be empty.",
     "any.required": "School name is required.",
@@ -76,7 +76,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 
   schoolMobileNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .required()
+    .optional()
     .messages({
       "string.base": "School contact number must be a string.",
       "string.pattern.base": "School contact number must be a 10-digit number.",
@@ -85,7 +85,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 
   schoolEmail: Joi.string()
     .pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-    .required()
+    .optional()
     .messages({
       "string.base": "School email must be a string.",
       "string.empty": "School email cannot be empty.",
@@ -94,13 +94,13 @@ const SchoolRegistrationUpdateValidator = Joi.object({
       "any.required": "School email is required.",
     }),
 
-  schoolAddress: Joi.string().required().messages({
+  schoolAddress: Joi.string().optional().messages({
     "string.base": "School  address must be a string.",
     "string.empty": "School address cannot be empty.",
     "any.required": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
+  schoolLocation: Joi.string().optional().messages({
     "string.base": "School Location must be a string.",
     "string.empty": "School Location cannot be empty.",
     "any.required": "School Location is required.",
@@ -115,7 +115,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
       "College",
       "University"
     )
-    .required()
+    .optional()
     .messages({
       "string.base": "affiliationUpto must be a string.",
       "any.only":
@@ -125,7 +125,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 
   panNo: Joi.string()
     .pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)
-    .required()
+    .optional()
     .messages({
       "string.base": "PAN number must be a string.",
       "string.empty": "PAN number cannot be empty.",
@@ -135,6 +135,6 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 });
 
 export default {
-  SchoolRegistrationValidator,
+  SchoolRegistrationCreateValidator,
   SchoolRegistrationUpdateValidator,
 };
