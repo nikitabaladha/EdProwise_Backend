@@ -1,6 +1,6 @@
 // middleware/index,js
 
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 function middleware(req, res, next) {
   try {
@@ -24,4 +24,4 @@ function middleware(req, res, next) {
   }
 }
 
-module.exports = middleware;
+export default middleware;

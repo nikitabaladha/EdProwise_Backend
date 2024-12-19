@@ -1,12 +1,13 @@
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
+import dotenv from "dotenv";
+dotenv.config();
+import jwt from "jsonwebtoken";
+
+import User from "../../models/User.js";
+import saltFunction from "../../validators/saltFunction.js";
+import loginValidationSchema from "../../validators/loginValidationSchema.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 const jwtExpiration = process.env.JWT_EXPIRATION;
-
-const User = require("../../models/User");
-const saltFunction = require("../../validators/saltFunction");
-const loginValidationSchema = require("../../validators/loginValidationSchema.js");
 
 async function login(req, res) {
   try {
@@ -73,4 +74,4 @@ async function login(req, res) {
   }
 }
 
-module.exports = login;
+export default login;

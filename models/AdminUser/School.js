@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const SchoolSchema = new mongoose.Schema(
   {
@@ -26,30 +26,10 @@ const SchoolSchema = new mongoose.Schema(
     profileImage: {
         type: String, // Path to the uploaded image (file URL or filename)
         require:true,
-        validate: {
-            validator: function (v) {
-              if (v) {
-                const fileExtension = v.split('.').pop().toLowerCase();
-                return fileExtension === 'jpg' || fileExtension === 'jpeg'; // Only allows .jpg or .jpeg files
-              }
-              return true; // No validation if the value is null
-            },
-            message: "Only JPG files are allowed for profile image!",
-          },
     },
     affiliationCertificate: {
         type: String, // Path to the uploaded file (file URL or filename)
         require:true,
-        validate: {
-            validator: function (v) {
-              if (v) {
-                const fileExtension = v.split('.').pop().toLowerCase();
-                return fileExtension === 'pdf'; // Only allows .pdf files
-              }
-              return true; // No validation if the value is null
-            },
-            message: "Only PDF files are allowed for affiliation certificate!",
-          },
     },
     affiliationUpto: {
         type: String,
@@ -80,4 +60,4 @@ const SchoolSchema = new mongoose.Schema(
 
 const School = mongoose.model("School", SchoolSchema);
 
-module.exports = School;
+export default School;

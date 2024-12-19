@@ -1,252 +1,252 @@
-// import multer from "multer";
+import multer from "multer";
 
-// import path from "path";
+import path from "path";
 
-// import fs from "fs";
+import fs from "fs";
  
-// const signatureDir = "./Images/Signature";
+const signatureDir = "./Images/Signature";
 
-// const resultOfPreviousSchoolDir = "./Documents/ResultOfPreviousSchool";
+const resultOfPreviousSchoolDir = "./Documents/ResultOfPreviousSchool";
 
-// const tcCertificateDir = "./Documents/TcCertificate";
+const tcCertificateDir = "./Documents/TcCertificate";
 
-// const aadharOrPassportDir = "./Documents/AadharOrPassport";
+const aadharOrPassportDir = "./Documents/AadharOrPassport";
 
-// const castCertificateDir = "./Documents/CastCertificate";
+const castCertificateDir = "./Documents/CastCertificate";
  
-// if (!fs.existsSync(signatureDir)) {
+if (!fs.existsSync(signatureDir)) {
 
-//   fs.mkdirSync(signatureDir, { recursive: true });
+  fs.mkdirSync(signatureDir, { recursive: true });
 
-// }
+}
 
-// if (!fs.existsSync(resultOfPreviousSchoolDir)) {
+if (!fs.existsSync(resultOfPreviousSchoolDir)) {
 
-//   fs.mkdirSync(resultOfPreviousSchoolDir, { recursive: true });
+  fs.mkdirSync(resultOfPreviousSchoolDir, { recursive: true });
 
-// }
+}
 
-// if (!fs.existsSync(tcCertificateDir)) {
+if (!fs.existsSync(tcCertificateDir)) {
 
-//   fs.mkdirSync(tcCertificateDir, { recursive: true });
+  fs.mkdirSync(tcCertificateDir, { recursive: true });
 
-// }
+}
  
-// if (!fs.existsSync(aadharOrPassportDir)) {
+if (!fs.existsSync(aadharOrPassportDir)) {
 
-//   fs.mkdirSync(aadharOrPassportDir, { recursive: true });
+  fs.mkdirSync(aadharOrPassportDir, { recursive: true });
 
-// }
+}
  
-// if (!fs.existsSync(castCertificateDir)) {
+if (!fs.existsSync(castCertificateDir)) {
 
-//   fs.mkdirSync(castCertificateDir, { recursive: true });
+  fs.mkdirSync(castCertificateDir, { recursive: true });
 
-// }
+}
  
-// const upload = multer({
+const upload = multer({
 
-//   storage: multer.diskStorage({
+  storage: multer.diskStorage({
 
-//     destination: (req, file, cb) => {
+    destination: (req, file, cb) => {
 
-//       if (file.fieldname === "signatureUrl") {
+      if (file.fieldname === "signatureUrl") {
 
-//         cb(null, signatureDir);
+        cb(null, signatureDir);
 
-//       } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
+      } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
 
-//         cb(null, resultOfPreviousSchoolDir);
+        cb(null, resultOfPreviousSchoolDir);
 
-//       } else if (file.fieldname === "tcCertificateUrl") {
+      } else if (file.fieldname === "tcCertificateUrl") {
 
-//         cb(null, tcCertificateDir);
+        cb(null, tcCertificateDir);
 
-//       } else if (file.fieldname === "aadharOrPassportUrl") {
+      } else if (file.fieldname === "aadharOrPassportUrl") {
 
-//         cb(null, aadharOrPassportDir);
+        cb(null, aadharOrPassportDir);
 
-//       } else if (file.fieldname === "castCertificateUrl") {
+      } else if (file.fieldname === "castCertificateUrl") {
 
-//         cb(null, castCertificateDir);
+        cb(null, castCertificateDir);
 
-//       } else {
+      } else {
 
-//         cb(new Error("Invalid file fieldname"));
+        cb(new Error("Invalid file fieldname"));
 
-//       }
+      }
 
-//     },
+    },
 
-//     filename: (req, file, cb) => {
+    filename: (req, file, cb) => {
 
-//       try {
+      try {
 
-//         const sanitizedFilename = file.originalname
+        const sanitizedFilename = file.originalname
 
-//           .toLowerCase()
+          .toLowerCase()
 
-//           .replace(/[^a-z0-9]/g, "_")
+          .replace(/[^a-z0-9]/g, "_")
 
-//           .split(".")[0];
+          .split(".")[0];
 
-//         cb(
+        cb(
 
-//           null,
+          null,
 
-//           `${sanitizedFilename}_${Date.now()}${path.extname(file.originalname)}`
+          `${sanitizedFilename}_${Date.now()}${path.extname(file.originalname)}`
 
-//         );
+        );
 
-//       } catch (error) {
+      } catch (error) {
 
-//         console.error("Error generating filename:", error);
+        console.error("Error generating filename:", error);
 
-//         cb(new Error("Failed to generate filename"));
+        cb(new Error("Failed to generate filename"));
 
-//       }
+      }
 
-//     },
+    },
 
-//   }),
+  }),
  
-//   limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
  
-//   fileFilter: (req, file, cb) => {
+  fileFilter: (req, file, cb) => {
 
-//     if (file.fieldname === "signatureUrl") {
+    if (file.fieldname === "signatureUrl") {
 
-//       const allowedFileTypes = /jpeg|jpg|png/;
+      const allowedFileTypes = /jpeg|jpg|png/;
 
-//       const mimeType = allowedFileTypes.test(file.mimetype);
+      const mimeType = allowedFileTypes.test(file.mimetype);
 
-//       const extName = allowedFileTypes.test(
+      const extName = allowedFileTypes.test(
 
-//         path.extname(file.originalname).toLowerCase()
+        path.extname(file.originalname).toLowerCase()
 
-//       );
+      );
 
-//       if (mimeType && extName) {
+      if (mimeType && extName) {
 
-//         cb(null, true);
+        cb(null, true);
 
-//       } else {
+      } else {
 
-//         cb(new Error("Only JPEG, JPG, or PNG files are allowed for Signature"));
+        cb(new Error("Only JPEG, JPG, or PNG files are allowed for Signature"));
 
-//       }
+      }
 
-//     } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
+    } else if (file.fieldname === "resultOfPreviousSchoolUrl") {
 
-//       const allowedFileTypes = /application\/pdf/;
+      const allowedFileTypes = /application\/pdf/;
 
-//       const mimeType = allowedFileTypes.test(file.mimetype);
+      const mimeType = allowedFileTypes.test(file.mimetype);
  
-//       if (mimeType) {
+      if (mimeType) {
 
-//         cb(null, true);
+        cb(null, true);
 
-//       } else {
+      } else {
 
-//         cb(
+        cb(
 
-//           new Error(
+          new Error(
 
-//             "Only PDF files are allowed for Previous School Result certificates"
+            "Only PDF files are allowed for Previous School Result certificates"
 
-//           )
+          )
 
-//         );
+        );
 
-//       }
+      }
 
-//     } else if (file.fieldname === "tcCertificateUrl") {
+    } else if (file.fieldname === "tcCertificateUrl") {
 
-//       const allowedFileTypes =
+      const allowedFileTypes =
 
-//         /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
+        /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
 
-//       const mimeType = allowedFileTypes.test(file.mimetype);
+      const mimeType = allowedFileTypes.test(file.mimetype);
  
-//       if (mimeType) {
+      if (mimeType) {
 
-//         cb(null, true);
+        cb(null, true);
 
-//       } else {
+      } else {
 
-//         cb(
+        cb(
 
-//           new Error(
+          new Error(
 
-//             "Only PDF, DOC, or DOCX files are allowed for TC CertificateUrl"
+            "Only PDF, DOC, or DOCX files are allowed for TC CertificateUrl"
 
-//           )
+          )
 
-//         );
+        );
 
-//       }
+      }
 
-//     } else if (file.fieldname === "aadharOrPassportUrl") {
+    } else if (file.fieldname === "aadharOrPassportUrl") {
 
-//       const allowedFileTypes =
+      const allowedFileTypes =
 
-//         /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
+        /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
 
-//       const mimeType = allowedFileTypes.test(file.mimetype);
+      const mimeType = allowedFileTypes.test(file.mimetype);
  
-//       if (mimeType) {
+      if (mimeType) {
 
-//         cb(null, true);
+        cb(null, true);
 
-//       } else {
+      } else {
 
-//         cb(
+        cb(
 
-//           new Error(
+          new Error(
 
-//             "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
+            "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
 
-//           )
+          )
 
-//         );
+        );
 
-//       }
+      }
 
-//     } else if (file.fieldname === "castCertificateUrl") {
+    } else if (file.fieldname === "castCertificateUrl") {
 
-//       const allowedFileTypes =
+      const allowedFileTypes =
 
-//         /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
+        /application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/;
 
-//       const mimeType = allowedFileTypes.test(file.mimetype);
+      const mimeType = allowedFileTypes.test(file.mimetype);
  
-//       if (mimeType) {
+      if (mimeType) {
 
-//         cb(null, true);
+        cb(null, true);
 
-//       } else {
+      } else {
 
-//         cb(
+        cb(
 
-//           new Error(
+          new Error(
 
-//             "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
+            "Only PDF, DOC, or DOCX files are allowed for Aadhar Or Passport"
 
-//           )
+          )
 
-//         );
+        );
 
-//       }
+      }
 
-//     } else {
+    } else {
 
-//       cb(new Error("Invalid file fieldname"));
+      cb(new Error("Invalid file fieldname"));
 
-//     }
+    }
 
-//   },
+  },
 
-// });
+});
  
-// export default upload;
+export default upload;
  

@@ -1,7 +1,7 @@
-const User = require("../../models/User");
-const saltFunction = require("../../validators/saltFunction.js");
+import User from "../../models/User.js";
+import saltFunction from "../../validators/saltFunction.js";
 
-const signupValidationSchema = require("../../validators/signupValidationSchema.js");
+import signupValidationSchema from "../../validators/signupValidationSchema.js";
 
 async function signup(req, res) {
   try {
@@ -54,4 +54,4 @@ async function signup(req, res) {
   }
 }
 
-module.exports = signup;
+export default signup;

@@ -1,4 +1,4 @@
-const Joi = require("joi");
+import Joi  from "joi";
 
 const signupValidationSchema = Joi.object({
   firstName: Joi.string().required().messages({
@@ -35,4 +35,4 @@ const signupValidationSchema = Joi.object({
   }),
 });
 
-module.exports = signupValidationSchema;
+export default signupValidationSchema;

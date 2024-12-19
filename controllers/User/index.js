@@ -1,7 +1,7 @@
-const signup = require("./signup");
-const login = require("./login");
+import signup from "./signup.js";
+import login from "./login.js";
 
-module.exports = {
+export   {
   signup,
   login,
 };

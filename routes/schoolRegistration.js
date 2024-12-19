@@ -3,10 +3,9 @@ import Middleware from "../middleware/index.js";
 import upload from "../controllers/UploadFiles/SchoolFiles.js";
 
 import {
-  createRegistration,
-//   updateRegistrationById,
-//   getAllRegistration,
-//   deleteRegistrationById,
+  createSchoolRegistration,
+  updateSchoolRegistrationById,
+  deleteSchoolRegistrationById,
 } from "../controllers/AdminUser/SchoolRegistration/schoolIndex.js";
 
 const router = express.Router();
@@ -27,14 +26,14 @@ const uploadFiles = (req, res, next) => {
   });
 };
 
-router.post("/schoolregistration", uploadFiles, Middleware, createRegistration);
-// router.put(
-//   "/registration/:id",
-//   uploadFiles,
-//   Middleware,
-//   updateRegistrationById
-// );
+router.post("/schoolregistration", uploadFiles, Middleware, createSchoolRegistration);
+router.put(
+  "/schoolupdatedata/:id",
+  uploadFiles,
+  Middleware,
+  updateSchoolRegistrationById
+);
 // router.get("/registration", Middleware, getAllRegistration);
-// router.delete("/registration/:id", Middleware, deleteRegistrationById);
+router.delete("/registration/:id", Middleware, deleteSchoolRegistrationById);
 
 export default router;

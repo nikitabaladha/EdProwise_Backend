@@ -1,7 +1,8 @@
-const Joi = require("joi");
+// const Joi = require("joi");
+import Joi from "joi"
 
 const ClientRegistrationValidator = Joi.object({
-    schoolName: Joi.string().require().messages({
+    schoolName: Joi.string().required().messages({
         "string.base": "First name must be a string.",
         "string.empty": "First name cannot be empty.",
         "any.required": "First name is required.",
@@ -55,7 +56,7 @@ const ClientRegistrationValidator = Joi.object({
 });
 
 const ClientRegistrationUpdateValidator = Joi.object({
-    schoolName: Joi.string().require().messages({
+    schoolName: Joi.string().required().messages({
         "string.base": "First name must be a string.",
         "string.empty": "First name cannot be empty.",
         "any.required": "First name is required.",
@@ -106,5 +107,5 @@ const ClientRegistrationUpdateValidator = Joi.object({
   }),
 });
 
-module.exports = {ClientRegistrationValidator, ClientRegistrationUpdateValidator};
+export default  {ClientRegistrationValidator, ClientRegistrationUpdateValidator};
 

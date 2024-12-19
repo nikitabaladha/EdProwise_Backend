@@ -10,7 +10,6 @@ const schoolaffiliationCertificateDir = "./Documents/SchoolaffiliationCertificat
 
 const schoolPanFileDir = "./Documents/SchoolPanFile";
 
- 
 if (!fs.existsSync(schoolProfileDir)) {
 
   fs.mkdirSync(schoolProfileDir, { recursive: true });
