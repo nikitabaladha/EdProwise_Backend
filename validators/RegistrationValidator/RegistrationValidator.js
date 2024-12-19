@@ -1,4 +1,4 @@
-const Joi = require("joi");
+import Joi from "joi";
 
 const RegistrationCreateValidator = Joi.object({
   firstName: Joi.string().required().messages({
@@ -368,4 +368,4 @@ const RegistrationUpdateValidator = Joi.object({
   }),
 });
 
-module.exports = { RegistrationCreateValidator, RegistrationUpdateValidator };
+export default { RegistrationCreateValidator, RegistrationUpdateValidator };
