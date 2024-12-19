@@ -1,5 +1,7 @@
-const userRoutes = require("./user");
+import userRoutes from "./user.js";
+import schoolRegistration from "./schoolRegistration.js";
 
-module.exports = (app) => {
+export default (app) => {
   app.use("/api", userRoutes);
+  app.use("/api", schoolRegistration);
 };
