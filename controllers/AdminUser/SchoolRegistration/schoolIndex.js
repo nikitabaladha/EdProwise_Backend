@@ -1,9 +1,6 @@
-import createSchoolRegistration from "./schoolCreate.js";
-import updateSchoolRegistrationById from "./schoolUpdateId.js";
-import deleteSchoolRegistrationById from "./schoolDeleteById.js";
+import createSchool from "./create.js";
+import getAll from "./getAll.js";
+import updateById from "./updateById.js";
+import deleteById from "./deleteById.js";
 
-export {
-  createSchoolRegistration,
-  updateSchoolRegistrationById,
-  deleteSchoolRegistrationById,
-};
+export { createSchool, getAll, updateById, deleteById };
