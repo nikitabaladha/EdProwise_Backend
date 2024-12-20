@@ -119,6 +119,13 @@ async function create(req, res) {
       hasError: false,
     });
   } catch (error) {
+    if (error.code === 11000 && error.keyValue?.schoolEmail) {
+      return res.status(400).json({
+        hasError: true,
+        message: "This school is already registered with the provided email.",
+      });
+    }
+
     console.error("Error creating School Registration:", error);
     return res.status(500).json({
       message: "Failed to create School Registration.",

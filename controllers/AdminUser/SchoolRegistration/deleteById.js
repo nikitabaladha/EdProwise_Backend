@@ -21,10 +21,8 @@ async function deleteById(req, res) {
       });
     }
 
-    // Remove associated users if needed
     await User.deleteMany({ schoolId: id });
 
-    // Remove the school record
     await SchoolRegistration.findByIdAndDelete(id);
 
     return res.status(200).json({

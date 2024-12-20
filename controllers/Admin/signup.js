@@ -1,4 +1,4 @@
-import AdminUser from "../../models/AdminUser.js"; // Ensure the file extension is included
+import AdminUser from "../../models/AdminUser.js";
 import saltFunction from "../../validators/saltFunction.js";
 import signupValidationSchema from "../../validators/signupValidationSchema.js";
 
