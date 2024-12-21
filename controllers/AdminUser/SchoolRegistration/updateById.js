@@ -44,18 +44,22 @@ async function updateById(req, res) {
     } = req.body;
 
     const profileImagePath = "/Images/SchoolProfile";
-    const profileImage = req.files?.profileImage
+
+    const profileImage = req.files?.profileImage?.[0]?.filename
       ? `${profileImagePath}/${req.files.profileImage[0].filename}`
       : existingSchool.profileImage;
 
     const schoolAffiliationCertificatePath =
       "/Documents/SchoolAffiliationCertificate";
-    const affiliationCertificate = req.files?.affiliationCertificate
+
+    const affiliationCertificate = req.files?.affiliationCertificate?.[0]
+      ?.filename
       ? `${schoolAffiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`
       : existingSchool.affiliationCertificate;
 
     const schoolPanFilePath = "/Documents/SchoolPanFile";
-    const panFile = req.files?.panFile
+
+    const panFile = req.files?.panFile?.[0]?.filename
       ? `${schoolPanFilePath}/${req.files.panFile[0].filename}`
       : existingSchool.panFile;
 
