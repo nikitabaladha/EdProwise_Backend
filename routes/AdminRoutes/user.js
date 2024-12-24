@@ -15,6 +15,6 @@ router.get(
   getAllUsersBySchoolId
 );
 router.post("/create-user", Middleware, createUser);
-router.delete("/delete-user/:id", Middleware, deleteUser);
+router.delete("/user/:id", Middleware, deleteUser);
 
 export default router;
