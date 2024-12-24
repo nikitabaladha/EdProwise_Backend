@@ -1,14 +1,17 @@
 import SchoolRegistration from "../../../models/AdminUser/School.js";
 import User from "../../../models/AdminUser/User.js";
 import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolRegistrationValidator.js";
-import crypto from "crypto";
 import saltFunction from "../../../validators/saltFunction.js";
 import Counter from "../../../models/AdminUser/Counter.js";
 
-function generateRandomUserId() {
-  return Math.floor(Math.random() * 1e10)
-    .toString()
-    .padStart(10, "0");
+function generateRandomPassword(length = 10) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
 }
 
 async function create(req, res) {
@@ -91,15 +94,15 @@ async function create(req, res) {
     await newSchoolRegistration.save();
 
     const roles = [
-      { role: "IdForSchool", userRole: "School" },
-      { role: "IdForAudit", userRole: "Audit" },
-      { role: "IdForUser 1", userRole: "User" },
-      { role: "IdForUser 2", userRole: "User" },
+      { role: "School", prefix: "SchoolAdmin" },
+      { role: "Audit", prefix: "Audit" },
+      { role: "User", prefix: "User1" },
+      { role: "User", prefix: "User2" },
     ];
 
-    const usersToSave = roles.map(({ userRole }) => {
-      const userId = generateRandomUserId();
-      const password = crypto.randomBytes(8).toString("hex");
+    const usersToSave = roles.map(({ role, prefix }) => {
+      const userId = `${prefix}_${nextSchoolId}`;
+      const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
       return new User({
@@ -107,7 +110,7 @@ async function create(req, res) {
         userId,
         password: hashedPassword,
         salt,
-        role: userRole,
+        role,
       });
     });
 
