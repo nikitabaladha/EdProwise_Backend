@@ -94,7 +94,7 @@ async function create(req, res) {
     await newSchoolRegistration.save();
 
     const roles = [
-      { role: "School", prefix: "SchoolAdmin" },
+      { role: "School", prefix: "SAdmin" },
       { role: "Audit", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },

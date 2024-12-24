@@ -4,6 +4,7 @@ import Middleware from "../../middleware/index.js";
 import {
   getAllUsersBySchoolId,
   createUser,
+  deleteUser,
 } from "../../controllers/AdminUser/User/index.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get(
   getAllUsersBySchoolId
 );
 router.post("/create-user", Middleware, createUser);
+router.delete("/delete-user/:id", Middleware, deleteUser);
 
 export default router;
