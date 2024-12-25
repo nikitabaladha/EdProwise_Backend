@@ -9,7 +9,6 @@ const schoolPanFileDir = "./Documents/SchoolPanFile";
 const schoolAffiliationImageDir = "./Images/SchoolAffiliationCertificate";
 const schoolPanImageDir = "./Images/SchoolPanFile";
 
-// Create directories if they don't exist
 if (!fs.existsSync(schoolProfileDir)) {
   fs.mkdirSync(schoolProfileDir, { recursive: true });
 }
@@ -74,7 +73,7 @@ const schoolFilesUpload = multer({
     },
   }),
 
-  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
+  limits: { fileSize: 2 * 1024 * 1024 },
 
   fileFilter: (req, file, cb) => {
     if (file.fieldname === "profileImage") {
