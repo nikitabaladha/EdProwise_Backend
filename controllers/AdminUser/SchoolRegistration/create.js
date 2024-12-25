@@ -57,15 +57,19 @@ async function create(req, res) {
       });
     }
 
-    const schoolPanFilePath = "/Documents/SchoolPanFile";
-    const panFile = `${schoolPanFilePath}/${req.files.panFile[0].filename}`;
-
-    const schoolAffiliationCertificatePath =
-      "/Documents/SchoolAffiliationCertificate";
-    const affiliationCertificate = `${schoolAffiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`;
-
     const profileImagePath = "/Images/SchoolProfile";
     const profileImage = `${profileImagePath}/${req.files.profileImage[0].filename}`;
+
+    const affiliationCertificatePath =
+      req.files.affiliationCertificate[0].mimetype.startsWith("image/")
+        ? "/Images/SchoolAffiliationCertificate"
+        : "/Documents/SchoolAffiliationCertificate";
+    const affiliationCertificate = `${affiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`;
+
+    const panFilePath = req.files.panFile[0].mimetype.startsWith("image/")
+      ? "/Images/SchoolPanFile"
+      : "/Documents/SchoolPanFile";
+    const panFile = `${panFilePath}/${req.files.panFile[0].filename}`;
 
     const counter = await Counter.findOneAndUpdate(
       { _id: "schoolIdCounter" },
@@ -136,5 +140,4 @@ async function create(req, res) {
     });
   }
 }
-
 export default create;
