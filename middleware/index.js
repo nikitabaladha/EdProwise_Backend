@@ -1,8 +1,6 @@
-// middleware/index,js
-
 import jwt from "jsonwebtoken";
 
-function middleware(req, res, next) {
+function AdminMiddleware(req, res, next) {
   try {
     const token = req.headers.access_token;
 
@@ -14,7 +12,15 @@ function middleware(req, res, next) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (!decoded || decoded.role !== "Admin") {
+      return res
+        .status(401)
+        .json({ hasError: true, message: "Only Admin is Authorized" });
+    }
+
     req.user = decoded;
+
+    console.log("Admin UserDetails:", req.user);
 
     next();
   } catch (error) {
@@ -24,4 +30,4 @@ function middleware(req, res, next) {
   }
 }
 
-export default middleware;
+export default AdminMiddleware;

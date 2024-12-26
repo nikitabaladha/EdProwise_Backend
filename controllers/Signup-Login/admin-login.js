@@ -9,9 +9,11 @@ dotenv.config();
 const jwtSecret = process.env.JWT_SECRET;
 const jwtExpiration = process.env.JWT_EXPIRATION;
 
-async function login(req, res) {
+async function adminLogin(req, res) {
   try {
-    const { error } = loginValidationSchema.validate(req.body);
+    const { error } = loginValidationSchema.AdminLoginValidationSchema.validate(
+      req.body
+    );
 
     if (error?.details?.length) {
       const errorMessages = error.details[0].message;
@@ -73,4 +75,4 @@ async function login(req, res) {
   }
 }
 
-export default login;
+export default adminLogin;

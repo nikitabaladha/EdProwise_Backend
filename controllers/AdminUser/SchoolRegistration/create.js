@@ -99,7 +99,7 @@ async function create(req, res) {
 
     const roles = [
       { role: "School", prefix: "SAdmin" },
-      { role: "Audit", prefix: "Audit" },
+      { role: "Auditor", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },
     ];
@@ -108,6 +108,8 @@ async function create(req, res) {
       const userId = `${prefix}_${nextSchoolId}`;
       const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
+
+      console.log("userId", userId, "password", password);
 
       return new User({
         schoolId: newSchoolRegistration._id,

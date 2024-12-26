@@ -2,7 +2,7 @@ import AdminUser from "../../models/AdminUser.js";
 import saltFunction from "../../validators/saltFunction.js";
 import signupValidationSchema from "../../validators/signupValidationSchema.js";
 
-async function signup(req, res) {
+async function adminSignup(req, res) {
   try {
     const { error } = signupValidationSchema.validate(req.body);
 
@@ -53,4 +53,4 @@ async function signup(req, res) {
   }
 }
 
-export default signup;
+export default adminSignup;

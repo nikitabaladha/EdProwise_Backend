@@ -1,5 +1,5 @@
 import express from "express";
-import Middleware from "../../middleware/index.js";
+import AdminMiddleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SchoolFiles.js";
 
 import {
@@ -27,9 +27,9 @@ const uploadFiles = (req, res, next) => {
   });
 };
 
-router.post("/school", uploadFiles, Middleware, createSchool);
-router.get("/school", Middleware, getAll);
-router.put("/school/:id", uploadFiles, Middleware, updateById);
-router.delete("/school/:id", Middleware, deleteById);
+router.post("/school", uploadFiles, AdminMiddleware, createSchool);
+router.get("/school", AdminMiddleware, getAll);
+router.put("/school/:id", uploadFiles, AdminMiddleware, updateById);
+router.delete("/school/:id", AdminMiddleware, deleteById);
 
 export default router;
