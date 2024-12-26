@@ -10,9 +10,9 @@ const router = express.Router();
 
 // Middleware to handle file uploads
 
-router.post("/subscription",  createSubscription);
-router.get("/subscription", getAll);
-router.put("/subscription/:id", updateById);
-router.delete("/subscription/:id", deleteById);
+router.post("/subscription", Middleware, createSubscription);
+router.get("/subscription", Middleware, getAll);
+router.put("/subscription/:id",Middleware, updateById);
+router.delete("/subscription/:id",Middleware, deleteById);
 
 export default router;

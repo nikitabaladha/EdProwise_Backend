@@ -7,6 +7,7 @@ import {
   getAll,
   updateById,
   deleteById,
+  getById,
 } from "../../controllers/AdminUser/SchoolRegistration/schoolIndex.js";
 
 const router = express.Router();
@@ -29,6 +30,7 @@ const uploadFiles = (req, res, next) => {
 
 router.post("/school", uploadFiles, createSchool);
 router.get("/school", getAll);
+router.get("/school/:id",Middleware,getById)
 router.put("/school/:id", uploadFiles, Middleware, updateById);
 router.delete("/school/:id", Middleware, deleteById);
 
