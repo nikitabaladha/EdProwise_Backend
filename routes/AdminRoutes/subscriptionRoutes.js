@@ -7,6 +7,7 @@ import {
   updateById,
   deleteById,
   getBySchoolId,
+  getById,
 } from "../../controllers/AdminUser/Subscription/index.js";
 
 const router = express.Router();
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post("/subscription", AdminMiddleware, createSubscription);
 router.get("/subscription", AdminMiddleware, getAll);
+router.get("/subscription-by-id/:id", AdminMiddleware, getById);
 router.get("/subscription/:schoolId", AdminMiddleware, getBySchoolId);
 router.put("/subscription/:id", AdminMiddleware, updateById);
 router.delete("/subscription/:id", AdminMiddleware, deleteById);

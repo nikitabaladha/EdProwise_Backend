@@ -24,7 +24,7 @@ async function getBySchoolId(req, res) {
 
     // Map the subscriptions to the desired format
     const formattedData = subscriptions.map((subscription) => ({
-      _id: subscription._id,
+      id: subscription._id,
       schoolId: subscription.schoolId._id,
       subscriptionFor: subscription.subscriptionFor,
       subscriptionStartDate: subscription.subscriptionStartDate,

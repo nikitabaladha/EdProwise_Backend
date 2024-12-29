@@ -1,43 +1,55 @@
 import Subscription from "../../../models/AdminUser/Subscription.js";
 
-async function getAllSubscription(req, res) {
+async function getById(req, res) {
   try {
-    const subscriptions = await Subscription.find().populate(
+    const { id } = req.params; // Extract the ID from the request parameters
+
+    // Validate if ID is provided
+    if (!id) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Subscription ID is required.",
+      });
+    }
+
+    // Find the subscription by ID and populate the school data
+    const subscription = await Subscription.findById(id).populate(
       "schoolId",
       "schoolId schoolName schoolMobileNo schoolEmail profileImage schoolAddress schoolLocation"
     );
 
-    if (!subscriptions.length) {
+    // Check if the subscription exists
+    if (!subscription) {
       return res.status(404).json({
         hasError: true,
-        message: "No Subscriptions found",
-        data: [],
+        message: "Subscription not found with the provided ID.",
       });
     }
 
-    const formattedSubscriptions = subscriptions.map((subscription) => ({
+    // Format the subscription data
+    const formattedSubscription = {
       id: subscription._id,
       subscriptionFor: subscription.subscriptionFor,
       subscriptionStartDate: subscription.subscriptionStartDate,
       subscriptionNoOfMonth: subscription.subscriptionNoOfMonth,
       monthlyRate: subscription.monthlyRate,
-      schoolId: subscription.schoolId?._id || null,
-      sID: subscription.schoolId?.schoolId || null,
+      schoolID: subscription.schoolId?._id || null,
+      schoolId: subscription.schoolId?.schoolId || null,
       schoolName: subscription.schoolId?.schoolName || null,
       schoolMobileNo: subscription.schoolId?.schoolMobileNo || null,
       schoolEmail: subscription.schoolId?.schoolEmail || null,
       profileImage: subscription.schoolId?.profileImage || null,
       schoolAddress: subscription.schoolId?.schoolAddress || null,
       schoolLocation: subscription.schoolId?.schoolLocation || null,
-    }));
+    };
 
     return res.status(200).json({
       hasError: false,
-      message: "Subscriptions retrieved successfully",
-      data: formattedSubscriptions,
+      message: "Subscription retrieved successfully",
+      data: formattedSubscription,
     });
   } catch (error) {
-    console.error("Error in getAllSubscription API:", error.message);
+    console.error("Error in getSubscriptionById API:", error.message);
     return res.status(500).json({
       hasError: true,
       message: "Server error",
@@ -46,4 +58,4 @@ async function getAllSubscription(req, res) {
   }
 }
 
-export default getAllSubscription;
+export default getById;
