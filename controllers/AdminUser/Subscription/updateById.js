@@ -42,6 +42,21 @@ async function updateById(req, res) {
       monthlyRate,
     } = req.body;
 
+    // Check for duplicate subscription
+    const duplicateSubscription = await Subscription.findOne({
+      schoolId,
+      subscriptionFor,
+      _id: { $ne: id }, // Exclude the current subscription being updated
+    });
+
+    if (duplicateSubscription) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "School with the same subscription module already exists. Please choose another module.",
+      });
+    }
+
     // Prepare updated data
     const updatedData = {
       schoolId: schoolId || existingSubscription.schoolId,
