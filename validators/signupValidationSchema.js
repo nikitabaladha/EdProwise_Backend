@@ -1,4 +1,4 @@
-import Joi  from "joi";
+import Joi from "joi";
 
 const signupValidationSchema = Joi.object({
   firstName: Joi.string().required().messages({
@@ -27,12 +27,15 @@ const signupValidationSchema = Joi.object({
     "any.required": "Password is required.",
   }),
 
-  role: Joi.string().required().messages({
-    "string.base": "Role must be a string.",
-    "any.only":
-      "Role must be one of the following: SuperAdmin, Admin, Teacher, Student, Audit.",
-    "any.required": "Role is required.",
-  }),
+  // role: Joi.string()
+  //   .valid("SuperAdmin", "Admin", "Teacher", "Student", "Audit")
+  //   .required()
+  //   .messages({
+  //     "string.base": "Role must be a string.",
+  //     "any.only":
+  //       "Role must be one of the following: SuperAdmin, Admin, Teacher, Student, Audit.",
+  //     "any.required": "Role is required.",
+  //   }),
 });
 
 export default signupValidationSchema;

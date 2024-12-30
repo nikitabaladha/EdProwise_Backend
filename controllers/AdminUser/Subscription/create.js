@@ -1,42 +1,47 @@
 import Subscription from "../../../models/AdminUser/Subscription.js";
 import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
-import School from "../../../models/AdminUser/School.js"
+import School from "../../../models/AdminUser/School.js";
 // Create a new subscription
 async function create(req, res) {
   try {
     // 1. Validate incoming request data
-    const { error} = SubscriptionValidator.SubscriptionCreateValidator.validate(req.body);
-    
+    const { error } =
+      SubscriptionValidator.SubscriptionCreateValidator.validate(req.body);
+
     if (error) {
-        const errorMessages = error.details.map((err) => err.message).join(", ");
-        return res.status(400).json({
-          hasError: true,
-          message: "id ",errorMessages,
-        });
-      }
-  
+      const errorMessages = error.details.map((err) => err.message).join(", ");
+      return res.status(400).json({
+        hasError: true,
+        message: "id ",
+        errorMessages,
+      });
+    }
 
     const {
-        schoolId,
-        subscriptionFor,
-        subscriptionStartDate,
-        subscriptionNoOfMonth,
-        monthlyRate
-      } = req.body;
+      schoolId,
+      subscriptionFor,
+      subscriptionStartDate,
+      subscriptionNoOfMonth,
+      monthlyRate,
+    } = req.body;
 
-      const schoolExists = await School.findById(schoolId);
-      if (!schoolExists) {
+    const schoolExists = await School.findById(schoolId);
+    if (!schoolExists) {
       return res.status(404).json({
         hasError: true,
         message: "school not found.",
       });
     }
 
-    const existingSubscription = await Subscription.findOne({ schoolId, subscriptionFor });
+    const existingSubscription = await Subscription.findOne({
+      schoolId,
+      subscriptionFor,
+    });
     if (existingSubscription) {
       return res.status(400).json({
         hasError: true,
-        message: "A subscription already exists for this school and subscription type.",
+        message:
+          "A subscription already exists for this school and subscription type.",
       });
     }
 
@@ -69,4 +74,3 @@ async function create(req, res) {
 }
 
 export default create;
-

@@ -1,10 +1,12 @@
 import Subscription from "../../../models/AdminUser/Subscription.js";
- 
+
 async function getAllSubscription(req, res) {
   try {
-    const subscriptions = await Subscription.find()
-      .populate("schoolId", "schoolId schoolName schoolMobileNo schoolEmail profileImage schoolAddress schoolLocation"); // Populate the schoolId reference
- 
+    const subscriptions = await Subscription.find().populate(
+      "schoolId",
+      "schoolId schoolName schoolMobileNo schoolEmail profileImage schoolAddress schoolLocation"
+    );
+
     if (!subscriptions.length) {
       return res.status(404).json({
         hasError: true,
@@ -12,25 +14,23 @@ async function getAllSubscription(req, res) {
         data: [],
       });
     }
- 
+
     const formattedSubscriptions = subscriptions.map((subscription) => ({
       id: subscription._id,
-      subscriptionFor:subscription.subscriptionFor,
+      subscriptionFor: subscription.subscriptionFor,
       subscriptionStartDate: subscription.subscriptionStartDate,
       subscriptionNoOfMonth: subscription.subscriptionNoOfMonth,
-      monthlyRate:subscription.monthlyRate,
-      schoolID: subscription.schoolId?._id || null,
-      schoolId: subscription.schoolId?.schoolId || null,
+      monthlyRate: subscription.monthlyRate,
+      schoolId: subscription.schoolId?._id || null,
+      sID: subscription.schoolId?.schoolId || null,
       schoolName: subscription.schoolId?.schoolName || null,
       schoolMobileNo: subscription.schoolId?.schoolMobileNo || null,
       schoolEmail: subscription.schoolId?.schoolEmail || null,
       profileImage: subscription.schoolId?.profileImage || null,
-      schoolAddress: subscription.schoolId?.schoolAddress|| null,
-      schoolLocation: subscription.schoolId?.schoolLocation|| null,
-      // schoolAddress: subscription.schoolId?.schoolAddress|| null,
-      
+      schoolAddress: subscription.schoolId?.schoolAddress || null,
+      schoolLocation: subscription.schoolId?.schoolLocation || null,
     }));
- 
+
     return res.status(200).json({
       hasError: false,
       message: "Subscriptions retrieved successfully",
@@ -45,6 +45,5 @@ async function getAllSubscription(req, res) {
     });
   }
 }
- 
+
 export default getAllSubscription;
- 

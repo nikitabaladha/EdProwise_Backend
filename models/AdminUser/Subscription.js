@@ -3,19 +3,14 @@ import mongoose from "mongoose";
 const SubscriptionSchema = new mongoose.Schema(
   {
     schoolId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "School",
-        required: true,
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
     subscriptionFor: {
-        type: String,
-        required: true,
-        enum: [
-          "Fees",
-          "Payroll",
-          "Finance",
-          "School Management",
-        ],
+      type: String,
+      required: true,
+      enum: ["Fees", "Payroll", "Finance", "School Management"],
     },
     subscriptionStartDate: {
       type: Date,
@@ -34,5 +29,7 @@ const SubscriptionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+SubscriptionSchema.index({ schoolId: 1, subscriptionFor: 1 }, { unique: true });
 
 export default mongoose.model("Subscription", SubscriptionSchema);

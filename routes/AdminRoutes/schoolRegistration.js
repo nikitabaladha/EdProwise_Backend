@@ -1,5 +1,5 @@
 import express from "express";
-import Middleware from "../../middleware/index.js";
+import AdminMiddleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SchoolFiles.js";
 
 import {
@@ -8,7 +8,7 @@ import {
   updateById,
   deleteById,
   getById,
-} from "../../controllers/AdminUser/SchoolRegistration/schoolIndex.js";
+} from "../../controllers/AdminUser/SchoolRegistration/index.js";
 
 const router = express.Router();
 
@@ -28,10 +28,10 @@ const uploadFiles = (req, res, next) => {
   });
 };
 
-router.post("/school", uploadFiles, createSchool);
-router.get("/school", getAll);
-router.get("/school/:id",Middleware,getById)
-router.put("/school/:id", uploadFiles, Middleware, updateById);
-router.delete("/school/:id", Middleware, deleteById);
+router.post("/school", uploadFiles, AdminMiddleware, createSchool);
+router.get("/school", AdminMiddleware, getAll);
+router.get("/school/:id", AdminMiddleware, getById);
+router.put("/school/:id", uploadFiles, AdminMiddleware, updateById);
+router.delete("/school/:id", AdminMiddleware, deleteById);
 
 export default router;

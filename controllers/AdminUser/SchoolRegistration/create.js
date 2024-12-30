@@ -1,14 +1,17 @@
 import SchoolRegistration from "../../../models/AdminUser/School.js";
 import User from "../../../models/AdminUser/User.js";
 import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolRegistrationValidator.js";
-import crypto from "crypto";
 import saltFunction from "../../../validators/saltFunction.js";
 import Counter from "../../../models/AdminUser/Counter.js";
 
-function generateRandomUserId() {
-  return Math.floor(Math.random() * 1e10)
-    .toString()
-    .padStart(10, "0");
+function generateRandomPassword(length = 10) {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
 }
 
 async function create(req, res) {
@@ -54,15 +57,19 @@ async function create(req, res) {
       });
     }
 
-    const schoolPanFilePath = "/Documents/SchoolPanFile";
-    const panFile = `${schoolPanFilePath}/${req.files.panFile[0].filename}`;
-
-    const schoolAffiliationCertificatePath =
-      "/Documents/SchoolAffiliationCertificate";
-    const affiliationCertificate = `${schoolAffiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`;
-
     const profileImagePath = "/Images/SchoolProfile";
     const profileImage = `${profileImagePath}/${req.files.profileImage[0].filename}`;
+
+    const affiliationCertificatePath =
+      req.files.affiliationCertificate[0].mimetype.startsWith("image/")
+        ? "/Images/SchoolAffiliationCertificate"
+        : "/Documents/SchoolAffiliationCertificate";
+    const affiliationCertificate = `${affiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`;
+
+    const panFilePath = req.files.panFile[0].mimetype.startsWith("image/")
+      ? "/Images/SchoolPanFile"
+      : "/Documents/SchoolPanFile";
+    const panFile = `${panFilePath}/${req.files.panFile[0].filename}`;
 
     const counter = await Counter.findOneAndUpdate(
       { _id: "schoolIdCounter" },
@@ -91,23 +98,25 @@ async function create(req, res) {
     await newSchoolRegistration.save();
 
     const roles = [
-      { role: "IdForSchool", userRole: "School" },
-      { role: "IdForAudit", userRole: "Audit" },
-      { role: "IdForUser 1", userRole: "User" },
-      { role: "IdForUser 2", userRole: "User" },
+      { role: "School", prefix: "SAdmin" },
+      { role: "Auditor", prefix: "Audit" },
+      { role: "User", prefix: "User1" },
+      { role: "User", prefix: "User2" },
     ];
 
-    const usersToSave = roles.map(({ userRole }) => {
-      const userId = generateRandomUserId();
-      const password = crypto.randomBytes(8).toString("hex");
+    const usersToSave = roles.map(({ role, prefix }) => {
+      const userId = `${prefix}_${nextSchoolId}`;
+      const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
+
+      console.log("userId", userId, "password", password);
 
       return new User({
         schoolId: newSchoolRegistration._id,
         userId,
         password: hashedPassword,
         salt,
-        role: userRole,
+        role,
       });
     });
 
@@ -133,5 +142,4 @@ async function create(req, res) {
     });
   }
 }
-
 export default create;
