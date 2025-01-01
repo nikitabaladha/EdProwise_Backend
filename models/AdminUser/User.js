@@ -7,8 +7,6 @@ const UserSchema = new mongoose.Schema(
       required: true,
       ref: "School",
     },
-
-    // i want to loin on the basis of this below userId
     userId: {
       type: String,
       required: true,
