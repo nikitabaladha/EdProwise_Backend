@@ -3,6 +3,7 @@ import {
   adminSignup,
   adminLogin,
   userLogin,
+  userSignup,
 } from "../controllers/Signup-Login/index.js";
 
 const router = express.Router();
@@ -11,5 +12,6 @@ const router = express.Router();
 router.post("/admin-signup", adminSignup);
 router.post("/admin-login", adminLogin);
 router.post("/user-login", userLogin);
+router.post("/user-signup", userSignup);
 
 export default router;

@@ -4,7 +4,8 @@ import signupValidationSchema from "../../validators/signupValidationSchema.js";
 
 async function adminSignup(req, res) {
   try {
-    const { error } = signupValidationSchema.validate(req.body);
+    const { error } =
+      signupValidationSchema.signupValidationSchemaForAdmin.validate(req.body);
 
     if (error?.details?.length) {
       const errorMessages = error.details[0].message;

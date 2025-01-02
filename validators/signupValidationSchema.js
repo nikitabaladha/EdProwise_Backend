@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-const signupValidationSchema = Joi.object({
+const signupValidationSchemaForAdmin = Joi.object({
   firstName: Joi.string().required().messages({
     "string.base": "First name must be a string.",
     "string.empty": "First name cannot be empty.",
@@ -26,16 +26,30 @@ const signupValidationSchema = Joi.object({
     "string.min": "Password must be at least 6 characters long.",
     "any.required": "Password is required.",
   }),
-
-  // role: Joi.string()
-  //   .valid("SuperAdmin", "Admin", "Teacher", "Student", "Audit")
-  //   .required()
-  //   .messages({
-  //     "string.base": "Role must be a string.",
-  //     "any.only":
-  //       "Role must be one of the following: SuperAdmin, Admin, Teacher, Student, Audit.",
-  //     "any.required": "Role is required.",
-  //   }),
 });
 
-export default signupValidationSchema;
+const signupValidationSchemaForUser = Joi.object({
+  userId: Joi.string().required().messages({
+    "string.base": "UserId is required.",
+    "string.empty": "UserId cannot be empty.",
+    "any.required": "UserId is required.",
+  }),
+
+  password: Joi.string().min(6).required().messages({
+    "string.base": "Password must be a string.",
+    "string.empty": "Password cannot be empty.",
+    "string.min": "Password must be at least 6 characters long.",
+    "any.required": "Password is required.",
+  }),
+
+  role: Joi.string().required().valid("School", "Seller").messages({
+    "string.empty": "Role cannot be empty.",
+    "any.required": "Role cannot be empty.",
+    "any.only": "Role  must be 'School', or 'Seller.'",
+  }),
+});
+
+export default {
+  signupValidationSchemaForAdmin,
+  signupValidationSchemaForUser,
+};
