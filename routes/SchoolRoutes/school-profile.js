@@ -2,7 +2,7 @@ import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SchoolFiles.js";
 
-import { updateById } from "../../controllers/SchoolProfile/index.js";
+import { updateById, getById } from "../../controllers/SchoolProfile/index.js";
 
 const router = express.Router();
 
@@ -28,5 +28,6 @@ router.put(
   roleBasedMiddleware("School"),
   updateById
 );
+router.get("/school-profile/:id", roleBasedMiddleware("School"), getById);
 
 export default router;

@@ -12,7 +12,15 @@ async function updateById(req, res) {
       });
     }
 
-    const userId = req.user.id;
+    const { schoolId: tokenSchoolId } = req.user;
+
+    if (id !== tokenSchoolId) {
+      return res.status(403).json({
+        hasError: true,
+        message:
+          "Access denied: You do not have permission to update this school.",
+      });
+    }
 
     const { error } =
       SchoolRegistrationValidator.SchoolProfileUpdateValidator.validate(
@@ -30,14 +38,6 @@ async function updateById(req, res) {
       return res.status(404).json({
         hasError: true,
         message: "School not found with the provided ID.",
-      });
-    }
-
-    if (userId.toString() !== existingSchool._id.toString()) {
-      return res.status(403).json({
-        hasError: true,
-        message:
-          "Access denied: You do not have permission to update this school profile.",
       });
     }
 

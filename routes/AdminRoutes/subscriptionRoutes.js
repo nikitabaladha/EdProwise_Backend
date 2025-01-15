@@ -1,5 +1,5 @@
 import express from "express";
-import AdminMiddleware from "../../middleware/index.js";
+import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
   createSubscription,
@@ -14,11 +14,15 @@ const router = express.Router();
 
 // Middleware to handle file uploads
 
-router.post("/subscription", AdminMiddleware, createSubscription);
-router.get("/subscription", AdminMiddleware, getAll);
-router.get("/subscription-by-id/:id", AdminMiddleware, getById);
-router.get("/subscription/:schoolId", AdminMiddleware, getBySchoolId);
-router.put("/subscription/:id", AdminMiddleware, updateById);
-router.delete("/subscription/:id", AdminMiddleware, deleteById);
+router.post("/subscription", roleBasedMiddleware("Admin"), createSubscription);
+router.get("/subscription", roleBasedMiddleware("Admin"), getAll);
+router.get("/subscription-by-id/:id", roleBasedMiddleware("Admin"), getById);
+router.get(
+  "/subscription/:schoolId",
+  roleBasedMiddleware("Admin"),
+  getBySchoolId
+);
+router.put("/subscription/:id", roleBasedMiddleware("Admin"), updateById);
+router.delete("/subscription/:id", roleBasedMiddleware("Admin"), deleteById);
 
 export default router;
