@@ -7,14 +7,14 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    schoolMobileNo: {
+    panFile: {
       type: String,
-      required: true,
+      require: true,
     },
-    schoolEmail: {
+    panNo: {
       type: String,
-      required: true,
-      unique: true,
+      trim: true,
+      require: true,
     },
     schoolAddress: {
       type: String,
@@ -24,10 +24,34 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    landMark: {
+      type: String,
+    },
+    schoolPincode: {
+      type: String,
+    },
+    deliveryAddress: {
+      type: String,
+    },
+    schoolMobileNo: {
+      type: String,
+      required: true,
+    },
+    schoolAlternateContactNo: {
+      type: String,
+    },
+    schoolEmail: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     profileImage: {
       type: String,
       require: true,
     },
+    contactPersonName: { type: String },
+    numberOfStudents: { type: Number },
+    principalName: { type: String },
     affiliationCertificate: {
       type: String,
       require: true,
@@ -43,15 +67,6 @@ const SchoolSchema = new mongoose.Schema(
         "College",
         "University",
       ],
-    },
-    panNo: {
-      type: String,
-      trim: true,
-      require: true,
-    },
-    panFile: {
-      type: String,
-      require: true,
     },
   },
   {

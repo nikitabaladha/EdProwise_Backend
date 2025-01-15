@@ -16,16 +16,19 @@ function generateRandomPassword(length = 10) {
 
 async function create(req, res) {
   try {
+    // Validate the request body using the SchoolRegistrationCreateValidator//+
     const { error } =
       SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(
         req.body
       );
 
+    // If validation errors exist, return a 400 status code with the error messages//+
     if (error?.details?.length) {
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
+    // Extract the school registration data from the request body//+
     const {
       schoolName,
       schoolMobileNo,
@@ -36,6 +39,7 @@ async function create(req, res) {
       panNo,
     } = req.body;
 
+    // Check if the required files (profile image, affiliation certificate, and pan file) are present in the request//+
     if (!req.files || !req.files.profileImage) {
       return res.status(400).json({
         hasError: true,
@@ -57,6 +61,7 @@ async function create(req, res) {
       });
     }
 
+    // Generate file paths for the uploaded files//+
     const profileImagePath = "/Images/SchoolProfile";
     const profileImage = `${profileImagePath}/${req.files.profileImage[0].filename}`;
 
@@ -71,16 +76,19 @@ async function create(req, res) {
       : "/Documents/SchoolPanFile";
     const panFile = `${panFilePath}/${req.files.panFile[0].filename}`;
 
+    // Update the schoolIdCounter in the Counter collection to generate the next school ID//+
     const counter = await Counter.findOneAndUpdate(
       { _id: "schoolIdCounter" },
       { $inc: { sequenceValue: 1 } },
       { new: true, upsert: true }
     );
 
+    // Generate the next school ID//+
     const nextSchoolId = `SID${counter.sequenceValue
       .toString()
       .padStart(5, "0")}`;
 
+    // Create a new SchoolRegistration document//+
     const newSchoolRegistration = new SchoolRegistration({
       schoolId: nextSchoolId,
       schoolName,
@@ -95,8 +103,10 @@ async function create(req, res) {
       panFile,
     });
 
+    // Save the new SchoolRegistration document//+
     await newSchoolRegistration.save();
 
+    // Define the roles and prefixes for the associated users//+
     const roles = [
       { role: "School", prefix: "SAdmin" },
       { role: "Auditor", prefix: "Audit" },
@@ -104,6 +114,7 @@ async function create(req, res) {
       { role: "User", prefix: "User2" },
     ];
 
+    // Generate and save the associated users//+
     const usersToSave = roles.map(({ role, prefix }) => {
       const userId = `${prefix}_${nextSchoolId}`;
       const password = generateRandomPassword();
@@ -122,12 +133,14 @@ async function create(req, res) {
 
     await User.insertMany(usersToSave);
 
+    // Return a 201 status code with a success message and the new SchoolRegistration document//+
     return res.status(201).json({
       message: "School Registration created successfully with users!",
       data: newSchoolRegistration,
       hasError: false,
     });
   } catch (error) {
+    // If the school email is already registered, return a 400 status code with an error message//+
     if (error.code === 11000 && error.keyValue?.schoolEmail) {
       return res.status(400).json({
         hasError: true,
@@ -135,6 +148,7 @@ async function create(req, res) {
       });
     }
 
+    // Log the error and return a 500 status code with an error message//+
     console.error("Error creating School Registration:", error);
     return res.status(500).json({
       message: "Failed to create School Registration.",
@@ -142,4 +156,5 @@ async function create(req, res) {
     });
   }
 }
+
 export default create;
