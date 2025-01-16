@@ -33,6 +33,15 @@ const SchoolSchema = new mongoose.Schema(
     deliveryAddress: {
       type: String,
     },
+    deliveryLocation: {
+      type: String,
+    },
+    deliveryLandMark: {
+      type: String,
+    },
+    deliveryPincode: {
+      type: String,
+    },
     schoolMobileNo: {
       type: String,
       required: true,

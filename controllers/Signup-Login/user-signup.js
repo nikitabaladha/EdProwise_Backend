@@ -52,6 +52,7 @@ async function userSignup(req, res) {
         password: hashedPassword,
         salt,
         role,
+        status: "Pending",
       });
 
       await schoolUser.save();
@@ -63,6 +64,7 @@ async function userSignup(req, res) {
           schoolId: nextSchoolId,
           userId: schoolUser.userId,
           role: schoolUser.role,
+          status: schoolUser.status,
         },
       });
     } else if (role === "Seller") {

@@ -142,12 +142,14 @@ async function userLogin(req, res) {
         schoolId: user.schoolId,
         userId: user.userId,
         role: user.role,
+        status: user.status,
       };
     } else if (schemaType === "Seller") {
       tokenPayload = {
         id: user._id,
         userId: user.userId,
         role: user.role,
+        status: user.status,
       };
     }
 

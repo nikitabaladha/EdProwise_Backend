@@ -1,5 +1,5 @@
 import express from "express";
-import AdminMiddleware from "../../middleware/index.js";
+import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
   getAllUsersBySchoolId,
@@ -10,11 +10,11 @@ import {
 const router = express.Router();
 
 router.get(
-  "/get-all-user-by-school-Id/:schoolId",
-  AdminMiddleware,
+  "/get-all-user-by-school-id/:schoolId",
+  roleBasedMiddleware("Admin"),
   getAllUsersBySchoolId
 );
-router.post("/create-user", AdminMiddleware, createUser);
-router.delete("/user/:id", AdminMiddleware, deleteUser);
+router.post("/create-user", roleBasedMiddleware("Admin"), createUser);
+router.delete("/user/:id", roleBasedMiddleware("Admin"), deleteUser);
 
 export default router;

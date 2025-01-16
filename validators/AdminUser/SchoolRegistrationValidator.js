@@ -139,6 +139,10 @@ const SchoolProfileUpdateValidator = Joi.object({
     "string.base": "School name must be a string.",
     "string.empty": "School name cannot be empty.",
   }),
+  panFile: Joi.string().optional().messages({}),
+
+  profileImage: Joi.string().optional().messages({}),
+  affiliationCertificate: Joi.string().optional().messages({}),
 
   panNo: Joi.string()
     .pattern(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)
@@ -172,6 +176,21 @@ const SchoolProfileUpdateValidator = Joi.object({
   deliveryAddress: Joi.string().optional().messages({
     "string.base": "School delivery address must be a string.",
     "string.empty": "School delivery address cannot be empty.",
+  }),
+
+  deliveryLocation: Joi.string().optional().messages({
+    "string.base": "Delivery Location must be a string.",
+    "string.empty": "Delivery Location cannot be empty.",
+  }),
+
+  deliveryLandMark: Joi.string().optional().messages({
+    "string.base": "Delivery Landmark must be a string.",
+    "string.empty": "Delivery Landmark cannot be empty.",
+  }),
+
+  deliveryPincode: Joi.string().optional().messages({
+    "string.base": "Delivery pincode must be a string.",
+    "string.empty": "Delivery pincode cannot be empty.",
   }),
 
   schoolMobileNo: Joi.string()

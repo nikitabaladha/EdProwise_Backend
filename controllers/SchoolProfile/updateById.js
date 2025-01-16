@@ -1,4 +1,5 @@
 import SchoolRegistration from "../../models/AdminUser/School.js";
+import User from "../../models/AdminUser/User.js";
 import SchoolRegistrationValidator from "../../validators/AdminUser/SchoolRegistrationValidator.js";
 
 async function updateById(req, res) {
@@ -12,9 +13,9 @@ async function updateById(req, res) {
       });
     }
 
-    const { schoolId: tokenSchoolId } = req.user;
+    const { schoolId: tokenSchoolId, role } = req.user;
 
-    if (id !== tokenSchoolId) {
+    if (id !== tokenSchoolId || role !== "School") {
       return res.status(403).json({
         hasError: true,
         message:
@@ -45,13 +46,16 @@ async function updateById(req, res) {
       schoolName,
       schoolMobileNo,
       schoolEmail,
-      schoolAddress,
-      schoolLocation,
       affiliationUpto,
       panNo,
+      schoolAddress,
+      schoolLocation,
       landMark,
       schoolPincode,
       deliveryAddress,
+      deliveryLocation,
+      deliveryLandMark,
+      deliveryPincode,
       schoolAlternateContactNo,
       contactPersonName,
       numberOfStudents,
@@ -94,6 +98,9 @@ async function updateById(req, res) {
       landMark: landMark || existingSchool.landMark,
       schoolPincode: schoolPincode || existingSchool.schoolPincode,
       deliveryAddress: deliveryAddress || existingSchool.deliveryAddress,
+      deliveryLocation: deliveryLocation || existingSchool.deliveryLocation,
+      deliveryLandMark: deliveryLandMark || existingSchool.deliveryLandMark,
+      deliveryPincode: deliveryPincode || existingSchool.deliveryPincode,
       schoolAlternateContactNo:
         schoolAlternateContactNo || existingSchool.schoolAlternateContactNo,
       contactPersonName: contactPersonName || existingSchool.contactPersonName,
@@ -106,6 +113,12 @@ async function updateById(req, res) {
     const updatedSchool = await SchoolRegistration.findByIdAndUpdate(
       id,
       { $set: updatedData },
+      { new: true }
+    );
+
+    await User.findOneAndUpdate(
+      { schoolId: id, role: "School" },
+      { status: "Completed" },
       { new: true }
     );
 

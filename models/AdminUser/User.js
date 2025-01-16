@@ -25,6 +25,11 @@ const UserSchema = new mongoose.Schema(
       enum: ["School", "Auditor", "User"],
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,

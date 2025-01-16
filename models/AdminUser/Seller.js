@@ -20,6 +20,11 @@ const SellerSchema = new mongoose.Schema(
       enum: ["Seller"],
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,

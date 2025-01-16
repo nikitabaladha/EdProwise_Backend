@@ -50,6 +50,7 @@ async function createUser(req, res) {
       password: hashedPassword,
       salt,
       role: "User",
+      status: "Pending",
     });
 
     await newUser.save();
@@ -61,6 +62,7 @@ async function createUser(req, res) {
         schoolId: newUser.schoolId,
         userId: newUser.userId,
         role: newUser.role,
+        status: newUser.status,
         createdAt: newUser.createdAt,
       },
       hasError: false,
