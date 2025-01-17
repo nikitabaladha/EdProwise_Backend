@@ -6,6 +6,7 @@ import schoolProfileRoutes from "./SchoolRoutes/school-profile.js";
 import userRoutes from "./AdminRoutes/user.js";
 import schoolUserRoutes from "./SchoolRoutes/school-user.js";
 import subscriptionRoutes from "./AdminRoutes/subscriptionRoutes.js";
+import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -15,4 +16,5 @@ export default (app) => {
   app.use("/api", userRoutes);
   app.use("/api", subscriptionRoutes);
   app.use("/api", schoolProfileRoutes);
+  app.use("/api", MainCategoryCategorySubCategoryRoutes);
 };

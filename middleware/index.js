@@ -46,9 +46,8 @@ const roleBasedMiddleware = (...allowedRoles) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded; // Attach user info to the request
+      req.user = decoded;
 
-      // Check if the user's role is one of the allowed roles
       if (!allowedRoles.includes(req.user.role)) {
         return res.status(403).json({
           hasError: true,
@@ -57,7 +56,7 @@ const roleBasedMiddleware = (...allowedRoles) => {
         });
       }
 
-      next(); // User has the required role, proceed to the next middleware or route handler
+      next();
     } catch (error) {
       console.error(error.message);
       return res.status(401).json({ hasError: true, message: "Invalid token" });
