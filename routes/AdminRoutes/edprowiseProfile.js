@@ -6,6 +6,7 @@ import upload from "../../controllers/UploadFiles/EdprowiseFiles.js";
 import {
   create,
   getById,
+  updateById,
 } from "../../controllers/AdminUser/EdprowiseProfile/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -53,6 +54,12 @@ router.post(
   uploadFiles,
   roleBasedMiddleware("Admin"),
   create
+);
+router.put(
+  "/edprowise-profile/:id",
+  uploadFiles,
+  roleBasedMiddleware("Admin"),
+  updateById
 );
 router.get("/edprowise-profile", roleBasedMiddleware("Admin"), getById);
 export default router;
