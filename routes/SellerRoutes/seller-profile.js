@@ -3,7 +3,7 @@ const router = express.Router();
 import roleBasedMiddleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SellerFiles.js";
 
-import { create } from "../../controllers/SellerProfile/index.js";
+import { create, getById } from "../../controllers/SellerProfile/index.js";
 
 const uploadFiles = (req, res, next) => {
   const fileSizeLimits = {
@@ -47,5 +47,6 @@ router.post(
   roleBasedMiddleware("Seller"),
   create
 );
+router.get("/seller-profile", roleBasedMiddleware("Seller"), getById);
 
 export default router;
