@@ -29,6 +29,11 @@ const AdminUserSchema = new mongoose.Schema(
       default: "Admin",
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,

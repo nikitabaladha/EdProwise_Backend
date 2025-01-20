@@ -9,6 +9,8 @@ import SellerRoutes from "./SellerRoutes/seller-profile.js";
 import SellerUserRoutes from "./SellerRoutes/seller-user.js";
 import subscriptionRoutes from "./AdminRoutes/subscriptionRoutes.js";
 import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
+import EdprowiseProfileRoutes from "./AdminRoutes/edprowiseProfile.js";
+import AdminUserRoutes from "./AdminRoutes/admin.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -21,4 +23,6 @@ export default (app) => {
   app.use("/api", subscriptionRoutes);
   app.use("/api", schoolProfileRoutes);
   app.use("/api", MainCategoryCategorySubCategoryRoutes);
+  app.use("/api", EdprowiseProfileRoutes);
+  app.use("/api", AdminUserRoutes);
 };

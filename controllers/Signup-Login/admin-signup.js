@@ -31,6 +31,7 @@ async function adminSignup(req, res) {
       password: hashedPassword,
       salt,
       role: "Admin",
+      status: "Pending",
     });
 
     // Remove sensitive information before sending the response
@@ -46,6 +47,7 @@ async function adminSignup(req, res) {
         email: user.email,
         role: user.role,
         _id: user.id,
+        status: user.status,
       },
     });
   } catch (error) {

@@ -73,6 +73,7 @@ async function userSignup(req, res) {
         password: hashedPassword,
         salt,
         role,
+        status: "Pending",
       });
 
       await seller.save();
@@ -83,6 +84,7 @@ async function userSignup(req, res) {
         data: {
           userId: seller.userId,
           role: seller.role,
+          status: seller.status,
         },
       });
     }

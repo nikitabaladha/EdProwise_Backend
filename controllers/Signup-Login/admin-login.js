@@ -65,6 +65,8 @@ async function adminLogin(req, res) {
         lastName: user.lastName,
         role: user.role,
         email: user.email,
+        status: user.status,
+        id: user._id,
       },
       hasError: false,
       message: "Login Successful",
