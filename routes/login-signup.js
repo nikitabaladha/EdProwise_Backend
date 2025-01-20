@@ -7,6 +7,7 @@ import {
   userLogin,
   userSignup,
   changeSellerPassword,
+  changeSchoolAdminPassword,
 } from "../controllers/Signup-Login/index.js";
 
 const router = express.Router();
@@ -21,6 +22,12 @@ router.put(
   "/change-seller-password",
   roleBasedMiddleware("Seller"),
   changeSellerPassword
+);
+
+router.put(
+  "/change-school-admin-password",
+  roleBasedMiddleware("School"),
+  changeSchoolAdminPassword
 );
 
 export default router;
