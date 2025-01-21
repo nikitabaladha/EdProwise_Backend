@@ -1,4 +1,4 @@
 import create from "./create.js";
 import getById from "./getById.js";
-
-export { create, getById };
+import updateById from "./updateById.js";
+export { create, getById, updateById };

@@ -4,6 +4,7 @@ import userLogin from "./user-login.js";
 import userSignup from "./user-signup.js";
 import changeSellerPassword from "./changeSellerPassword.js";
 import changeSchoolAdminPassword from "./changeSchoolAdminPassword.js";
+import changeEdprowiseAdminPassword from "./changeEdprowiseAdminPassword.js";
 
 export {
   adminSignup,
@@ -12,4 +13,5 @@ export {
   userSignup,
   changeSellerPassword,
   changeSchoolAdminPassword,
+  changeEdprowiseAdminPassword,
 };
