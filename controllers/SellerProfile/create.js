@@ -22,7 +22,30 @@ async function create(req, res) {
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
-    const { companyName, companyType, dealingProducts } = req.body;
+    const {
+      companyName,
+      companyType,
+      gstin,
+      pan,
+      tan,
+      cin,
+      address,
+      cityStateCountry,
+      landmark,
+      pincode,
+      contactNo,
+      alternateContactNo,
+      emailId,
+      accountNo,
+      ifsc,
+      accountHolderName,
+      bankName,
+      branchName,
+      noOfEmployees,
+      ceoName,
+      turnover,
+      dealingProducts,
+    } = req.body;
 
     if (!req.files || !req.files.sellerProfile) {
       return res.status(400).json({
@@ -38,8 +61,26 @@ async function create(req, res) {
       sellerId,
       companyName,
       companyType,
-
+      gstin,
+      pan,
+      tan,
+      cin,
+      address,
+      cityStateCountry,
+      landmark,
+      pincode,
+      contactNo,
+      alternateContactNo,
+      emailId,
       sellerProfile,
+      accountNo,
+      ifsc,
+      accountHolderName,
+      bankName,
+      branchName,
+      noOfEmployees,
+      ceoName,
+      turnover,
       dealingProducts,
     });
 

@@ -5,10 +5,6 @@ async function changeAdminPassword(req, res) {
   try {
     const userId = req.user?.id;
 
-    console.log("UserId of admin: " + userId);
-
-    // UserId of admin: 67647356fa2ca805743b0940
-
     if (!userId) {
       return res.status(401).json({
         hasError: true,
