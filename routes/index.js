@@ -12,6 +12,8 @@ import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCat
 import EdprowiseProfileRoutes from "./AdminRoutes/edprowiseProfile.js";
 import AdminUserRoutes from "./AdminRoutes/admin.js";
 
+import QuoteRoutes from "./SchoolRoutes/quote.js";
+
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", registrationRoutes);
@@ -25,4 +27,6 @@ export default (app) => {
   app.use("/api", MainCategoryCategorySubCategoryRoutes);
   app.use("/api", EdprowiseProfileRoutes);
   app.use("/api", AdminUserRoutes);
+
+  app.use("/api", QuoteRoutes);
 };
