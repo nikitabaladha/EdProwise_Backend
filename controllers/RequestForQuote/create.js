@@ -1,6 +1,7 @@
 import Product from "../../models/AdminUser/Product.js";
 import QuoteRequest from "../../models/AdminUser/QuoteRequest.js";
 import ProductValidator from "../../validators/Product.js";
+import mongoose from "mongoose";
 
 function generateEnquiryNumber() {
   const prefix = "ENQ";
@@ -10,6 +11,8 @@ function generateEnquiryNumber() {
 }
 
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const schoolId = req.user?.id;
 
@@ -52,13 +55,25 @@ async function create(req, res) {
 
     const enquiryNumber = generateEnquiryNumber();
 
-    for (const product of products) {
+    for (let index = 0; index < products.length; index++) {
+      const product = products[index];
       const { categoryId, subCategoryId, description, unit, quantity } =
         product;
 
-      const productImage = req.files?.productImage
-        ? `${productImagePath}/${req.files.productImage[0].filename}`
-        : null;
+      let productImage;
+      if (
+        req.files &&
+        req.files.productImage &&
+        Array.isArray(req.files.productImage) &&
+        req.files.productImage[index]
+      ) {
+        productImage = `${productImagePath}/${req.files.productImage[index].filename}`;
+      }
+
+      // const productImage =
+      //   req.files.productImage && req.files.productImage[index]
+      //     ? `${productImagePath}/${req.files.productImage[index].filename}`
+      //     : null;
 
       const newProduct = new Product({
         schoolId,
@@ -71,7 +86,7 @@ async function create(req, res) {
         enquiryNumber,
       });
 
-      await newProduct.save();
+      await newProduct.save({ session });
       savedProducts.push(newProduct);
     }
 
@@ -96,8 +111,10 @@ async function create(req, res) {
       edprowiseStatus: "Quote Requested From Buyer",
     });
 
-    await newQuoteRequest.save();
+    await newQuoteRequest.save({ session });
 
+    await session.commitTransaction();
+    session.endSession();
     return res.status(201).json({
       hasError: false,
       message: "Products created successfully and Quote Request stored.",
@@ -107,6 +124,8 @@ async function create(req, res) {
       },
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error creating Product:", error.message);
     return res.status(500).json({
       hasError: true,

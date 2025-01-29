@@ -15,14 +15,16 @@ const productImageUpload = multer({
     },
     filename: (req, file, cb) => {
       try {
-        const sanitizedFilename = file.originalname
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "_")
-          .split(".")[0];
-        cb(
-          null,
-          `${sanitizedFilename}_${Date.now()}${path.extname(file.originalname)}`
+        const originalNameWithoutExt = path.basename(
+          file.originalname,
+          path.extname(file.originalname)
         );
+
+        const newFilename = `${originalNameWithoutExt}_${Date.now()}${path.extname(
+          file.originalname
+        )}`;
+
+        cb(null, newFilename);
       } catch (error) {
         cb(new Error("Failed to generate filename"));
       }

@@ -34,7 +34,7 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
     quantity: { type: Number, required: true },
-    enquiryNumber: { type: String, unique: true },
+    enquiryNumber: { type: String },
   },
   {
     timestamps: true,

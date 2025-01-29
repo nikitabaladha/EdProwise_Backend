@@ -10,9 +10,6 @@ const createProduct = Joi.object({
   description: Joi.string().optional().messages({
     "string.base": "Description must be a string.",
   }),
-  // productImage: Joi.string().optional().messages({
-  //   "string.base": "Product Image must be a string.",
-  // }),
   unit: Joi.string()
     .valid(
       "Piece",
