@@ -14,7 +14,7 @@ async function create(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const schoolId = req.user?.id;
+    const schoolId = req.user?.schoolId;
 
     if (!schoolId) {
       return res.status(401).json({
@@ -107,8 +107,8 @@ async function create(req, res) {
       deliveryPincode,
       expectedDeliveryDate,
       buyerStatus: "Quote Requested",
-      supplierStatus: "Quote Requested From EdProwise",
-      edprowiseStatus: "Quote Requested From Buyer",
+      supplierStatus: "Quote Requested",
+      edprowiseStatus: "Quote Requested",
     });
 
     await newQuoteRequest.save({ session });
