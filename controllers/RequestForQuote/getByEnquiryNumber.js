@@ -14,12 +14,26 @@ async function getByEnquiryNumber(req, res) {
       });
     }
 
-    const products = await Product.find({ enquiryNumber });
+    const products = await Product.find({ enquiryNumber })
+      .populate("categoryId", "categoryName")
+      .populate("subCategoryId", "subCategoryName");
 
-    const formattedQuoteRequest = {
-      id: quoteRequest._id,
-      schoolId: quoteRequest.schoolId,
-      enquiryNumber: quoteRequest.enquiryNumber,
+    const formattedProducts = products.map((product) => ({
+      id: product._id,
+      schoolId: product.schoolId,
+      categoryId: product.categoryId?._id || null,
+      categoryName: product.categoryId?.categoryName || null,
+      subCategoryId: product.subCategoryId?._id || null,
+      subCategoryName: product.subCategoryId?.subCategoryName || null,
+      description: product.description,
+      productImage: product.productImage,
+      unit: product.unit,
+      quantity: product.quantity,
+      enquiryNumber: product.enquiryNumber,
+
+      // quote request table data
+
+      quoteRequestId: quoteRequest._id,
       deliveryAddress: quoteRequest.deliveryAddress,
       deliveryLocation: quoteRequest.deliveryLocation,
       deliveryLandMark: quoteRequest.deliveryLandMark,
@@ -30,27 +44,12 @@ async function getByEnquiryNumber(req, res) {
       edprowiseStatus: quoteRequest.edprowiseStatus,
       createdAt: quoteRequest.createdAt,
       updatedAt: quoteRequest.updatedAt,
-    };
-
-    const formattedProducts = products.map((product) => ({
-      id: product._id,
-      schoolId: product.schoolId,
-      categoryId: product.categoryId,
-      subCategoryId: product.subCategoryId,
-      description: product.description,
-      productImage: product.productImage,
-      unit: product.unit,
-      quantity: product.quantity,
-      enquiryNumber: product.enquiryNumber,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
     }));
 
     return res.status(200).json({
       hasError: false,
       message: "Data fetched successfully.",
       data: {
-        quoteRequest: formattedQuoteRequest,
         products: formattedProducts,
       },
     });

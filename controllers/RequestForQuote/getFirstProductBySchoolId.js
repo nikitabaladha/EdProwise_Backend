@@ -19,9 +19,16 @@ async function getBySchoolId(req, res) {
       quoteRequests.map(async (quote) => {
         const products = await Product.find({
           enquiryNumber: quote.enquiryNumber,
-        }).exec();
+        })
+          .populate("categoryId", "categoryName")
+          .populate("subCategoryId", "subCategoryName")
+          .exec();
+
+        // Get only the first product if available
+        const firstProduct = products.length > 0 ? products[0] : null;
+
         return {
-          _id: quote._id,
+          id: quote._id,
           schoolId: quote.schoolId,
           enquiryNumber: quote.enquiryNumber,
           deliveryAddress: quote.deliveryAddress,
@@ -34,7 +41,24 @@ async function getBySchoolId(req, res) {
           edprowiseStatus: quote.edprowiseStatus,
           createdAt: quote.createdAt,
           updatedAt: quote.updatedAt,
-          products: products,
+          // product fields
+          categoryId: firstProduct ? firstProduct.categoryId._id : null,
+          categoryName: firstProduct
+            ? firstProduct.categoryId.categoryName
+            : null,
+          subCategoryId: firstProduct ? firstProduct.subCategoryId._id : null,
+          subCategoryName: firstProduct
+            ? firstProduct.subCategoryId.subCategoryName
+            : null,
+          description: firstProduct ? firstProduct.description : null,
+          productImage: firstProduct ? firstProduct.productImage : null,
+          unit: firstProduct ? firstProduct.unit : null,
+          quantity: firstProduct ? firstProduct.quantity : null,
+          productEnquiryNumber: firstProduct
+            ? firstProduct.enquiryNumber
+            : null,
+          productCreatedAt: firstProduct ? firstProduct.createdAt : null,
+          productUpdatedAt: firstProduct ? firstProduct.updatedAt : null,
         };
       })
     );

@@ -6,7 +6,8 @@ import upload from "../../controllers/UploadFiles/ProductFiles.js";
 import {
   create,
   getByEnquiryNumber,
-  getBySchoolId,
+  getFirstProductBySchoolId,
+  getFirstProductForAdmin,
 } from "../../controllers/RequestForQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -40,11 +41,20 @@ router.post(
   create
 );
 
-router.get("/get-quote", roleBasedMiddleware("School"), getBySchoolId);
+router.get(
+  "/get-quote",
+  roleBasedMiddleware("School"),
+  getFirstProductBySchoolId
+);
+
+router.get(
+  "/get-quote-for-admin",
+  roleBasedMiddleware("Admin"),
+  getFirstProductForAdmin
+);
 
 router.get(
   "/get-quote/:enquiryNumber",
-
   roleBasedMiddleware("School", "Admin", "Seller"),
   getByEnquiryNumber
 );

@@ -1,5 +1,12 @@
 import create from "./create.js";
-import getByEnquiryNumber from "./getByEnquiryNumber.js";
-import getBySchoolId from "./getBySchoolId.js";
 
-export { create, getByEnquiryNumber, getBySchoolId };
+import getFirstProductBySchoolId from "./getFirstProductBySchoolId.js";
+import getByEnquiryNumber from "./getByEnquiryNumber.js";
+import getFirstProductForAdmin from "./getFirstProductForAdmin.js";
+
+export {
+  create,
+  getFirstProductBySchoolId,
+  getByEnquiryNumber,
+  getFirstProductForAdmin,
+};
