@@ -36,6 +36,7 @@ const QuoteRequestSchema = new mongoose.Schema(
     supplierStatus: {
       type: String,
       enum: [
+        "Quote Requested",
         "Quote Requested From EdProwise",
         "Quote Submitted",
         "Order Received From EdProwise",
@@ -49,6 +50,7 @@ const QuoteRequestSchema = new mongoose.Schema(
     edprowiseStatus: {
       type: String,
       enum: [
+        "Quote Requested",
         "Quote Requested From Buyer",
         "Quote Requested To Supplier",
         "Quote Received From Supplier",

@@ -8,6 +8,8 @@ import {
   getByEnquiryNumber,
   getFirstProductBySchoolId,
   getFirstProductForAdmin,
+  getByEnquiryNumberForSeller,
+  getFirstProductForSeller,
 } from "../../controllers/RequestForQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -42,7 +44,7 @@ router.post(
 );
 
 router.get(
-  "/get-quote",
+  "/get-quote-list-for-school",
   roleBasedMiddleware("School"),
   getFirstProductBySchoolId
 );
@@ -54,9 +56,21 @@ router.get(
 );
 
 router.get(
+  "/get-quote-list-for-seller",
+  roleBasedMiddleware("Seller"),
+  getFirstProductForSeller
+);
+
+router.get(
   "/get-quote/:enquiryNumber",
-  roleBasedMiddleware("School", "Admin", "Seller"),
+  roleBasedMiddleware("School", "Admin"),
   getByEnquiryNumber
+);
+
+router.get(
+  "/get-according-to-category-filter/:enquiryNumber",
+  roleBasedMiddleware("Seller"),
+  getByEnquiryNumberForSeller
 );
 
 export default router;
