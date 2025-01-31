@@ -15,6 +15,8 @@ async function create(req, res) {
 
     const { enquiryNumber, products } = req.body;
 
+    console.log("req body from prepare quote", req.body);
+
     if (!enquiryNumber) {
       return res.status(400).json({
         hasError: true,
@@ -63,7 +65,7 @@ async function create(req, res) {
         enquiryNumber,
         prepareQuoteImage,
         subcategoryName: product.subcategoryName,
-        quantity: product.quantity,
+        // quantity: product.quantity,
       });
 
       const savedEntry = await newPrepareQuote.save();

@@ -10,7 +10,7 @@ const PrepareQuoteSchema = new mongoose.Schema(
     enquiryNumber: { type: String, required: true, ref: "QuoteRequest" },
     prepareQuoteImage: { type: String },
     subcategoryName: { type: String },
-    quantity: { type: Number, required: true },
+    // quantity: { type: Number },
   },
   {
     timestamps: true,
