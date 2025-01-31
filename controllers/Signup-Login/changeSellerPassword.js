@@ -1,4 +1,4 @@
-import Seller from "../../models/AdminUser/Seller.js";
+import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 
 async function changeSellerPassword(req, res) {

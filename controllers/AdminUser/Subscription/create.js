@@ -1,7 +1,7 @@
-import Subscription from "../../../models/AdminUser/Subscription.js";
+import Subscription from "../../../models/Subscription.js";
 import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
-import School from "../../../models/AdminUser/School.js";
-// Create a new subscription
+import School from "../../../models/School.js";
+
 async function create(req, res) {
   try {
     // 1. Validate incoming request data

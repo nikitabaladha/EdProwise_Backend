@@ -1,4 +1,4 @@
-import User from "../../../models/AdminUser/User.js";
+import User from "../../../models/User.js";
 
 async function deleteUser(req, res) {
   try {

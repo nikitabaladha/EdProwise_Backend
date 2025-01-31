@@ -1,5 +1,5 @@
-import Product from "../../models/AdminUser/Product.js";
-import QuoteRequest from "../../models/AdminUser/QuoteRequest.js";
+import Product from "../../models/Product.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
 import ProductValidator from "../../validators/Product.js";
 import mongoose from "mongoose";
 

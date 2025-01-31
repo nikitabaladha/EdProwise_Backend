@@ -1,4 +1,4 @@
-import Subscription from "../../../models/AdminUser/Subscription.js";
+import Subscription from "../../../models/Subscription.js";
 
 async function getAllSubscription(req, res) {
   try {

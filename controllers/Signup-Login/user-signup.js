@@ -1,6 +1,6 @@
-import Counter from "../../models/AdminUser/Counter.js";
-import User from "../../models/AdminUser/User.js";
-import Seller from "../../models/AdminUser/Seller.js";
+import Counter from "../../models/Counter.js";
+import User from "../../models/User.js";
+import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import signupValidationSchema from "../../validators/signupValidationSchema.js";
 

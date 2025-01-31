@@ -1,4 +1,4 @@
-import Category from "../../../../models/AdminUser/Category.js";
+import Category from "../../../../models/Category.js";
 import CategoryValidator from "../../../../validators/AdminUser/CategoryValidator.js";
 
 async function create(req, res) {

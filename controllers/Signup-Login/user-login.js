@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import User from "../../models/AdminUser/User.js";
-import Seller from "../../models/AdminUser/Seller.js";
+import User from "../../models/User.js";
+import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import loginValidationSchema from "../../validators/loginValidationSchema.js";
 

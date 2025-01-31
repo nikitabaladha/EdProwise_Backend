@@ -1,4 +1,4 @@
-import SubCategory from "../../../../models/AdminUser/SubCategory.js";
+import SubCategory from "../../../../models/SubCategory.js";
 
 async function getByCategoryId(req, res) {
   try {

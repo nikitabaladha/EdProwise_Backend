@@ -1,5 +1,5 @@
-import SchoolRegistration from "../../models/AdminUser/School.js";
-import User from "../../models/AdminUser/User.js";
+import SchoolRegistration from "../../models/School.js";
+import User from "../../models/User.js";
 import SchoolRegistrationValidator from "../../validators/AdminUser/SchoolRegistrationValidator.js";
 
 async function updateById(req, res) {

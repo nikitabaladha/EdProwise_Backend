@@ -1,10 +1,18 @@
-import QuoteRequest from "../../models/AdminUser/QuoteRequest.js";
-import Product from "../../models/AdminUser/Product.js";
-import SellerProfile from "../../models/AdminUser/SellerProfile.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
+import Product from "../../models/Product.js";
+import SellerProfile from "../../models/SellerProfile.js";
 
 async function getProductsForSeller(req, res) {
   try {
     const sellerId = req.user?.id;
+
+    if (!sellerId) {
+      return res.status(401).json({
+        hasError: true,
+        message:
+          "Access denied: You do not have permission to request for a quote.",
+      });
+    }
 
     // Fetch the seller's profile to get the dealing products
     const sellerProfile = await SellerProfile.findOne({ sellerId })

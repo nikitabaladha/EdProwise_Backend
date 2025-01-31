@@ -1,8 +1,8 @@
-import Subscription from "../../../models/AdminUser/Subscription.js";
+import Subscription from "../../../models/Subscription.js";
 
 async function getById(req, res) {
   try {
-    const { id } = req.params; // Extract the ID from the request parameters
+    const { id } = req.params;
 
     // Validate if ID is provided
     if (!id) {

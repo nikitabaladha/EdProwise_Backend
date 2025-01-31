@@ -1,4 +1,4 @@
-import Subscription from "../../../models/AdminUser/Subscription.js";
+import Subscription from "../../../models/Subscription.js";
 import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
 
 async function updateById(req, res) {

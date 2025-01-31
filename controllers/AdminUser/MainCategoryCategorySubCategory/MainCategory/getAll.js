@@ -1,4 +1,4 @@
-import MainCategory from "../../../../models/AdminUser/MainCategory.js";
+import MainCategory from "../../../../models/MainCategory.js";
 
 async function getAll(req, res) {
   try {

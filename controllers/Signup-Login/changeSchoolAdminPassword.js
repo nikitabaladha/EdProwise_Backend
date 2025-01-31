@@ -1,4 +1,4 @@
-import User from "../../models/AdminUser/User.js";
+import User from "../../models/User.js";
 import saltFunction from "../../validators/saltFunction.js";
 
 async function changeSchoolAdminPassword(req, res) {

@@ -1,4 +1,4 @@
-import SellerProfile from "../../models/AdminUser/SellerProfile.js";
+import SellerProfile from "../../models/SellerProfile.js";
 import SellerProfileValidator from "../../validators/Seller/SellerProfile.js";
 
 async function update(req, res) {

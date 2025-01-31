@@ -1,4 +1,4 @@
-import EdprowiseProfile from "../../../models/AdminUser/EdprowiseProfile.js";
+import EdprowiseProfile from "../../../models/EdprowiseProfile.js";
 import EdprowiseProfileValidator from "../../../validators/AdminUser/EdprowiseProfile.js";
 import AdminUser from "../../../models/AdminUser.js";
 

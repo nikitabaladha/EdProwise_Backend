@@ -1,6 +1,6 @@
-import User from "../../../models/AdminUser/User.js";
+import User from "../../../models/User.js";
 import saltFunction from "../../../validators/saltFunction.js";
-import School from "../../../models/AdminUser/School.js";
+import School from "../../../models/School.js";
 
 function generateRandomPassword(length = 10) {
   const chars =

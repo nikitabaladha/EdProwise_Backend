@@ -1,5 +1,5 @@
-import SchoolRegistration from "../../../models/AdminUser/School.js";
-import User from "../../../models/AdminUser/User.js";
+import SchoolRegistration from "../../../models/School.js";
+import User from "../../../models/User.js";
 
 async function deleteById(req, res) {
   try {

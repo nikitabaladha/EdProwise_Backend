@@ -1,5 +1,5 @@
-import QuoteRequest from "../../models/AdminUser/QuoteRequest.js";
-import Product from "../../models/AdminUser/Product.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
+import Product from "../../models/Product.js";
 
 async function getBySchoolId(req, res) {
   const schoolId = req.user?.schoolId;

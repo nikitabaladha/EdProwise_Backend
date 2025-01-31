@@ -1,6 +1,6 @@
-import SellerProfile from "../../models/AdminUser/SellerProfile.js";
+import SellerProfile from "../../models/SellerProfile.js";
 import SellerProfileValidator from "../../validators/Seller/SellerProfile.js";
-import Seller from "../../models/AdminUser/Seller.js";
+import Seller from "../../models/Seller.js";
 
 async function create(req, res) {
   try {

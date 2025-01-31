@@ -1,4 +1,4 @@
-import Seller from "../../../models/AdminUser/Seller.js";
+import Seller from "../../../models/Seller.js";
 
 async function getSellerById(req, res) {
   try {

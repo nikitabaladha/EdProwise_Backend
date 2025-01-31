@@ -1,4 +1,4 @@
-import Category from "../../../../models/AdminUser/Category.js";
+import Category from "../../../../models/Category.js";
 
 async function getAll(req, res) {
   try {

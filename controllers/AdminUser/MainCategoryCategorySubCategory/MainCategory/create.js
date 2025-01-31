@@ -1,4 +1,4 @@
-import MainCategory from "../../../../models/AdminUser/MainCategory.js";
+import MainCategory from "../../../../models/MainCategory.js";
 import MainCategoryValidator from "../../../../validators/AdminUser/MainCategoryValidator.js";
 
 async function create(req, res) {

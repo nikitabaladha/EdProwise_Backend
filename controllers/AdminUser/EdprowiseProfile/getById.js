@@ -1,4 +1,4 @@
-import EdprowiseProfile from "../../../models/AdminUser/EdprowiseProfile.js";
+import EdprowiseProfile from "../../../models/EdprowiseProfile.js";
 
 async function getById(req, res) {
   try {

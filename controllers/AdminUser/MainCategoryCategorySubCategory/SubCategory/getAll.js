@@ -1,6 +1,6 @@
-import SubCategory from "../../../../models/AdminUser/SubCategory.js";
-import Category from "../../../../models/AdminUser/Category.js";
-import MainCategory from "../../../../models/AdminUser/MainCategory.js";
+import SubCategory from "../../../../models/SubCategory.js";
+import Category from "../../../../models/Category.js";
+import MainCategory from "../../../../models/MainCategory.js";
 
 async function getAll(req, res) {
   try {

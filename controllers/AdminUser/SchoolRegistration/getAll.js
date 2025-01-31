@@ -1,4 +1,4 @@
-import SchoolRegistration from "../../../models/AdminUser/School.js";
+import SchoolRegistration from "../../../models/School.js";
 
 async function getAllSchools(req, res) {
   try {
