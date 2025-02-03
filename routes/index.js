@@ -14,6 +14,7 @@ import AdminUserRoutes from "./AdminRoutes/admin.js";
 
 import QuoteRoutes from "./Procurement/quote-request.js";
 import PrepareQuoteRoutes from "./Procurement/prepare-quote-by-seller.js";
+import SubmitQuoteRoutes from "./Procurement/submit-quote-by-seller.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -30,4 +31,5 @@ export default (app) => {
   app.use("/api", AdminUserRoutes);
   app.use("/api", QuoteRoutes);
   app.use("/api", PrepareQuoteRoutes);
+  app.use("/api", SubmitQuoteRoutes);
 };
