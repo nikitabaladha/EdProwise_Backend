@@ -13,9 +13,7 @@ async function create(req, res) {
       });
     }
 
-    const { enquiryNumber, products } = req.body;
-
-    console.log("req body from prepare quote", req.body);
+    let { enquiryNumber, products } = req.body;
 
     if (!enquiryNumber) {
       return res.status(400).json({
@@ -23,6 +21,7 @@ async function create(req, res) {
         message: "Enquiry number is required.",
       });
     }
+    if (typeof products === "string") products = JSON.parse(products);
 
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({
@@ -59,13 +58,32 @@ async function create(req, res) {
         ? `/Images/PrepareQuoteImage/${req.files[prepareQuoteImageKey][0].filename}`
         : null;
 
+      console.log("Uploaded files:", req.files);
+
       // Create and save the new entry
       const newPrepareQuote = new PrepareQuote({
         sellerId,
         enquiryNumber,
         prepareQuoteImage,
         subcategoryName: product.subcategoryName,
-        // quantity: product.quantity,
+        hsnSacc: product.hsnSacc,
+        listingRate: product.listingRate,
+        edprowiseMargin: product.edprowiseMargin,
+        quantity: product.quantity,
+        finalRateBeforeDiscount: product.finalRateBeforeDiscount,
+        discount: product.discount,
+        finalRate: product.finalRate,
+        taxableValue: product.taxableValue,
+        cgstRate: product.cgstRate,
+        cgstAmount: product.cgstAmount,
+        sgstRate: product.sgstRate,
+        sgstAmount: product.sgstAmount,
+        igstRate: product.igstRate,
+        igstAmount: product.igstAmount,
+        amountBeforeGstAndProducts: product.amountBeforeGstAndProducts,
+        discountAmount: product.discountAmount,
+        gstAmount: product.gstAmount,
+        totalAmount: product.totalAmount,
       });
 
       const savedEntry = await newPrepareQuote.save();
