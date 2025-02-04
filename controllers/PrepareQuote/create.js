@@ -58,9 +58,6 @@ async function create(req, res) {
         ? `/Images/PrepareQuoteImage/${req.files[prepareQuoteImageKey][0].filename}`
         : null;
 
-      console.log("Uploaded files:", req.files);
-
-      // Create and save the new entry
       const newPrepareQuote = new PrepareQuote({
         sellerId,
         enquiryNumber,
@@ -80,7 +77,7 @@ async function create(req, res) {
         sgstAmount: product.sgstAmount,
         igstRate: product.igstRate,
         igstAmount: product.igstAmount,
-        amountBeforeGstAndProducts: product.amountBeforeGstAndProducts,
+        amountBeforeGstAndDiscount: product.amountBeforeGstAndDiscount,
         discountAmount: product.discountAmount,
         gstAmount: product.gstAmount,
         totalAmount: product.totalAmount,
@@ -96,7 +93,14 @@ async function create(req, res) {
       data: createdEntries,
     });
   } catch (error) {
-    console.error("Error creating quotes:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "Duplicate entry: A prepare quote from this seller for the same enquiry already exists.",
+      });
+    }
+    console.error("Error creating Prepare quotes:", error);
     return res.status(500).json({
       hasError: true,
       message: "Internal server error.",

@@ -37,10 +37,23 @@ const SubmitQuoteSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    venderStatus: {
+      type: String,
+      enum: [
+        "Quote Accepted",
+        "Quote Not Accepted",
+        "Modification in Quote",
+        "Pending",
+      ],
+      required: true,
+      default: "Pending",
+    },
   },
   {
     timestamps: true,
   }
 );
+
+SubmitQuoteSchema.index({ sellerId: 1, enquiryNumber: 1 }, { unique: true });
 
 export default mongoose.model("SubmitQuote", SubmitQuoteSchema);

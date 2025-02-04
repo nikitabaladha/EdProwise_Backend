@@ -75,7 +75,7 @@ const PrepareQuoteSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    amountBeforeGstAndProducts: {
+    amountBeforeGstAndDiscount: {
       type: Number,
       required: true,
     },
@@ -96,5 +96,7 @@ const PrepareQuoteSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+PrepareQuoteSchema.index({ sellerId: 1, enquiryNumber: 1 }, { unique: true });
 
 export default mongoose.model("PrepareQuote", PrepareQuoteSchema);

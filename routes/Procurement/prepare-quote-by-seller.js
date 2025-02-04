@@ -1,11 +1,27 @@
 import express from "express";
 const router = express.Router();
+
 import roleBasedMiddleware from "../../middleware/index.js";
 import prepareQuoteImageUpload from "../../controllers/UploadFiles/PrepareQuoteProductFiles.js";
-import { create } from "../../controllers/PrepareQuote/index.js";
+import UpdatePrepareQuoteImageUpload from "../../controllers/UploadFiles/UpdatePrepareQuoteProductFiles.js";
+
+import {
+  create,
+  getAllBySellerIdAndEnquiryNumber,
+  updateByEnquiryNumberAndSellerId,
+} from "../../controllers/PrepareQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
   prepareQuoteImageUpload(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ hasError: true, message: err.message });
+    }
+    next();
+  });
+};
+
+const updateUploadFiles = (req, res, next) => {
+  UpdatePrepareQuoteImageUpload(req, res, (err) => {
     if (err) {
       return res.status(400).json({ hasError: true, message: err.message });
     }
@@ -20,24 +36,17 @@ router.post(
   create
 );
 
+router.get(
+  "/prepare-quote",
+  roleBasedMiddleware("Admin"),
+  getAllBySellerIdAndEnquiryNumber
+);
+
+router.put(
+  "/prepare-quote",
+  updateUploadFiles,
+  roleBasedMiddleware("Admin"),
+  updateByEnquiryNumberAndSellerId
+);
+
 export default router;
-
-// import express from "express";
-// const router = express.Router();
-// import roleBasedMiddleware from "../../middleware/index.js";
-// import prepareQuoteImageUpload from "../../controllers/UploadFiles/PrepareQuoteProductFiles.js";
-// import { create } from "../../controllers/PrepareQuote/index.js";
-
-// router.post(
-//   "/prepare-quote",
-
-//   (req, res, next) => {
-//     console.log("Incoming Request Body:", req.body);
-//     next();
-//   },
-//   prepareQuoteImageUpload,
-//   roleBasedMiddleware("Seller"),
-//   create
-// );
-
-// export default router;

@@ -40,6 +40,7 @@ async function create(req, res) {
       expectedDeliveryDateBySeller,
       paymentTerms,
       advanceRequiredAmount,
+      venderStatus: "Pending",
     });
 
     const savedQuote = await newSubmitQuote.save();
@@ -67,7 +68,14 @@ async function create(req, res) {
       updatedQuoteRequest,
     });
   } catch (error) {
-    console.error("Error submitting quotes:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "Duplicate entry: A submit quote from this seller for the same enquiry already exists.",
+      });
+    }
+    console.error("Error creating Prepare quotes:", error);
     return res.status(500).json({
       hasError: true,
       message: "Internal server error.",
