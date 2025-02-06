@@ -7,7 +7,6 @@ async function updateSingleProduct(req, res) {
     const productData = req.body;
 
     const uploadedImage = req.file;
-    console.log("req.body", req.body);
 
     if (!sellerId || !enquiryNumber || !id) {
       return res.status(400).json({

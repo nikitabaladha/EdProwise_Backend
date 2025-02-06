@@ -39,12 +39,7 @@ const SubmitQuoteSchema = new mongoose.Schema(
     },
     venderStatus: {
       type: String,
-      enum: [
-        "Quote Accepted",
-        "Quote Not Accepted",
-        "Modification in Quote",
-        "Pending",
-      ],
+      enum: ["Quote Accepted", "Quote Not Accepted", "Pending"],
       required: true,
       default: "Pending",
     },
