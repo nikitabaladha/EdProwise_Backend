@@ -6,6 +6,8 @@ import {
   getAllByEnquiryNumber,
   updateBySellerIdAndEnquiryNumber,
   getOneByEnquiryNumberAndSellerId,
+  getAllByEnquiryNumberAccordingToStatus,
+  getOneByEnquiryNumberAndSellerIdAccordingToStatus,
 } from "../../controllers/SubmitQuote/index.js";
 
 router.post("/submit-quote", roleBasedMiddleware("Seller"), create);
@@ -23,6 +25,18 @@ router.put(
   "/submit-quote",
   roleBasedMiddleware("Admin"),
   updateBySellerIdAndEnquiryNumber
+);
+
+router.get(
+  "/submit-quote-by-status/:enquiryNumber",
+  roleBasedMiddleware("School"),
+  getAllByEnquiryNumberAccordingToStatus
+);
+
+router.get(
+  "/submit-quote-by-status",
+  roleBasedMiddleware("School"),
+  getOneByEnquiryNumberAndSellerIdAccordingToStatus
 );
 
 export default router;

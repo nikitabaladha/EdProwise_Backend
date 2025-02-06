@@ -38,7 +38,7 @@ router.post(
 
 router.get(
   "/prepare-quote",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "School"),
   getAllBySellerIdAndEnquiryNumber
 );
 
