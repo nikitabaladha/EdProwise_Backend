@@ -56,8 +56,4 @@ const prepareQuoteImageUpload = multer({
   { name: "products[6][prepareQuoteImage]", maxCount: 1 },
 ]);
 
-// update image
-
-// write code for update image but this time no bulk image only single image will be updatdd
-
 export default prepareQuoteImageUpload;

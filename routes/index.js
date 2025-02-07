@@ -16,6 +16,7 @@ import QuoteRoutes from "./Procurement/quote-request.js";
 import PrepareQuoteRoutes from "./Procurement/prepare-quote-by-seller.js";
 import SubmitQuoteRoutes from "./Procurement/submit-quote-by-seller.js";
 import UpdateVenderStatusRoutes from "./Procurement/update-vender-status.js";
+import CartRoutes from "./Procurement/cart-by-school.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -34,4 +35,5 @@ export default (app) => {
   app.use("/api", PrepareQuoteRoutes);
   app.use("/api", SubmitQuoteRoutes);
   app.use("/api", UpdateVenderStatusRoutes);
+  app.use("/api", CartRoutes);
 };
