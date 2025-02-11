@@ -107,4 +107,9 @@ const CartSchema = new mongoose.Schema(
   }
 );
 
+CartSchema.index(
+  { schoolId: 1, prepareQuoteId: 1, sellerId: 1 },
+  { unique: true }
+);
+
 export default mongoose.model("Cart", CartSchema);

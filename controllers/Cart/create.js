@@ -112,6 +112,13 @@ async function create(req, res) {
     });
   } catch (error) {
     console.error("Error creating Cart:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Duplicate entry: This products are already in the cart.",
+      });
+    }
+
     return res.status(500).json({
       hasError: true,
       message: "Internal server error.",
