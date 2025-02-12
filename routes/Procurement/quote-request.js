@@ -10,6 +10,7 @@ import {
   getFirstProductForAdmin,
   getByEnquiryNumberForSeller,
   getFirstProductForSeller,
+  getQuoteRequest,
 } from "../../controllers/RequestForQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -71,6 +72,12 @@ router.get(
   "/get-according-to-category-filter/:enquiryNumber",
   roleBasedMiddleware("Seller"),
   getByEnquiryNumberForSeller
+);
+
+router.get(
+  "/get-quote-request/:enquiryNumber",
+  roleBasedMiddleware("School"),
+  getQuoteRequest
 );
 
 export default router;

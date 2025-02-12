@@ -5,6 +5,7 @@ import getByEnquiryNumber from "./getByEnquiryNumber.js";
 import getFirstProductForAdmin from "./getFirstProductForAdmin.js";
 import getByEnquiryNumberForSeller from "./getByEnquiryNumberForSeller.js";
 import getFirstProductForSeller from "./getFirstProductForSeller.js";
+import getQuoteRequest from "./getQuoteRequest.js";
 
 export {
   create,
@@ -13,4 +14,5 @@ export {
   getFirstProductForAdmin,
   getByEnquiryNumberForSeller,
   getFirstProductForSeller,
+  getQuoteRequest,
 };
