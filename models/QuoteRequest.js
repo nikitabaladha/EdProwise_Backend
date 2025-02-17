@@ -57,6 +57,7 @@ const QuoteRequestSchema = new mongoose.Schema(
         "Quote Submitted To Buyer",
         "Order Received From Buyer",
         "Order Placed To Supplier",
+        "Order Placed From Buyer To Supplier",
       ],
       required: true,
     },
