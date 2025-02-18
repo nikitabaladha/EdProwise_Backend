@@ -2,6 +2,13 @@ import PrepareQuote from "../../models/PrepareQuote.js";
 import PrepareQuoteValidator from "../../validators/PrepareQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 
+function generateQuoteNumber() {
+  const prefix = "QUOTE";
+  const timestamp = Date.now();
+  const randomSuffix = Math.floor(Math.random() * 10000);
+  return `${prefix}${timestamp}${randomSuffix}`;
+}
+
 async function create(req, res) {
   try {
     const sellerId = req.user?.id;
@@ -173,8 +180,11 @@ async function create(req, res) {
       createdEntries.push(savedEntry);
     }
 
+    const quoteNumber = generateQuoteNumber();
+
     // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({
+      quoteNumber,
       sellerId,
       enquiryNumber,
       totalQuantity,

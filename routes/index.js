@@ -18,6 +18,8 @@ import SubmitQuoteRoutes from "./Procurement/submit-quote-by-seller.js";
 import UpdateVenderStatusRoutes from "./Procurement/update-vender-status.js";
 import CartRoutes from "./Procurement/cart-by-school.js";
 import OrderFromBuyerRoutes from "./Procurement/order-from-buyer.js";
+import QuoteProposalRoutes from "./Procurement/quote-proposal.js";
+import pdfMakingRequiredRoutes from "./Procurement/pdf-requirements.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -38,4 +40,6 @@ export default (app) => {
   app.use("/api", UpdateVenderStatusRoutes);
   app.use("/api", CartRoutes);
   app.use("/api", OrderFromBuyerRoutes);
+  app.use("/api", QuoteProposalRoutes);
+  app.use("/api", pdfMakingRequiredRoutes);
 };

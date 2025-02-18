@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const QuoteProposalSchema = new mongoose.Schema(
   {
+    quoteNumber: { type: String, required: true, unique: true },
     sellerId: {
       type: String,
       required: true,
