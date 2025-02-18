@@ -6,7 +6,7 @@ import { getBySellerIdAndEnquiryNumber } from "../../controllers/QuoteProposal/i
 
 router.get(
   "/quote-proposal",
-  roleBasedMiddleware("Seller"),
+  roleBasedMiddleware("Seller", "Admin", "School"),
   getBySellerIdAndEnquiryNumber
 );
 

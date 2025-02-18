@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get(
   "/quote-proposal-pdf-required-data/:id",
-  roleBasedMiddleware("Seller"),
+  roleBasedMiddleware("Admin", "School", "Seller"),
   QuoteProposalPdfRequirements
 );
 
