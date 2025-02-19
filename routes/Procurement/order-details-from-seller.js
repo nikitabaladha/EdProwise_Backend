@@ -6,6 +6,8 @@ import {
   getAllBySellerId,
   getAll,
   getAllBySchoolId,
+  getByOrderNumber,
+  updateByOrderNumber,
 } from "../../controllers/OrderDetailsFromSeller/index.js";
 
 router.get(
@@ -21,5 +23,16 @@ router.get(
 );
 
 router.get("/order-details", roleBasedMiddleware("Admin"), getAll);
+router.get(
+  "/get-by-order-number",
+  roleBasedMiddleware("Seller"),
+  getByOrderNumber
+);
+
+router.put(
+  "/order-details",
+  roleBasedMiddleware("Seller"),
+  updateByOrderNumber
+);
 
 export default router;
