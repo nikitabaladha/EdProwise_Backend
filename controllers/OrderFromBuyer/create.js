@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Cart from "../../models/Cart.js";
+import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 
 function generateOrderNumber() {
   const prefix = "ORD";
@@ -75,6 +76,7 @@ async function create(req, res) {
 
     const orderNumber = generateOrderNumber();
     const orderFromBuyerEntries = [];
+    const orderDetailsFromSellerEntries = new Map();
 
     for (const product of products) {
       const cartEntry = cartMap.get(product.cartId);
@@ -126,6 +128,16 @@ async function create(req, res) {
         gstAmount: cartEntry.gstAmount || 0,
         totalAmount: cartEntry.totalAmount || 0,
       });
+
+      // Store unique sellerId-schoolId pair
+      if (!orderDetailsFromSellerEntries.has(cartEntry.sellerId.toString())) {
+        orderDetailsFromSellerEntries.set(cartEntry.sellerId.toString(), {
+          orderNumber,
+          sellerId: cartEntry.sellerId,
+          schoolId,
+          enquiryNumber,
+        });
+      }
     }
 
     if (orderFromBuyerEntries.length === 0) {
@@ -135,10 +147,15 @@ async function create(req, res) {
       });
     }
 
+    // Insert OrderFromBuyer entries
     const savedEntries = await OrderFromBuyer.insertMany(
       orderFromBuyerEntries,
       { session }
     );
+
+    // Insert OrderDetailsFromSeller entries
+    const orderDetailsList = Array.from(orderDetailsFromSellerEntries.values());
+    await OrderDetailsFromSeller.insertMany(orderDetailsList, { session });
 
     await QuoteRequest.findOneAndUpdate(
       { schoolId, enquiryNumber },
@@ -157,7 +174,7 @@ async function create(req, res) {
               $ifNull: [expectedDeliveryDate, "$expectedDeliveryDate"],
             },
             buyerStatus: "Order Placed",
-            supplierStatus: "Order Received From Buyer",
+            supplierStatus: "Order Received",
             edprowiseStatus: "Order Placed From Buyer To Supplier",
           },
         },

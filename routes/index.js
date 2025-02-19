@@ -20,6 +20,7 @@ import CartRoutes from "./Procurement/cart-by-school.js";
 import OrderFromBuyerRoutes from "./Procurement/order-from-buyer.js";
 import QuoteProposalRoutes from "./Procurement/quote-proposal.js";
 import pdfMakingRequiredRoutes from "./Procurement/pdf-requirements.js";
+import orderDetailsFromSellerRoutes from "./Procurement/order-details-from-seller.js";
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -42,4 +43,5 @@ export default (app) => {
   app.use("/api", OrderFromBuyerRoutes);
   app.use("/api", QuoteProposalRoutes);
   app.use("/api", pdfMakingRequiredRoutes);
+  app.use("/api", orderDetailsFromSellerRoutes);
 };

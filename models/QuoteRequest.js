@@ -39,7 +39,7 @@ const QuoteRequestSchema = new mongoose.Schema(
         "Quote Requested",
         "Quote Requested From EdProwise",
         "Quote Submitted",
-        "Order Received From EdProwise",
+        "Order Received",
         "Work In Progress",
         "Ready For Transit",
         "Ready For In-Transit",
