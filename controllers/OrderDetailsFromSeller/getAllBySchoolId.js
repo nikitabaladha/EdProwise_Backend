@@ -121,7 +121,7 @@ async function getAllBySchoolId(req, res) {
 
         const quoteProposal = await QuoteProposal.findOne({ enquiryNumber })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount"
+            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount quoteNumber"
           )
           .lean();
 
@@ -146,6 +146,7 @@ async function getAllBySchoolId(req, res) {
           totalGstAmount: quoteProposal?.totalGstAmount || null,
           advanceAdjustment: submitQuote?.advanceRequiredAmount || null,
           companyName: sellerProfile?.companyName || "Not Available",
+          quoteNumber: quoteProposal?.quoteNumber || null,
         };
       })
     );

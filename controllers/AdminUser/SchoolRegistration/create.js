@@ -97,9 +97,9 @@ async function create(req, res) {
 
     await newSchoolRegistration.save();
 
-    // Define the roles and prefixes for the associated users//+
     const roles = [
       { role: "School", prefix: "SAdmin" },
+      // Principle
       { role: "Auditor", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },
@@ -124,14 +124,12 @@ async function create(req, res) {
 
     await User.insertMany(usersToSave);
 
-    // Return a 201 status code with a success message and the new SchoolRegistration document//+
     return res.status(201).json({
       message: "School Registration created successfully with users!",
       data: newSchoolRegistration,
       hasError: false,
     });
   } catch (error) {
-    // If the school email is already registered, return a 400 status code with an error message//+
     if (error.code === 11000 && error.keyValue?.schoolEmail) {
       return res.status(400).json({
         hasError: true,
@@ -139,7 +137,6 @@ async function create(req, res) {
       });
     }
 
-    // Log the error and return a 500 status code with an error message//+
     console.error("Error creating School Registration:", error);
     return res.status(500).json({
       message: "Failed to create School Registration.",

@@ -57,6 +57,19 @@ const QuoteProposalSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    finalPayableAmountWithoutTDS: {
+      type: Number,
+      default: 0,
+    },
+    finalPayableAmountWithTDS: {
+      type: Number,
+      default: 0,
+    },
+    tDSAmount: {
+      type: Number,
+      default: 0,
+      enum: [1, 2, 10, 20.8],
+    },
   },
   {
     timestamps: true,

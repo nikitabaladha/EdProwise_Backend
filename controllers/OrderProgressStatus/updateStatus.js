@@ -1,8 +1,9 @@
 import QuoteRequest from "../../models/QuoteRequest.js";
+import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 
 async function updateStatus(req, res) {
   try {
-    const { enquiryNumber } = req.query;
+    const { enquiryNumber, sellerId } = req.query;
 
     const { supplierStatus } = req.body;
 
@@ -12,11 +13,17 @@ async function updateStatus(req, res) {
         message: "enquiryNumber is required",
       });
     }
+    if (!sellerId) {
+      return res.status(400).json({
+        hasError: true,
+        message: "SellerId is required",
+      });
+    }
 
     const allowedStatuses = [
       "Work In Progress",
       "Ready For Transit",
-      "Ready For In-Transit",
+      "In-Transit",
       "Delivered",
     ];
 
@@ -42,6 +49,18 @@ async function updateStatus(req, res) {
 
     existingOder.supplierStatus = supplierStatus;
     await existingOder.save();
+
+    if (supplierStatus === "Ready For Transit") {
+      const orderDetails = await OrderDetailsFromSeller.findOne({
+        enquiryNumber,
+        sellerId,
+      });
+
+      if (orderDetails) {
+        orderDetails.invoiceDate = new Date();
+        await orderDetails.save();
+      }
+    }
 
     return res.status(200).json({
       hasError: false,

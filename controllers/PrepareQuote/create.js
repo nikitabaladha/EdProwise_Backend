@@ -16,8 +16,7 @@ async function create(req, res) {
     if (!sellerId) {
       return res.status(401).json({
         hasError: true,
-        message:
-          "Access denied: You do not have permission to request for a quote.",
+        message: "Access denied: You do not have permission to Prepare quote.",
       });
     }
 

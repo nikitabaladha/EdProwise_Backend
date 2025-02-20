@@ -61,5 +61,9 @@ router.put(
   roleBasedMiddleware("Admin"),
   updateById
 );
-router.get("/edprowise-profile", roleBasedMiddleware("Admin"), getById);
+router.get(
+  "/edprowise-profile",
+  roleBasedMiddleware("Admin", "Seller", "School"),
+  getById
+);
 export default router;

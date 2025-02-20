@@ -42,7 +42,7 @@ const QuoteRequestSchema = new mongoose.Schema(
         "Order Received",
         "Work In Progress",
         "Ready For Transit",
-        "Ready For In-Transit",
+        "In-Transit",
         "Delivered",
       ],
       required: true,

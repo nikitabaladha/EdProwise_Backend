@@ -3,12 +3,26 @@ import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Cart from "../../models/Cart.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 function generateOrderNumber() {
   const prefix = "ORD";
   const timestamp = Date.now();
   const randomSuffix = Math.floor(Math.random() * 10000);
   return `${prefix}${timestamp}${randomSuffix}`;
+}
+function generateInvoiceNumberForEdprowise() {
+  const prefix = "EINV";
+  const randomSuffix = Math.floor(Math.random() * 1000000);
+  const formattedSuffix = String(randomSuffix).padStart(6, "0");
+  return `${prefix}${formattedSuffix}`;
+}
+
+function generateInvoiceNumberForSchool() {
+  const prefix = "SINV";
+  const randomSuffix = Math.floor(Math.random() * 1000000);
+  const formattedSuffix = String(randomSuffix).padStart(6, "0");
+  return `${prefix}${formattedSuffix}`;
 }
 
 async function create(req, res) {
@@ -129,13 +143,25 @@ async function create(req, res) {
         totalAmount: cartEntry.totalAmount || 0,
       });
 
-      // Store unique sellerId-schoolId pair
+      const invoiceForSchool = generateInvoiceNumberForSchool();
+      const invoiceForEdprowise = generateInvoiceNumberForEdprowise();
+
+      const quoteProposal = await QuoteProposal.findOne({
+        sellerId: cartEntry.sellerId,
+        enquiryNumber: enquiryNumber,
+      }).session(session);
+
+      const quoteNumber = quoteProposal ? quoteProposal.quoteNumber : null;
+
       if (!orderDetailsFromSellerEntries.has(cartEntry.sellerId.toString())) {
         orderDetailsFromSellerEntries.set(cartEntry.sellerId.toString(), {
           orderNumber,
           sellerId: cartEntry.sellerId,
           schoolId,
           enquiryNumber,
+          invoiceForSchool,
+          invoiceForEdprowise,
+          quoteNumber,
         });
       }
     }

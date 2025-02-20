@@ -1,5 +1,6 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SubmitQuoteValidator from "../../validators/SubmitQuote.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function updateBySellerIdAndEnquiryNumber(req, res) {
   try {
@@ -57,6 +58,32 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       advanceRequiredAmount !== undefined
         ? advanceRequiredAmount
         : existingQuote.advanceRequiredAmount;
+
+    if (advanceRequiredAmount !== undefined) {
+      const quoteProposal = await QuoteProposal.findOne({
+        enquiryNumber,
+        sellerId,
+      });
+
+      if (!quoteProposal) {
+        return res.status(404).json({
+          hasError: true,
+          message:
+            "Quote Proposal not found for the given enquiryNumber and sellerId.",
+        });
+      }
+
+      const finalPayableAmountWithoutTDS =
+        quoteProposal.totalAmount - advanceRequiredAmount;
+      const finalPayableAmountWithTDS =
+        finalPayableAmountWithoutTDS -
+        (finalPayableAmountWithoutTDS * quoteProposal.tDSAmount) / 100;
+
+      quoteProposal.finalPayableAmountWithoutTDS = finalPayableAmountWithoutTDS;
+      quoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
+
+      await quoteProposal.save();
+    }
 
     const updatedQuote = await existingQuote.save();
 
