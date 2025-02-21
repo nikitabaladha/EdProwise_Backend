@@ -1,4 +1,3 @@
-import registrationRoutes from "./registration.js";
 import loginSignupRoutes from "./login-signup.js";
 import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
 import schoolProfileRoutes from "./SchoolRoutes/school-profile.js";
@@ -24,9 +23,12 @@ import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-selle
 import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
 import UpdateTDSRoutes from "./Procurement/update-tds.js";
 
+// Umesh Routes
+import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
+import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
+
 export default (app) => {
   app.use("/api", loginSignupRoutes);
-  app.use("/api", registrationRoutes);
   app.use("/api", schoolRoutes);
   app.use("/api", SellerRoutes);
   app.use("/api", schoolUserRoutes);
@@ -48,4 +50,9 @@ export default (app) => {
   app.use("/api", OrderDetailsFromSellerRoutes);
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
+
+  // Umesh Routes
+
+  app.use("/api", RequestForDemoRoutes);
+  app.use("/api", ContactUsFormRoutes);
 };
