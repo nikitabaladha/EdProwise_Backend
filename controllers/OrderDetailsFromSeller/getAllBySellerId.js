@@ -128,7 +128,7 @@ async function getAllBySellerId(req, res) {
 
         const quoteProposal = await QuoteProposal.findOne({ enquiryNumber })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount"
+            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
           )
           .lean();
 
@@ -149,6 +149,11 @@ async function getAllBySellerId(req, res) {
           totalTaxableValue: quoteProposal?.totalTaxableValue || null,
           totalGstAmount: quoteProposal?.totalGstAmount || null,
           advanceAdjustment: submitQuote?.advanceRequiredAmount || null,
+          finalPayableAmountWithoutTDS:
+            quoteProposal?.finalPayableAmountWithoutTDS || null,
+          finalPayableAmountWithTDS:
+            quoteProposal?.finalPayableAmountWithTDS || null,
+          tDSAmount: quoteProposal?.tDSAmount,
         };
       })
     );

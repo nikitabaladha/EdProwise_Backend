@@ -12,7 +12,7 @@ async function updateTDS(req, res) {
       });
     }
 
-    const allowedTDS = [1, 2, 10, 20.8];
+    const allowedTDS = [0, 1, 2, 10, 20.8];
 
     if (!allowedTDS.includes(tDSAmount)) {
       return res.status(400).json({

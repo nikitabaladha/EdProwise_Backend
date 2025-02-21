@@ -68,7 +68,7 @@ const QuoteProposalSchema = new mongoose.Schema(
     tDSAmount: {
       type: Number,
       default: 0,
-      enum: [1, 2, 10, 20.8],
+      enum: [0, 1, 2, 10, 20.8],
     },
   },
   {

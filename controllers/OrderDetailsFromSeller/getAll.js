@@ -148,7 +148,7 @@ async function getAll(req, res) {
       enquiryNumber: { $in: enquiryNumbers },
     })
       .select(
-        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS"
+        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
       )
       .lean();
 
@@ -196,6 +196,7 @@ async function getAll(req, res) {
       finalPayableAmountWithTDS:
         quoteProposalMap[order.enquiryNumber]?.finalPayableAmountWithTDS ||
         null,
+      tDSAmount: quoteProposalMap[order.enquiryNumber]?.tDSAmount,
     }));
 
     return res.status(200).json({
