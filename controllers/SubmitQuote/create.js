@@ -70,7 +70,13 @@ async function create(req, res) {
     const finalPayableAmountWithoutTDS =
       quoteProposal.totalAmount - advanceRequiredAmount;
 
+    const finalPayableAmountWithTDS =
+      finalPayableAmountWithoutTDS -
+      (finalPayableAmountWithoutTDS * quoteProposal.tDSAmount) / 100;
+
     quoteProposal.finalPayableAmountWithoutTDS = finalPayableAmountWithoutTDS;
+    quoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
+
     await quoteProposal.save();
 
     return res.status(201).json({

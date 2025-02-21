@@ -1,4 +1,11 @@
 import mongoose from "mongoose";
+const roundToTwo = (num) => {
+  const isArgString = typeof num === "string";
+  if (isArgString) num = Number(num);
+  num = num.toFixed(2);
+  if (isArgString) return num;
+  return Number(num);
+};
 
 const OrderDetailsFromSellerSchema = new mongoose.Schema(
   {
@@ -16,8 +23,8 @@ const OrderDetailsFromSellerSchema = new mongoose.Schema(
       required: true,
     },
     actualDeliveryDate: { type: Date, default: null },
-    otherCharges: { type: Number, default: 0 },
-    finalReceivableFromEdprowise: { type: Number, default: 0 },
+    otherCharges: { type: Number, default: 0, set: roundToTwo },
+    finalReceivableFromEdprowise: { type: Number, default: 0, set: roundToTwo },
     invoiceDate: { type: Date, default: null },
     invoiceForSchool: { type: String, required: true },
     invoiceForEdprowise: { type: String, required: true },

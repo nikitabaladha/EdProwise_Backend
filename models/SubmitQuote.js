@@ -1,4 +1,11 @@
 import mongoose from "mongoose";
+const roundToTwo = (num) => {
+  const isArgString = typeof num === "string";
+  if (isArgString) num = Number(num);
+  num = num.toFixed(2);
+  if (isArgString) return num;
+  return Number(num);
+};
 
 const SubmitQuoteSchema = new mongoose.Schema(
   {
@@ -15,6 +22,7 @@ const SubmitQuoteSchema = new mongoose.Schema(
     quotedAmount: {
       type: Number,
       required: true,
+      set: roundToTwo,
     },
     description: {
       type: String,
@@ -36,6 +44,7 @@ const SubmitQuoteSchema = new mongoose.Schema(
     advanceRequiredAmount: {
       type: Number,
       required: true,
+      set: roundToTwo,
     },
     venderStatus: {
       type: String,

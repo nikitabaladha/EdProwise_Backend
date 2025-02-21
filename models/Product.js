@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const roundToTwo = (num) => {
+  const isArgString = typeof num === "string";
+  if (isArgString) num = Number(num);
+  num = num.toFixed(2);
+  if (isArgString) return num;
+  return Number(num);
+};
+
 const ProductSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -33,7 +41,7 @@ const ProductSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    quantity: { type: Number, required: true },
+    quantity: { type: Number, required: true, set: roundToTwo },
     enquiryNumber: { type: String },
   },
   {
