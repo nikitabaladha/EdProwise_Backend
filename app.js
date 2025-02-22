@@ -5,6 +5,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import routes from "./routes/index.js";
+import https from "https";
+import fs from "fs";
 
 dotenv.config();
 
@@ -29,4 +31,20 @@ app.use("/Documents", express.static(path.resolve("Documents")));
 routes(app);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+if (!process.env.isHttps) {
+  app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+} else {
+  https
+    .createServer(
+      {
+        key: fs.readFileSync(
+          path.resolve("/etc/letsencrypt/live/edprowise.com/privkey.pem")
+        ),
+        cert: fs.readFileSync(
+          path.resolve("/etc/letsencrypt/live/edprowise.com/fullchain.pem")
+        ),
+      },
+      app
+    )
+    .listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}
