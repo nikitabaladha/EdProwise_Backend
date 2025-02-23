@@ -15,6 +15,7 @@ const ProductSchema = new mongoose.Schema(
       required: true,
       ref: "School",
     },
+    enquiryNumber: { type: String },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
@@ -42,7 +43,6 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
     quantity: { type: Number, required: true, set: roundToTwo },
-    enquiryNumber: { type: String },
   },
   {
     timestamps: true,

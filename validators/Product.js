@@ -1,6 +1,9 @@
 import Joi from "joi";
 
 const createProduct = Joi.object({
+  schoolId: Joi.string().optional().messages({
+    "string.base": "SchoolId must be a string.",
+  }),
   categoryId: Joi.string().required().messages({
     "any.required": "Category ID is a required field.",
   }),

@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import routes from "./routes/index.js";
 import https from "https";
 import fs from "fs";
+import { constants } from "crypto";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ if (!process.env.isHttps) {
         cert: fs.readFileSync(
           path.resolve("/etc/letsencrypt/live/edprowise.com/fullchain.pem")
         ),
+        secureOptions: constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
       },
       app
     )

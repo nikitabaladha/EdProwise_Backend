@@ -24,70 +24,84 @@ async function create(req, res) {
       });
     }
 
-    const products = JSON.parse(req?.body?.data)?.products;
+    let { products } = req.body;
+
+    if (typeof products === "string") {
+      try {
+        products = JSON.parse(products);
+
+        console.log("Number of products:", products.length);
+      } catch (error) {
+        return res.status(400).json({
+          hasError: true,
+          message: "Invalid products data format.",
+        });
+      }
+    }
 
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({
         hasError: true,
-        message: "Products must be an array and cannot be empty.",
+        message: "At least one product must be provided.",
       });
     }
 
-    const validationErrors = [];
-    for (const product of products) {
-      const { error } = ProductValidator.createProduct.validate(product);
-      if (error) {
-        validationErrors.push(
-          error.details.map((err) => err.message).join(", ")
-        );
-      }
-    }
+    console.log("Total number of products received:", products.length);
 
-    if (validationErrors.length) {
-      return res.status(400).json({
-        hasError: true,
-        message: validationErrors.join(", "),
-      });
-    }
-
-    const savedProducts = [];
-    const productImagePath = "/Images/ProductImage";
-
+    const uploadedImages = req.files || [];
+    const createdEntries = [];
     const enquiryNumber = generateEnquiryNumber();
 
-    for (let index = 0; index < products.length; index++) {
-      const product = products[index];
-      const { categoryId, subCategoryId, description, unit, quantity } =
-        product;
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
 
-      let productImage;
-      if (
-        req.files &&
-        req.files.productImage &&
-        Array.isArray(req.files.productImage) &&
-        req.files.productImage[index]
-      ) {
-        productImage = `${productImagePath}/${req.files.productImage[index].filename}`;
+      const { error } = ProductValidator.createProduct.validate({
+        schoolId,
+        ...product,
+      });
+
+      if (error?.details?.length) {
+        const errorMessages = error.details
+          .map((err) => err.message)
+          .join(", ");
+        return res.status(400).json({ hasError: true, message: errorMessages });
       }
 
-      // const productImage =
-      //   req.files.productImage && req.files.productImage[index]
-      //     ? `${productImagePath}/${req.files.productImage[index].filename}`
-      //     : null;
+      const requiredFields = [
+        "categoryId",
+        "subCategoryId",
+        "description",
+        "unit",
+        "quantity",
+      ];
+
+      for (const field of requiredFields) {
+        if (product[field] === undefined || product[field] === null) {
+          return res.status(400).json({
+            hasError: true,
+            message: `Field '${field}' is required`,
+          });
+        }
+      }
+
+      const productImageKey = `products[${i}][productImage]`;
+      const productImage = req.files[productImageKey]
+        ? `/Images/ProductImage/${req.files[productImageKey][0].filename}`
+        : null;
 
       const newProduct = new Product({
         schoolId,
-        categoryId,
-        subCategoryId,
-        description,
         productImage,
-        unit,
-        quantity,
+        categoryId: product.categoryId,
+        subCategoryId: product.subCategoryId,
+        description: product.description,
+        unit: product.unit,
+        quantity: product.quantity,
         enquiryNumber,
       });
 
-      await newProduct.save({ session });
-      savedProducts.push(newProduct);
+      const savedEntry = await newProduct.save({ session });
+      createdEntries.push(savedEntry);
     }
 
     const {
@@ -115,11 +129,12 @@ async function create(req, res) {
 
     await session.commitTransaction();
     session.endSession();
+
     return res.status(201).json({
       hasError: false,
-      message: "Products created successfully and Quote Request stored.",
+      message: "Quotes and Quote Proposal created successfully.",
       data: {
-        products: savedProducts,
+        products: createdEntries,
         quoteRequest: newQuoteRequest,
       },
     });
@@ -127,10 +142,10 @@ async function create(req, res) {
     await session.abortTransaction();
     session.endSession();
     console.error("Error creating Product:", error.message);
+    console.error(error.stack);
     return res.status(500).json({
       hasError: true,
-      message: "Failed to create Product.",
-      error: error.message,
+      message: "Internal server error.",
     });
   }
 }
