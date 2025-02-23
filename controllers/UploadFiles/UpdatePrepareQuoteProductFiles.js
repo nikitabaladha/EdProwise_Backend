@@ -2,15 +2,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// Directory for storing images
 const prepareQuoteImageDir = "./Images/PrepareQuoteImage";
 
-// Create directory if it doesn't exist
 if (!fs.existsSync(prepareQuoteImageDir)) {
   fs.mkdirSync(prepareQuoteImageDir, { recursive: true });
 }
 
-// Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, prepareQuoteImageDir);
@@ -31,7 +28,6 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter to validate file types
 const fileFilter = (req, file, cb) => {
   const allowedFileTypes = /jpeg|jpg|png/;
   const mimeType = allowedFileTypes.test(file.mimetype);
@@ -46,11 +42,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer instance for single file upload for update
 const UpdatePrepareQuoteImageUpload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Limit file size to 2MB
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter,
-}).single("prepareQuoteImage"); // Use a single field for image upload
+}).single("prepareQuoteImage");
 
 export default UpdatePrepareQuoteImageUpload;

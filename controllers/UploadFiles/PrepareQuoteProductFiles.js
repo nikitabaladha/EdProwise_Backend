@@ -42,18 +42,15 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+const fields = Array.from({ length: 1000 }, (_, i) => ({
+  name: `products[${i}][prepareQuoteImage]`,
+  maxCount: 1,
+}));
+
 const prepareQuoteImageUpload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter,
-}).fields([
-  { name: "products[0][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[1][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[2][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[3][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[4][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[5][prepareQuoteImage]", maxCount: 1 },
-  { name: "products[6][prepareQuoteImage]", maxCount: 1 },
-]);
+}).fields(fields);
 
 export default prepareQuoteImageUpload;
