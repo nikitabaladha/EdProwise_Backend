@@ -111,6 +111,7 @@ async function updateSingleProduct(req, res) {
     existingQuote.discountAmount = discountAmount;
     existingQuote.gstAmount = gstAmount;
     existingQuote.totalAmount = totalAmountForProduct;
+    existingQuote.updateCountBySeller += 1;
 
     await existingQuote.save();
 
@@ -144,6 +145,8 @@ async function updateSingleProduct(req, res) {
       totalIgstAmount += quote.igstAmount;
       totalTaxAmount += quote.gstAmount;
     });
+
+    // at time of update i want to increase the count  updateCountBySeller in prepareQuote when data is updated
 
     const existingQuoteProposal = await QuoteProposal.findOne({
       sellerId,

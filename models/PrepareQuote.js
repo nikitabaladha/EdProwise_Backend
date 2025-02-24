@@ -115,6 +115,10 @@ const PrepareQuoteSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
+    updateCountBySeller: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

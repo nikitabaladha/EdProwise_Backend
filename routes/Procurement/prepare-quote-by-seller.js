@@ -9,6 +9,7 @@ import {
   create,
   getAllBySellerIdAndEnquiryNumber,
   updateByEnquiryNumberAndSellerId,
+  updateByEnqAndSellerIdBySeller,
 } from "../../controllers/PrepareQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -45,8 +46,15 @@ router.get(
 router.put(
   "/prepare-quote",
   updateUploadFiles,
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "Seller"),
   updateByEnquiryNumberAndSellerId
+);
+
+router.put(
+  "/prepare-quote-by-seller",
+  updateUploadFiles,
+  roleBasedMiddleware("Seller"),
+  updateByEnqAndSellerIdBySeller
 );
 
 export default router;

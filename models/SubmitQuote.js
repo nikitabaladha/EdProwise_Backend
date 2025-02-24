@@ -23,28 +23,31 @@ const SubmitQuoteSchema = new mongoose.Schema(
       type: Number,
       required: true,
       set: roundToTwo,
+      default: 0,
     },
     description: {
       type: String,
       trim: true,
+      default: "",
     },
     remarksFromSupplier: {
       type: String,
       trim: true,
+      default: "",
     },
     expectedDeliveryDateBySeller: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
     paymentTerms: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     advanceRequiredAmount: {
       type: Number,
-      required: true,
       set: roundToTwo,
+      default: 0,
     },
     venderStatus: {
       type: String,

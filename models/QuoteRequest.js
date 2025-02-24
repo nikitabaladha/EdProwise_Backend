@@ -37,7 +37,6 @@ const QuoteRequestSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Quote Requested",
-        "Quote Requested From EdProwise",
         "Quote Submitted",
         "Order Received",
         "Work In Progress",

@@ -1,6 +1,7 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SubmitQuoteValidator from "../../validators/SubmitQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
 
 async function updateBySellerIdAndEnquiryNumber(req, res) {
   try {
@@ -86,6 +87,15 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
     }
 
     const updatedQuote = await existingQuote.save();
+
+    const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
+      { enquiryNumber },
+      {
+        supplierStatus: "Quote Submitted",
+        edprowiseStatus: "Quote Received From Supplier",
+      },
+      { new: true }
+    );
 
     return res.status(200).json({
       hasError: false,

@@ -11,6 +11,7 @@ import {
 } from "../../controllers/SubmitQuote/index.js";
 
 router.post("/submit-quote", roleBasedMiddleware("Seller"), create);
+
 router.get(
   "/submit-quote/:enquiryNumber",
   roleBasedMiddleware("Admin"),
@@ -18,12 +19,12 @@ router.get(
 );
 router.get(
   "/submit-quote",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "Seller"),
   getOneByEnquiryNumberAndSellerId
 );
 router.put(
   "/submit-quote",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "Seller"),
   updateBySellerIdAndEnquiryNumber
 );
 
