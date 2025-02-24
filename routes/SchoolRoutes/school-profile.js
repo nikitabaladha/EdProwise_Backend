@@ -2,7 +2,11 @@ import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 import upload from "../../controllers/UploadFiles/SchoolFiles.js";
 
-import { updateById, getById } from "../../controllers/SchoolProfile/index.js";
+import {
+  updateById,
+  getById,
+  create,
+} from "../../controllers/SchoolProfile/index.js";
 
 const router = express.Router();
 
@@ -29,5 +33,11 @@ router.put(
   updateById
 );
 router.get("/school-profile/:id", roleBasedMiddleware("School"), getById);
+router.post(
+  "/school-profile",
+  uploadFiles,
+  roleBasedMiddleware("School"),
+  create
+);
 
 export default router;
