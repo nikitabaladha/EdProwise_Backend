@@ -5,12 +5,21 @@ import User from "../../models/User.js";
 async function create(req, res) {
   try {
     // Ensure schoolId is present in req.user
-    const schoolId = req.user?.schoolId;
+    // const schoolId = req.user?.schoolId;
+    // if (!schoolId) {
+    //   return res.status(401).json({
+    //     hasError: true,
+    //     message:
+    //       "Access denied: You do not have permission to create a school profile.",
+    //   });
+    // }
+
+    const { schoolId } = req.params;
+
     if (!schoolId) {
-      return res.status(401).json({
+      return res.status(400).json({
         hasError: true,
-        message:
-          "Access denied: You do not have permission to create a school profile.",
+        message: "School ID is required.",
       });
     }
 
@@ -67,7 +76,7 @@ async function create(req, res) {
 
     // Create new school registration entry
     const newSchoolRegistration = new SchoolRegistration({
-      schoolId, // Ensure schoolId from req.user is stored
+      schoolId,
       schoolName,
       schoolMobileNo,
       schoolEmail,

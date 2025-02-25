@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema(
     schoolId: {
       type: String,
       required: true,
-      ref: "School",
+      // ref: "School",
     },
     userId: {
       type: String,
@@ -35,5 +35,7 @@ const UserSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+UserSchema.index({ schoolId: 1, userId: 1, role: 1 }, { unique: true });
 
 export default mongoose.model("User", UserSchema);

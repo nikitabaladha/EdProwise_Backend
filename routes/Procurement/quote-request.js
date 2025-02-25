@@ -49,7 +49,7 @@ router.get(
 
 router.get(
   "/get-quote/:enquiryNumber",
-  roleBasedMiddleware("School", "Admin"),
+  roleBasedMiddleware("School", "Admin", "Seller"),
   getByEnquiryNumber
 );
 

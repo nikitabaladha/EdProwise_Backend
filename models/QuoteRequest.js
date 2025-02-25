@@ -5,7 +5,7 @@ const QuoteRequestSchema = new mongoose.Schema(
     schoolId: {
       type: String,
       required: true,
-      ref: "School",
+      // ref: "School",
     },
     enquiryNumber: { type: String, required: true, ref: "Product" },
     deliveryAddress: {

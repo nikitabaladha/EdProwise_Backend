@@ -23,7 +23,7 @@ async function createUser(req, res) {
       });
     }
 
-    const SID = await School.findOne({ schoolId: schoolId });
+    const SID = await School.findOne({ _id: schoolId });
 
     if (!SID) {
       return res.status(404).json({

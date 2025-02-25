@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const SubscriptionSchema = new mongoose.Schema(
   {
     schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "School",
+      type: String,
       required: true,
     },
     subscriptionFor: {

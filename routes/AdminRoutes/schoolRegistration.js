@@ -29,7 +29,8 @@ const uploadFiles = (req, res, next) => {
 
 router.post("/school", uploadFiles, roleBasedMiddleware("Admin"), createSchool);
 router.get("/school", roleBasedMiddleware("Admin"), getAll);
-router.get("/school/:id", roleBasedMiddleware("Admin"), getById);
+router.get("/school/:schoolId", roleBasedMiddleware("Admin"), getById);
+
 router.put(
   "/school/:id",
   uploadFiles,

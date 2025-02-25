@@ -15,8 +15,9 @@ const OrderFromBuyerSchema = new mongoose.Schema(
       required: true,
     },
     schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "School",
+      // type: mongoose.Schema.Types.ObjectId,
+      // ref: "School",
+      type: String,
       required: true,
     },
     sellerId: {

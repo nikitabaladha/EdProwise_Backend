@@ -16,9 +16,10 @@ const CartSchema = new mongoose.Schema(
       required: true,
     },
     schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "School",
+      // type: mongoose.Schema.Types.ObjectId,
+      // ref: "School",
       required: true,
+      type: String,
     },
     sellerId: {
       type: mongoose.Schema.Types.ObjectId,

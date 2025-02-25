@@ -18,8 +18,7 @@ const OrderDetailsFromSellerSchema = new mongoose.Schema(
       required: true,
     },
     schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "School",
+      type: String,
       required: true,
     },
     actualDeliveryDate: { type: Date, default: null },
