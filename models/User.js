@@ -5,7 +5,6 @@ const UserSchema = new mongoose.Schema(
     schoolId: {
       type: String,
       required: true,
-      // ref: "School",
     },
     userId: {
       type: String,

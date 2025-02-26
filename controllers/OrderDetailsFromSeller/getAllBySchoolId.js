@@ -17,7 +17,7 @@ async function getAllBySchoolId(req, res) {
   try {
     const orderDetails = await OrderDetailsFromSeller.find({ schoolId: id })
       .select(
-        "orderNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
+        "_id orderNumber quoteNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
       )
       .lean();
 
@@ -30,47 +30,53 @@ async function getAllBySchoolId(req, res) {
 
     const enrichedOrders = await Promise.all(
       orderDetails.map(async (order) => {
-        const { enquiryNumber, sellerId } = order;
+        const { enquiryNumber, sellerId, quoteNumber } = order;
 
-        const quoteRequest = await QuoteRequest.findOne({ enquiryNumber })
-          .select(
-            "expectedDeliveryDate supplierStatus edprowiseStatus buyerStatus"
-          )
-          .lean();
-
-        const quoteProposal = await QuoteProposal.findOne({ enquiryNumber })
-          .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount quoteNumber finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
-          )
-          .lean();
-
-        const submitQuote = await SubmitQuote.findOne({ enquiryNumber })
-          .select("advanceRequiredAmount")
-          .lean();
-
-        const sellerProfile = await SellerProfile.findOne({ sellerId })
-          .select("companyName")
-          .lean();
+        const [quoteRequest, quoteProposals, submitQuote, sellerProfile] =
+          await Promise.all([
+            QuoteRequest.findOne({ enquiryNumber })
+              .select(
+                "expectedDeliveryDate supplierStatus edprowiseStatus buyerStatus"
+              )
+              .lean(),
+            QuoteProposal.findOne({ enquiryNumber, quoteNumber })
+              .select(
+                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
+              )
+              .lean(),
+            SubmitQuote.findOne({ enquiryNumber, sellerId })
+              .select("advanceRequiredAmount")
+              .lean(),
+            SellerProfile.findOne({ sellerId }).select("companyName").lean(),
+          ]);
 
         return {
-          ...order,
+          _id: order._id,
+          orderNumber: order.orderNumber,
+          enquiryNumber: order.enquiryNumber,
+          quoteNumber: order.quoteNumber,
+          sellerId: order.sellerId,
+          schoolId: order.schoolId,
+          actualDeliveryDate: order.actualDeliveryDate || null,
+          otherCharges: order.otherCharges || 0,
+          finalReceivableFromEdprowise: order.finalReceivableFromEdprowise || 0,
+          createdAt: order.createdAt,
           expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
           supplierStatus: quoteRequest?.supplierStatus || null,
           buyerStatus: quoteRequest?.buyerStatus || null,
           edprowiseStatus: quoteRequest?.edprowiseStatus || null,
           totalAmountBeforeGstAndDiscount:
-            quoteProposal?.totalAmountBeforeGstAndDiscount || null,
-          totalAmount: quoteProposal?.totalAmount || null,
-          totalTaxableValue: quoteProposal?.totalTaxableValue || null,
-          totalGstAmount: quoteProposal?.totalGstAmount || null,
+            quoteProposals?.totalAmountBeforeGstAndDiscount || 0,
+          totalAmount: quoteProposals?.totalAmount || 0,
+          totalTaxableValue: quoteProposals?.totalTaxableValue || 0,
+          totalGstAmount: quoteProposals?.totalGstAmount || 0,
           finalPayableAmountWithoutTDS:
-            quoteProposal?.finalPayableAmountWithoutTDS || 0,
+            quoteProposals?.finalPayableAmountWithoutTDS || 0,
           finalPayableAmountWithTDS:
-            quoteProposal?.finalPayableAmountWithTDS || 0,
-          tDSAmount: quoteProposal?.tDSAmount || 0,
-          advanceAdjustment: submitQuote?.advanceRequiredAmount || null,
+            quoteProposals?.finalPayableAmountWithTDS || 0,
+          tDSAmount: quoteProposals?.tDSAmount || 0,
+          advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
           companyName: sellerProfile?.companyName || "Not Available",
-          quoteNumber: quoteProposal?.quoteNumber || null,
         };
       })
     );

@@ -4,16 +4,6 @@ import User from "../../models/User.js";
 
 async function create(req, res) {
   try {
-    // Ensure schoolId is present in req.user
-    // const schoolId = req.user?.schoolId;
-    // if (!schoolId) {
-    //   return res.status(401).json({
-    //     hasError: true,
-    //     message:
-    //       "Access denied: You do not have permission to create a school profile.",
-    //   });
-    // }
-
     const { schoolId } = req.params;
 
     if (!schoolId) {
@@ -102,7 +92,7 @@ async function create(req, res) {
     await newSchoolRegistration.save();
 
     await User.findOneAndUpdate(
-      { schoolId: schoolId, role: "School" },
+      { schoolId, role: "School" },
       { status: "Completed" },
       { new: true }
     );

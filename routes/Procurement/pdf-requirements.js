@@ -6,7 +6,7 @@ import { QuoteProposalPdfRequirements } from "../../controllers/PdfMakingRequire
 const router = express.Router();
 
 router.get(
-  "/quote-proposal-pdf-required-data/:id/:enquiryNumber",
+  "/quote-proposal-pdf-required-data/:id/:enquiryNumber/:sellerId",
   roleBasedMiddleware("Admin", "School", "Seller"),
   QuoteProposalPdfRequirements
 );

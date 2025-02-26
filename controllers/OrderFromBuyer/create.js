@@ -200,13 +200,25 @@ async function create(req, res) {
               $ifNull: [expectedDeliveryDate, "$expectedDeliveryDate"],
             },
             buyerStatus: "Order Placed",
-            supplierStatus: "Order Received",
+            // supplierStatus: "Order Received",
             edprowiseStatus: "Order Placed From Buyer To Supplier",
           },
         },
       ],
       { session, upsert: true, new: true }
     );
+
+    for (const entry of orderFromBuyerEntries) {
+      await QuoteProposal.findOneAndUpdate(
+        { sellerId: entry.sellerId, enquiryNumber: enquiryNumber },
+        {
+          supplierStatus: "Order Received",
+          edprowiseStatus: "Order Placed From Buyer To Supplier",
+          buyerStatus: "Order Placed",
+        },
+        { new: true }
+      );
+    }
 
     await session.commitTransaction();
     session.endSession();

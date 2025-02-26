@@ -203,12 +203,22 @@
 //     // Save the QuoteProposal entry
 //     await newQuoteProposal.save();
 
+//     const newSubmitQuote = new SubmitQuote({
+//       sellerId,
+//       enquiryNumber,
+//       quotedAmount: totalAmount,
+//       advanceRequiredAmount: 0,
+//     });
+
+//     await newSubmitQuote.save();
+
 //     return res.status(201).json({
 //       hasError: false,
 //       message: "Quotes and Quote Proposal created successfully.",
 //       data: {
 //         prepareQuotes: createdEntries,
 //         quoteProposal: newQuoteProposal,
+//         submitQuote: newSubmitQuote,
 //       },
 //     });
 //   } catch (error) {
@@ -429,6 +439,9 @@ async function create(req, res) {
       totalSgstAmount,
       totalIgstAmount,
       totalTaxAmount,
+      supplierStatus: "Quote Submitted",
+      edprowiseStatus: "Quote Received",
+      buyerStatus: "Quote Received",
     });
 
     // Save the QuoteProposal entry
