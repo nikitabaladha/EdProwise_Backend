@@ -1,14 +1,8 @@
+import Counter from "../../models/Counter.js";
 import User from "../../models/User.js";
 import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import signupValidationSchema from "../../validators/signupValidationSchema.js";
-
-function generateSchoolId() {
-  const prefix = "SID";
-  const randomSuffix = Math.floor(Math.random() * 1000000);
-  const formattedSuffix = String(randomSuffix).padStart(6, "0");
-  return `${prefix}${formattedSuffix}`;
-}
 
 async function userSignup(req, res) {
   try {
@@ -42,10 +36,18 @@ async function userSignup(req, res) {
     const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
     if (role === "School") {
-      const schoolId = generateSchoolId();
+      const counter = await Counter.findOneAndUpdate(
+        { _id: "schoolIdCounter" },
+        { $inc: { sequenceValue: 1 } },
+        { new: true, upsert: true }
+      );
+
+      const nextSchoolId = `SID${counter.sequenceValue
+        .toString()
+        .padStart(5, "0")}`;
 
       const schoolUser = new User({
-        schoolId: schoolId,
+        schoolId: nextSchoolId,
         userId,
         password: hashedPassword,
         salt,
@@ -59,7 +61,7 @@ async function userSignup(req, res) {
         hasError: false,
         message: "School user registered successfully",
         data: {
-          schoolId: schoolUser.schoolId,
+          schoolId: nextSchoolId,
           userId: schoolUser.userId,
           role: schoolUser.role,
           status: schoolUser.status,

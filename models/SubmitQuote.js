@@ -2,9 +2,8 @@ import mongoose from "mongoose";
 const roundToTwo = (num) => {
   const isArgString = typeof num === "string";
   if (isArgString) num = Number(num);
-  num = num.toFixed(2);
-  if (isArgString) return num;
-  return Number(num);
+
+  return Math.round(num);
 };
 
 const SubmitQuoteSchema = new mongoose.Schema(
@@ -54,6 +53,17 @@ const SubmitQuoteSchema = new mongoose.Schema(
       enum: ["Quote Accepted", "Quote Not Accepted", "Pending"],
       required: true,
       default: "Pending",
+    },
+    venderStatusFromBuyer: {
+      type: String,
+      enum: ["Quote Accepted", "Quote Not Accepted", "Pending"],
+      required: true,
+      default: "Pending",
+    },
+    rejectCommentFromBuyer: {
+      type: String,
+      trim: true,
+      default: "",
     },
   },
   {

@@ -1,5 +1,6 @@
 import Cart from "../../models/Cart.js";
 import PrepareQuote from "../../models/PrepareQuote.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function create(req, res) {
   try {
@@ -104,6 +105,11 @@ async function create(req, res) {
     }
 
     const savedEntries = await Cart.insertMany(cartEntries);
+
+    await SubmitQuote.updateOne(
+      { enquiryNumber, sellerId: cartEntries[0].sellerId },
+      { venderStatusFromBuyer: "Quote Accepted" }
+    );
 
     return res.status(201).json({
       hasError: false,

@@ -3,9 +3,8 @@ import mongoose from "mongoose";
 const roundToTwo = (num) => {
   const isArgString = typeof num === "string";
   if (isArgString) num = Number(num);
-  num = num.toFixed(2);
-  if (isArgString) return num;
-  return Number(num);
+
+  return Math.round(num);
 };
 
 const CartSchema = new mongoose.Schema(
@@ -16,8 +15,6 @@ const CartSchema = new mongoose.Schema(
       required: true,
     },
     schoolId: {
-      // type: mongoose.Schema.Types.ObjectId,
-      // ref: "School",
       required: true,
       type: String,
     },

@@ -46,15 +46,6 @@ async function create(req, res) {
 
     const savedQuote = await newSubmitQuote.save();
 
-    const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
-      { enquiryNumber },
-      {
-        supplierStatus: "Quote Submitted",
-        edprowiseStatus: "Quote Received From Supplier",
-      },
-      { new: true }
-    );
-
     const quoteProposal = await QuoteProposal.findOne({
       enquiryNumber,
       sellerId,

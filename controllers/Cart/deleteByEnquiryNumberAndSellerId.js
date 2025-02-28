@@ -1,4 +1,5 @@
 import Cart from "../../models/Cart.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function deleteByEnquiryNumberAndSellerId(req, res) {
   try {
@@ -36,6 +37,11 @@ async function deleteByEnquiryNumberAndSellerId(req, res) {
         message: "No matching cart data found to delete.",
       });
     }
+
+    await SubmitQuote.updateOne(
+      { enquiryNumber, sellerId },
+      { venderStatusFromBuyer: "Quote Not Accepted" }
+    );
 
     return res.status(200).json({
       hasError: false,

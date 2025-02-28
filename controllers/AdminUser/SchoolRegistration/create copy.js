@@ -2,6 +2,7 @@ import SchoolRegistration from "../../../models/School.js";
 import User from "../../../models/User.js";
 import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolRegistrationValidator.js";
 import saltFunction from "../../../validators/saltFunction.js";
+import Counter from "../../../models/Counter.js";
 
 function generateRandomPassword(length = 10) {
   const chars =
@@ -11,13 +12,6 @@ function generateRandomPassword(length = 10) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
-}
-
-function generateSchoolId() {
-  const prefix = "SID";
-  const randomSuffix = Math.floor(Math.random() * 1000000);
-  const formattedSuffix = String(randomSuffix).padStart(6, "0");
-  return `${prefix}${formattedSuffix}`;
 }
 
 async function create(req, res) {
@@ -77,10 +71,18 @@ async function create(req, res) {
       : "/Documents/SchoolPanFile";
     const panFile = `${panFilePath}/${req.files.panFile[0].filename}`;
 
-    const schoolId = generateSchoolId();
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "schoolIdCounter" },
+      { $inc: { sequenceValue: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const nextSchoolId = `SID${counter.sequenceValue
+      .toString()
+      .padStart(5, "0")}`;
 
     const newSchoolRegistration = new SchoolRegistration({
-      schoolId: schoolId,
+      schoolId: nextSchoolId,
       schoolName,
       schoolMobileNo,
       schoolEmail,
@@ -97,20 +99,21 @@ async function create(req, res) {
 
     const roles = [
       { role: "School", prefix: "SAdmin" },
+      // Principle
       { role: "Auditor", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },
     ];
 
     const usersToSave = roles.map(({ role, prefix }) => {
-      const userId = `${prefix}_${schoolId}`;
+      const userId = `${prefix}_${nextSchoolId}`;
       const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
       console.log("userId", userId, "password", password);
 
       return new User({
-        schoolId: schoolId,
+        schoolId: nextSchoolId,
         userId,
         password: hashedPassword,
         salt,

@@ -1,9 +1,9 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 
-async function updateVenderStatus(req, res) {
+async function rejectCommentFromBuyer(req, res) {
   try {
     const { enquiryNumber, sellerId } = req.query;
-    const { venderStatus } = req.body;
+    const { rejectCommentFromBuyer } = req.body;
 
     if (!enquiryNumber || !sellerId) {
       return res.status(400).json({
@@ -12,39 +12,36 @@ async function updateVenderStatus(req, res) {
       });
     }
 
-    const allowedStatuses = ["Quote Accepted", "Quote Not Accepted"];
-
-    if (!allowedStatuses.includes(venderStatus)) {
+    if (!rejectCommentFromBuyer || rejectCommentFromBuyer.trim() === "") {
       return res.status(400).json({
         hasError: true,
-        message: `Invalid venderStatus. Allowed values: ${allowedStatuses.join(
-          ", "
-        )}`,
+        message: "Comment is required if you want to reject the quote.",
       });
     }
 
-    const existingQuote = await SubmitQuote.findOne({
-      enquiryNumber,
-      sellerId,
-    });
+    const updatedQuote = await SubmitQuote.findOneAndUpdate(
+      { enquiryNumber, sellerId },
+      {
+        rejectCommentFromBuyer,
+        venderStatusFromBuyer: "Quote Not Accepted",
+      },
+      { new: true }
+    );
 
-    if (!existingQuote) {
+    if (!updatedQuote) {
       return res.status(404).json({
         hasError: true,
         message: "Quote not found for the given enquiryNumber and sellerId.",
       });
     }
 
-    existingQuote.venderStatus = venderStatus;
-    await existingQuote.save();
-
     return res.status(200).json({
       hasError: false,
-      message: "Quote status updated successfully.",
-      data: existingQuote,
+      message: "Quote rejected successfully.",
+      data: updatedQuote,
     });
   } catch (error) {
-    console.error("Error updating quote status:", error);
+    console.error("Error rejecting quote:", error);
     return res.status(500).json({
       hasError: true,
       message: "Internal server error.",
@@ -52,4 +49,4 @@ async function updateVenderStatus(req, res) {
   }
 }
 
-export default updateVenderStatus;
+export default rejectCommentFromBuyer;

@@ -1,6 +1,7 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 async function getAllByEnquiryNumberAccordingToStatus(req, res) {
   try {
     const schoolId = req.user?.schoolId;
@@ -46,12 +47,26 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
       return acc;
     }, {});
 
+    const quoteProposals = await QuoteProposal.find({
+      enquiryNumber,
+      sellerId: { $in: sellerIds },
+    });
+
+    const statusMap = quoteProposals.reduce((acc, proposal) => {
+      acc[proposal.sellerId] = {
+        buyerStatus: proposal.buyerStatus,
+        supplierStatus: proposal.supplierStatus,
+        edprowiseStatus: proposal.edprowiseStatus,
+      };
+      return acc;
+    }, {});
+
     const quotesWithCompanyName = quotes.map((quote) => ({
       ...quote.toObject(),
       companyName: sellerProfileMap[quote.sellerId] || null,
-      buyerStatus: quoteRequest?.buyerStatus || null,
-      supplierStatus: quoteRequest?.supplierStatus || null,
-      edprowiseStatus: quoteRequest?.edprowiseStatus || null,
+      buyerStatus: statusMap[quote.sellerId]?.buyerStatus || null,
+      supplierStatus: statusMap[quote.sellerId]?.supplierStatus || null,
+      edprowiseStatus: statusMap[quote.sellerId]?.edprowiseStatus || null,
     }));
 
     return res.status(200).json({
