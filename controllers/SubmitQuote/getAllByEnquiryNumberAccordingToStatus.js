@@ -37,6 +37,9 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
 
     const quoteRequest = await QuoteRequest.findOne({ enquiryNumber });
 
+    const buyerStatus = quoteRequest?.buyerStatus || null;
+    const edprowiseStatus = quoteRequest?.edprowiseStatus || null;
+
     const sellerIds = quotes.map((quote) => quote.sellerId);
     const sellerProfiles = await SellerProfile.find({
       sellerId: { $in: sellerIds },
@@ -54,9 +57,7 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
 
     const statusMap = quoteProposals.reduce((acc, proposal) => {
       acc[proposal.sellerId] = {
-        buyerStatus: proposal.buyerStatus,
         supplierStatus: proposal.supplierStatus,
-        edprowiseStatus: proposal.edprowiseStatus,
       };
       return acc;
     }, {});
@@ -64,9 +65,9 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
     const quotesWithCompanyName = quotes.map((quote) => ({
       ...quote.toObject(),
       companyName: sellerProfileMap[quote.sellerId] || null,
-      buyerStatus: statusMap[quote.sellerId]?.buyerStatus || null,
+      buyerStatus: buyerStatus || null,
       supplierStatus: statusMap[quote.sellerId]?.supplierStatus || null,
-      edprowiseStatus: statusMap[quote.sellerId]?.edprowiseStatus || null,
+      edprowiseStatus: edprowiseStatus || null,
     }));
 
     return res.status(200).json({

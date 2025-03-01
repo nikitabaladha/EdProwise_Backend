@@ -200,8 +200,7 @@ async function create(req, res) {
               $ifNull: [expectedDeliveryDate, "$expectedDeliveryDate"],
             },
             buyerStatus: "Order Placed",
-            // supplierStatus: "Order Received",
-            edprowiseStatus: "Order Placed From Buyer To Supplier",
+            edprowiseStatus: "Order Placed",
           },
         },
       ],
@@ -213,7 +212,7 @@ async function create(req, res) {
         { sellerId: entry.sellerId, enquiryNumber: enquiryNumber },
         {
           supplierStatus: "Order Received",
-          edprowiseStatus: "Order Placed From Buyer To Supplier",
+          edprowiseStatus: "Order Placed",
           buyerStatus: "Order Placed",
         },
         { new: true }

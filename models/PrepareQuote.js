@@ -124,6 +124,4 @@ const PrepareQuoteSchema = new mongoose.Schema(
   }
 );
 
-PrepareQuoteSchema.index({ sellerId: 1, enquiryNumber: 1 }, { unique: true });
-
 export default mongoose.model("PrepareQuote", PrepareQuoteSchema);

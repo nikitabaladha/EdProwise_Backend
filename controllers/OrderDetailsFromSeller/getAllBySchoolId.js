@@ -35,13 +35,11 @@ async function getAllBySchoolId(req, res) {
         const [quoteRequest, quoteProposals, submitQuote, sellerProfile] =
           await Promise.all([
             QuoteRequest.findOne({ enquiryNumber })
-              .select(
-                "expectedDeliveryDate supplierStatus edprowiseStatus buyerStatus"
-              )
+              .select("expectedDeliveryDate")
               .lean(),
-            QuoteProposal.findOne({ enquiryNumber, quoteNumber })
+            QuoteProposal.findOne({ enquiryNumber, quoteNumber, sellerId })
               .select(
-                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
+                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus"
               )
               .lean(),
             SubmitQuote.findOne({ enquiryNumber, sellerId })
@@ -62,9 +60,9 @@ async function getAllBySchoolId(req, res) {
           finalReceivableFromEdprowise: order.finalReceivableFromEdprowise || 0,
           createdAt: order.createdAt,
           expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
-          supplierStatus: quoteRequest?.supplierStatus || null,
-          buyerStatus: quoteRequest?.buyerStatus || null,
-          edprowiseStatus: quoteRequest?.edprowiseStatus || null,
+          supplierStatus: quoteProposals?.supplierStatus || null,
+          buyerStatus: quoteProposals?.buyerStatus || null,
+          edprowiseStatus: quoteProposals?.edprowiseStatus || null,
           totalAmountBeforeGstAndDiscount:
             quoteProposals?.totalAmountBeforeGstAndDiscount || 0,
           totalAmount: quoteProposals?.totalAmount || 0,

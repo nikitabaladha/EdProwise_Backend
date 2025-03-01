@@ -1,5 +1,5 @@
-import QuoteRequest from "../../models/QuoteRequest.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function updateStatus(req, res) {
   try {
@@ -36,7 +36,8 @@ async function updateStatus(req, res) {
       });
     }
 
-    const existingOder = await QuoteRequest.findOne({
+    const existingOder = await QuoteProposal.findOne({
+      sellerId,
       enquiryNumber,
     });
 
@@ -48,6 +49,8 @@ async function updateStatus(req, res) {
     }
 
     existingOder.supplierStatus = supplierStatus;
+    existingOder.edprowiseStatus = supplierStatus;
+    existingOder.buyerStatus = supplierStatus;
     await existingOder.save();
 
     if (supplierStatus === "Ready For Transit") {

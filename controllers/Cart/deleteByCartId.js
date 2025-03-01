@@ -1,9 +1,9 @@
 import Cart from "../../models/Cart.js";
-import SubmitQuote from "../../models/SubmitQuote.js";
 
-async function deleteByEnquiryNumberAndSellerId(req, res) {
+async function deleteByCartId(req, res) {
   try {
     const schoolId = req.user?.schoolId;
+    const { id } = req.params;
 
     if (!schoolId) {
       return res.status(401).json({
@@ -13,39 +13,25 @@ async function deleteByEnquiryNumberAndSellerId(req, res) {
       });
     }
 
-    const { enquiryNumber, sellerId } = req.query;
-
-    if (!enquiryNumber) {
+    if (!id) {
       return res.status(400).json({
         hasError: true,
-        message: "Enquiry number is required.",
+        message: "Cart ID is required.",
       });
     }
 
-    if (!sellerId) {
-      return res.status(400).json({
-        hasError: true,
-        message: "SellerId is required.",
-      });
-    }
+    const deleteResult = await Cart.findByIdAndDelete(id);
 
-    const deleteResult = await Cart.deleteMany({ enquiryNumber, sellerId });
-
-    if (deleteResult.deletedCount === 0) {
+    if (!deleteResult) {
       return res.status(404).json({
         hasError: true,
         message: "No matching cart data found to delete.",
       });
     }
 
-    await SubmitQuote.updateOne(
-      { enquiryNumber, sellerId },
-      { venderStatusFromBuyer: "Pending" }
-    );
-
     return res.status(200).json({
       hasError: false,
-      message: `Removed from cart successfully.`,
+      message: "Removed from cart successfully.",
     });
   } catch (error) {
     console.error("Error deleting Cart Data:", error);
@@ -56,4 +42,4 @@ async function deleteByEnquiryNumberAndSellerId(req, res) {
   }
 }
 
-export default deleteByEnquiryNumberAndSellerId;
+export default deleteByCartId;

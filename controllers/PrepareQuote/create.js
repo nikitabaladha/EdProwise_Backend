@@ -225,13 +225,6 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        hasError: true,
-        message:
-          "Duplicate entry: A prepare quote or quote proposal from this seller for the same enquiry already exists.",
-      });
-    }
     console.error("Error creating Prepare quotes or Quote Proposal:", error);
     return res.status(500).json({
       hasError: true,

@@ -7,6 +7,7 @@ import {
   create,
   getAllByEnquiryNumber,
   deleteByEnquiryNumberAndSellerId,
+  deleteByCartId,
 } from "../../controllers/Cart/index.js";
 
 router.post("/cart", roleBasedMiddleware("School"), create);
@@ -15,6 +16,12 @@ router.delete(
   "/cart",
   roleBasedMiddleware("School"),
   deleteByEnquiryNumberAndSellerId
+);
+
+router.delete(
+  "/delete-by-cart-id/:id",
+  roleBasedMiddleware("School"),
+  deleteByCartId
 );
 
 export default router;

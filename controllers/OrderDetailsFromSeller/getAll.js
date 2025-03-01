@@ -44,16 +44,14 @@ async function getAll(req, res) {
     const quoteRequests = await QuoteRequest.find({
       enquiryNumber: { $in: enquiryNumbers },
     })
-      .select(
-        "enquiryNumber expectedDeliveryDate supplierStatus edprowiseStatus buyerStatus"
-      )
+      .select("enquiryNumber expectedDeliveryDate ")
       .lean();
 
     const quoteProposals = await QuoteProposal.find({
       enquiryNumber: { $in: enquiryNumbers },
     })
       .select(
-        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
+        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus"
       )
       .lean();
 
@@ -81,10 +79,10 @@ async function getAll(req, res) {
       expectedDeliveryDate:
         quoteRequestMap[order.enquiryNumber]?.expectedDeliveryDate || null,
       supplierStatus:
-        quoteRequestMap[order.enquiryNumber]?.supplierStatus || null,
-      buyerStatus: quoteRequestMap[order.enquiryNumber]?.buyerStatus || null,
+        quoteProposalMap[order.enquiryNumber]?.supplierStatus || null,
+      buyerStatus: quoteProposalMap[order.enquiryNumber]?.buyerStatus || null,
       edprowiseStatus:
-        quoteRequestMap[order.enquiryNumber]?.edprowiseStatus || null,
+        quoteProposalMap[order.enquiryNumber]?.edprowiseStatus || null,
       totalAmountBeforeGstAndDiscount:
         quoteProposalMap[order.enquiryNumber]
           ?.totalAmountBeforeGstAndDiscount || null,

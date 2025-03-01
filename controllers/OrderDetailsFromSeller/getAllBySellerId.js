@@ -40,14 +40,15 @@ async function getAllBySellerId(req, res) {
         const { enquiryNumber } = order;
 
         const quoteRequest = await QuoteRequest.findOne({ enquiryNumber })
-          .select(
-            "expectedDeliveryDate supplierStatus edprowiseStatus buyerStatus"
-          )
+          .select("expectedDeliveryDate ")
           .lean();
 
-        const quoteProposal = await QuoteProposal.findOne({ enquiryNumber })
+        const quoteProposal = await QuoteProposal.findOne({
+          sellerId: id,
+          enquiryNumber,
+        })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount"
+            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus"
           )
           .lean();
 
@@ -57,11 +58,11 @@ async function getAllBySellerId(req, res) {
 
         return {
           ...order,
-          companyName, // Include companyName in response
+          companyName,
           expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
-          supplierStatus: quoteRequest?.supplierStatus || null,
-          buyerStatus: quoteRequest?.buyerStatus || null,
-          edprowiseStatus: quoteRequest?.edprowiseStatus || null,
+          supplierStatus: quoteProposal?.supplierStatus || null,
+          buyerStatus: quoteProposal?.buyerStatus || null,
+          edprowiseStatus: quoteProposal?.edprowiseStatus || null,
           totalAmountBeforeGstAndDiscount:
             quoteProposal?.totalAmountBeforeGstAndDiscount || null,
           totalAmount: quoteProposal?.totalAmount || null,
