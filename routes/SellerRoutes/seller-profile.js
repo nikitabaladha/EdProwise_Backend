@@ -82,7 +82,7 @@ router.get(
 router.get("/seller-profile-get-all", roleBasedMiddleware("Admin"), getAll);
 
 router.delete(
-  "/seller-profile/:sellerId",
+  "/seller-profile/:id",
   roleBasedMiddleware("Admin"),
   deleteBySellerId
 );

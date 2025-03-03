@@ -115,10 +115,7 @@ async function createByAdmin(req, res) {
     return res.status(201).json({
       hasError: false,
       message: "Seller profile created successfully.",
-      data: {
-        sellerProfile: newSellerProfile,
-        seller: newSeller,
-      },
+      data: newSellerProfile,
     });
   } catch (error) {
     console.error("Error creating Seller Profile:", error.message);

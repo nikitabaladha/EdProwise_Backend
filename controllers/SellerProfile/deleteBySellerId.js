@@ -2,16 +2,16 @@ import SellerProfile from "../../models/SellerProfile.js";
 
 async function deleteBySellerId(req, res) {
   try {
-    const { sellerId } = req.params;
+    const { id } = req.params;
 
-    if (!sellerId) {
+    if (!id) {
       return res.status(401).json({
         hasError: true,
         message: "Seller ID is required.",
       });
     }
 
-    const deletedProfile = await SellerProfile.findOneAndDelete({ sellerId });
+    const deletedProfile = await SellerProfile.findOneAndDelete({ id });
 
     if (!deletedProfile) {
       return res.status(404).json({
