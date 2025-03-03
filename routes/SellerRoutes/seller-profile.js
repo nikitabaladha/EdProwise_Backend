@@ -5,8 +5,12 @@ import upload from "../../controllers/UploadFiles/SellerFiles.js";
 
 import {
   create,
+  createByAdmin,
   getById,
   updateById,
+  getAll,
+  getByIdForAdmin,
+  deleteBySellerId,
 } from "../../controllers/SellerProfile/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -51,12 +55,36 @@ router.post(
   roleBasedMiddleware("Seller"),
   create
 );
+
+router.post(
+  "/seller-profile-by-admin",
+  uploadFiles,
+  roleBasedMiddleware("Admin"),
+  createByAdmin
+);
+
 router.put(
   "/seller-profile/:id",
   uploadFiles,
   roleBasedMiddleware("Seller"),
   updateById
 );
+
 router.get("/seller-profile", roleBasedMiddleware("Seller"), getById);
+
+router.get(
+  "/seller-profile-get-by-id/:sellerId",
+  uploadFiles,
+  roleBasedMiddleware("Admin"),
+  getByIdForAdmin
+);
+
+router.get("/seller-profile-get-all", roleBasedMiddleware("Admin"), getAll);
+
+router.delete(
+  "/seller-profile/:sellerId",
+  roleBasedMiddleware("Admin"),
+  deleteBySellerId
+);
 
 export default router;

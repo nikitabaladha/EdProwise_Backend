@@ -17,7 +17,8 @@ const requestForDemoCreate = Joi.object({
     .messages({
       "any.required": "Designation is required.",
       "string.empty": "Designation cannot be empty.",
-      "any.only": "Designation must be one of: Principal, Administrator, HR, Teacher, Other.",
+      "any.only":
+        "Designation must be one of: Principal, Administrator, HR, Teacher, Other.",
     }),
 
   email: Joi.string().email().required().messages({
@@ -38,18 +39,15 @@ const requestForDemoCreate = Joi.object({
   demoDateTime: Joi.date().iso().required().messages({
     "any.required": "Preferred demo date and time is required.",
     "date.base": "Preferred demo date and time must be a valid date.",
-    "date.format": "Preferred demo date and time must be in ISO format (YYYY-MM-DDTHH:mm:ssZ).",
+    "date.format":
+      "Preferred demo date and time must be in ISO format (YYYY-MM-DDTHH:mm:ssZ).",
   }),
 
-  selectedServices: Joi.array()
-    .items(Joi.string())
-    .min(1)
-    .required()
-    .messages({
-      "any.required": "At least one service must be selected.",
-      "array.min": "At least one service must be selected.",
-      "array.base": "Selected services must be an array of strings.",
-    }),
+  selectedServices: Joi.array().items(Joi.string()).min(1).required().messages({
+    "any.required": "At least one service must be selected.",
+    "array.min": "At least one service must be selected.",
+    "array.base": "Selected services must be an array of strings.",
+  }),
 
   note: Joi.string().optional().allow("").messages({
     "string.base": "Additional notes must be a string.",
