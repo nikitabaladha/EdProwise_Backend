@@ -11,7 +11,9 @@ async function deleteBySellerId(req, res) {
       });
     }
 
-    const deletedProfile = await SellerProfile.findOneAndDelete({ id });
+    const deletedProfile = await SellerProfile.findOneAndDelete({
+      sellerId: id,
+    });
 
     if (!deletedProfile) {
       return res.status(404).json({

@@ -37,11 +37,11 @@ const EdprowiseProfileCreateValidator = Joi.object({
     "any.required": "PAN is required.",
   }),
 
-  tan: Joi.string().optional().messages({
+  tan: Joi.string().allow("").optional().messages({
     "string.base": "TAN must be a string.",
   }),
 
-  cin: Joi.string().optional().messages({
+  cin: Joi.string().allow("").optional().messages({
     "string.base": "CIN must be a string.",
   }),
 
@@ -57,7 +57,7 @@ const EdprowiseProfileCreateValidator = Joi.object({
     "any.required": "City, State, and Country are required.",
   }),
 
-  landmark: Joi.string().optional().messages({
+  landmark: Joi.string().allow("").optional().messages({
     "string.base": "Landmark must be a string.",
   }),
 
@@ -83,6 +83,7 @@ const EdprowiseProfileCreateValidator = Joi.object({
 
   alternateContactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
+    .allow("")
     .optional()
     .messages({
       "string.base": "Alternate contact number must be a string.",
@@ -94,6 +95,9 @@ const EdprowiseProfileCreateValidator = Joi.object({
     "string.base": "Email ID must be a string.",
     "string.email": "Email ID must be a valid email address.",
     "any.required": "Email ID is required.",
+  }),
+  edprowiseProfile: Joi.string().optional().trim().messages({
+    "string.base": "Edprowise Profile must be a string.",
   }),
 });
 

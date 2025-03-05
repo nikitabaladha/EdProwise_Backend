@@ -10,7 +10,7 @@ const createProduct = Joi.object({
   subCategoryId: Joi.string().required().messages({
     "any.required": "Subcategory ID is a required field.",
   }),
-  description: Joi.string().optional().messages({
+  description: Joi.string().allow("").optional().messages({
     "string.base": "Description must be a string.",
   }),
   unit: Joi.string()

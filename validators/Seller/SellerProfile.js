@@ -173,7 +173,7 @@ const SellerProfileUpdateValidator = Joi.object({
     "string.empty": "Company name cannot be empty.",
     "any.required": "Company name is required.",
   }),
-
+  sellerProfile: Joi.string().optional().messages({}),
   companyType: Joi.string()
     .valid(
       "Public Limited",
@@ -306,6 +306,7 @@ const SellerProfileUpdateValidator = Joi.object({
   turnover: Joi.number().optional().messages({
     "number.base": "Turnover must be a number.",
   }),
+
   dealingProducts: Joi.array()
     .items(
       Joi.object({
@@ -324,8 +325,7 @@ const SellerProfileUpdateValidator = Joi.object({
           }),
       })
     )
-    .min(1)
-    .required()
+    .optional()
     .messages({
       "array.base": "Dealing products must be an array.",
       "array.min": "At least one dealing product is required.",

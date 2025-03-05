@@ -46,8 +46,6 @@ async function create(req, res) {
       });
     }
 
-    console.log("Total number of products received:", products.length);
-
     const uploadedImages = req.files || [];
     const createdEntries = [];
     const enquiryNumber = generateEnquiryNumber();
@@ -70,7 +68,6 @@ async function create(req, res) {
       const requiredFields = [
         "categoryId",
         "subCategoryId",
-        "description",
         "unit",
         "quantity",
       ];
@@ -94,7 +91,7 @@ async function create(req, res) {
         productImage,
         categoryId: product.categoryId,
         subCategoryId: product.subCategoryId,
-        description: product.description,
+        description: product.description || "No description provided",
         unit: product.unit,
         quantity: product.quantity,
         enquiryNumber,

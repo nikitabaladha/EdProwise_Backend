@@ -64,9 +64,9 @@ router.post(
 );
 
 router.put(
-  "/seller-profile/:id",
+  "/seller-profile/:sellerId",
   uploadFiles,
-  roleBasedMiddleware("Seller"),
+  roleBasedMiddleware("Seller", "Admin"),
   updateById
 );
 

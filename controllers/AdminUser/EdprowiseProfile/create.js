@@ -40,15 +40,11 @@ async function create(req, res) {
       emailId,
     } = req.body;
 
-    if (!req.files || !req.files.edprowiseProfile) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Edprowise Profile Photo is required.",
-      });
-    }
-
     const edprowiseProfileImagePath = "/Images/EdprowiseProfile";
-    const edprowiseProfile = `${edprowiseProfileImagePath}/${req.files.edprowiseProfile[0].filename}`;
+    const edprowiseProfile =
+      req.files && req.files.edprowiseProfile
+        ? `${edprowiseProfileImagePath}/${req.files.edprowiseProfile[0].filename}`
+        : "/Images/DummyImages/Dummy_Profile.png";
 
     const newEdprowiseProfile = new EdprowiseProfile({
       userId,
@@ -56,14 +52,14 @@ async function create(req, res) {
       companyType,
       gstin,
       pan,
-      tan,
-      cin,
+      tan: tan || "ABCDE12345",
+      cin: cin || "U12345MH2024PTC678901",
       address,
       cityStateCountry,
-      landmark,
+      landmark: landmark || "Landmark",
       pincode,
       contactNo,
-      alternateContactNo,
+      alternateContactNo: alternateContactNo || "1234567890",
       emailId,
       edprowiseProfile,
     });
