@@ -17,7 +17,6 @@ async function QuoteProposalPdfRequirements(req, res) {
       });
     }
 
-    // Fetch School details
     const school = await SchoolRegistration.findOne({
       schoolId: id,
     }).select(

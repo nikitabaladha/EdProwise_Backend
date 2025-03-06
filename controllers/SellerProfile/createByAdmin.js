@@ -108,6 +108,7 @@ async function createByAdmin(req, res) {
       salt,
       role: "Seller",
       status: "Completed",
+      randomId: userId,
     });
 
     await newSeller.save();

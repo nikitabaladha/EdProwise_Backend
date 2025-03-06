@@ -10,6 +10,13 @@ function generateSchoolId() {
   return `${prefix}${formattedSuffix}`;
 }
 
+function generateUserId() {
+  const prefix = "SELID";
+  const randomSuffix = Math.floor(Math.random() * 1000000);
+  const formattedSuffix = String(randomSuffix).padStart(6, "0");
+  return `${prefix}${formattedSuffix}`;
+}
+
 async function userSignup(req, res) {
   try {
     const { error } =
@@ -66,12 +73,14 @@ async function userSignup(req, res) {
         },
       });
     } else if (role === "Seller") {
+      const randomId = generateUserId();
       const seller = new Seller({
         userId,
         password: hashedPassword,
         salt,
         role,
         status: "Pending",
+        randomId: randomId,
       });
 
       await seller.save();

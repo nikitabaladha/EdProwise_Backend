@@ -55,7 +55,13 @@ async function create(req, res) {
     }
 
     const sellerProfileImagePath = "/Images/SellerProfile";
-    const sellerProfile = `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`;
+    const sellerProfile =
+      req.files && req.files.sellerProfile
+        ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
+        : "/Images/DummyImages/Dummy_Profile.png";
+
+    // const sellerProfileImagePath = "/Images/SellerProfile";
+    // const sellerProfile = `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`;
 
     const newSellerProfile = new SellerProfile({
       sellerId,
@@ -63,14 +69,14 @@ async function create(req, res) {
       companyType,
       gstin,
       pan,
-      tan,
-      cin,
+      tan: tan || "ABCDE12345",
+      cin: cin || "U12345MH2024PTC678901",
       address,
       cityStateCountry,
-      landmark,
+      landmark: landmark || "Landmark",
       pincode,
       contactNo,
-      alternateContactNo,
+      alternateContactNo: alternateContactNo || "1234567890",
       emailId,
       sellerProfile,
       accountNo,
@@ -78,9 +84,9 @@ async function create(req, res) {
       accountHolderName,
       bankName,
       branchName,
-      noOfEmployees,
-      ceoName,
-      turnover,
+      noOfEmployees: noOfEmployees || "Number of employees",
+      ceoName: ceoName || "CEO Name",
+      turnover: turnover || "Turnover",
       dealingProducts,
     });
 

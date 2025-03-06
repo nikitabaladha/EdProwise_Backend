@@ -204,11 +204,11 @@ const SellerProfileUpdateValidator = Joi.object({
     "any.required": "PAN is required.",
   }),
 
-  tan: Joi.string().optional().messages({
+  tan: Joi.string().optional().allow("").messages({
     "string.base": "TAN must be a string.",
   }),
 
-  cin: Joi.string().optional().messages({
+  cin: Joi.string().optional().allow("").messages({
     "string.base": "CIN must be a string.",
   }),
 
@@ -224,7 +224,7 @@ const SellerProfileUpdateValidator = Joi.object({
     "any.required": "City, State, and Country are required.",
   }),
 
-  landmark: Joi.string().optional().messages({
+  landmark: Joi.string().optional().allow("").messages({
     "string.base": "Landmark must be a string.",
   }),
 
@@ -244,7 +244,7 @@ const SellerProfileUpdateValidator = Joi.object({
     "any.required": "Contact number is required.",
   }),
 
-  alternateContactNo: Joi.string().optional().messages({
+  alternateContactNo: Joi.string().optional().allow("").messages({
     "string.base": "Alternate contact number must be a string.",
   }),
 
@@ -293,17 +293,18 @@ const SellerProfileUpdateValidator = Joi.object({
       "More than 100 Employees"
     )
     .optional()
+    .allow("")
     .messages({
       "string.base": "Number of employees must be a string.",
       "any.only": "Number of employees must be one of the specified options.",
       "any.required": "Number of employees is required.",
     }),
 
-  ceoName: Joi.string().optional().messages({
+  ceoName: Joi.string().optional().allow("").messages({
     "string.base": "CEO name must be a string.",
   }),
 
-  turnover: Joi.number().optional().messages({
+  turnover: Joi.number().optional().allow("").messages({
     "number.base": "Turnover must be a number.",
   }),
 

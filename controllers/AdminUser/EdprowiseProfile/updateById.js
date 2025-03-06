@@ -22,6 +22,9 @@ async function updateById(req, res) {
       });
     }
 
+    console.log("User  ID:", userId);
+    console.log("Profile ID:", id);
+
     const { error } =
       EdprowiseProfileValidator.EdprowiseProfileUpdateValidator.validate(
         req.body

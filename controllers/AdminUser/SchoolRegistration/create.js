@@ -97,9 +97,11 @@ async function create(req, res) {
 
     const roles = [
       { role: "School", prefix: "SAdmin" },
+      { role: "Principal", prefix: "Principal" },
       { role: "Auditor", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },
+      { role: "Principal", prefix: "Principal" },
     ];
 
     const usersToSave = roles.map(({ role, prefix }) => {

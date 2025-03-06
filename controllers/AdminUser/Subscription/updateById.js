@@ -46,7 +46,7 @@ async function updateById(req, res) {
     const duplicateSubscription = await Subscription.findOne({
       schoolId,
       subscriptionFor,
-      _id: { $ne: id }, // Exclude the current subscription being updated
+      _id: { $ne: id },
     });
 
     if (duplicateSubscription) {

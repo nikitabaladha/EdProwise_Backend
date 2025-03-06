@@ -26,6 +26,11 @@ const SellerSchema = new mongoose.Schema(
       enum: ["Pending", "Completed"],
       default: "Pending",
     },
+    randomId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
   },
   {
     timestamps: true,

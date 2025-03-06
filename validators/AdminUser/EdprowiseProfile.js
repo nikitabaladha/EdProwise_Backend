@@ -168,7 +168,7 @@ const EdprowiseProfileUpdateValidator = Joi.object({
 
   contactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .required()
+    .optional()
     .messages({
       "string.base": "Contact number must be a string.",
       "string.pattern.base": "Contact number must be a valid 10-digit number.",

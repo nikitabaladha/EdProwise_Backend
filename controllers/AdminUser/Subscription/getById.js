@@ -1,10 +1,10 @@
 import Subscription from "../../../models/Subscription.js";
+import School from "../../../models/School.js";
 
 async function getById(req, res) {
   try {
     const { id } = req.params;
 
-    // Validate if ID is provided
     if (!id) {
       return res.status(400).json({
         hasError: true,
@@ -12,13 +12,8 @@ async function getById(req, res) {
       });
     }
 
-    // Find the subscription by ID and populate the school data
-    const subscription = await Subscription.findById(id).populate(
-      "schoolId",
-      "schoolId schoolName schoolMobileNo schoolEmail profileImage schoolAddress schoolLocation"
-    );
+    const subscription = await Subscription.findById(id);
 
-    // Check if the subscription exists
     if (!subscription) {
       return res.status(404).json({
         hasError: true,
@@ -26,21 +21,22 @@ async function getById(req, res) {
       });
     }
 
-    // Format the subscription data
+    const school = await School.findOne({ schoolId: subscription.schoolId });
+
     const formattedSubscription = {
       id: subscription._id,
       subscriptionFor: subscription.subscriptionFor,
       subscriptionStartDate: subscription.subscriptionStartDate,
       subscriptionNoOfMonth: subscription.subscriptionNoOfMonth,
       monthlyRate: subscription.monthlyRate,
-      schoolID: subscription.schoolId?._id || null,
-      schoolId: subscription.schoolId?.schoolId || null,
-      schoolName: subscription.schoolId?.schoolName || null,
-      schoolMobileNo: subscription.schoolId?.schoolMobileNo || null,
-      schoolEmail: subscription.schoolId?.schoolEmail || null,
-      profileImage: subscription.schoolId?.profileImage || null,
-      schoolAddress: subscription.schoolId?.schoolAddress || null,
-      schoolLocation: subscription.schoolId?.schoolLocation || null,
+      schoolId: subscription.schoolId,
+      schoolID: school?._id || null,
+      schoolName: school?.schoolName || null,
+      schoolMobileNo: school?.schoolMobileNo || null,
+      schoolEmail: school?.schoolEmail || null,
+      profileImage: school?.profileImage || null,
+      schoolAddress: school?.schoolAddress || null,
+      schoolLocation: school?.schoolLocation || null,
     };
 
     return res.status(200).json({
