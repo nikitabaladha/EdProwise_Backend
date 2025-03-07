@@ -13,7 +13,9 @@ async function getBySchoolId(req, res) {
   }
 
   try {
-    const quoteRequests = await QuoteRequest.find({ schoolId }).exec();
+    const quoteRequests = await QuoteRequest.find({ schoolId })
+      .sort({ createdAt: -1 })
+      .exec();
 
     const responseData = await Promise.all(
       quoteRequests.map(async (quote) => {

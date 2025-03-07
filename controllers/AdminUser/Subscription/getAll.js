@@ -3,7 +3,7 @@ import School from "../../../models/School.js"; // Import the School model
 
 async function getAllSubscription(req, res) {
   try {
-    const subscriptions = await Subscription.find();
+    const subscriptions = await Subscription.find().sort({ createdAt: -1 });
 
     if (!subscriptions.length) {
       return res.status(404).json({

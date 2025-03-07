@@ -111,6 +111,7 @@ const SellerProfileSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+
     dealingProducts: [
       {
         categoryId: {

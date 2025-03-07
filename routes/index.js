@@ -1,4 +1,7 @@
 import loginSignupRoutes from "./login-signup.js";
+
+import DashboardRoutes from "./DashboardRoutes/TotalCounts.js";
+
 import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
 import schoolProfileRoutes from "./SchoolRoutes/school-profile.js";
 
@@ -50,6 +53,7 @@ export default (app) => {
   app.use("/api", OrderDetailsFromSellerRoutes);
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
+  app.use("/api", DashboardRoutes);
 
   // Umesh Routes
 

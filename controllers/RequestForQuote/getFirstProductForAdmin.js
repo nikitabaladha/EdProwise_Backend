@@ -3,7 +3,7 @@ import Product from "../../models/Product.js";
 
 async function getFirstProductForAdmin(req, res) {
   try {
-    const quoteRequests = await QuoteRequest.find();
+    const quoteRequests = await QuoteRequest.find().sort({ createdAt: -1 });
 
     const responseData = await Promise.all(
       quoteRequests.map(async (quote) => {

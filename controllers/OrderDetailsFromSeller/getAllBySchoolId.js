@@ -16,6 +16,7 @@ async function getAllBySchoolId(req, res) {
 
   try {
     const orderDetails = await OrderDetailsFromSeller.find({ schoolId: id })
+      .sort({ createdAt: -1 })
       .select(
         "_id orderNumber quoteNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
       )

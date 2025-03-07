@@ -3,7 +3,9 @@ import Seller from "../../models/Seller.js";
 
 async function getAll(req, res) {
   try {
-    const sellerProfiles = await SellerProfile.find().populate("sellerId");
+    const sellerProfiles = await SellerProfile.find()
+      .sort({ createdAt: -1 })
+      .populate("sellerId");
 
     const formattedProfiles = sellerProfiles.map((profile) => ({
       _id: profile._id,

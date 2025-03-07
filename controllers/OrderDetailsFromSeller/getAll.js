@@ -8,6 +8,7 @@ async function getAll(req, res) {
   try {
     // Fetch all orders
     const orders = await OrderDetailsFromSeller.find()
+      .sort({ createdAt: -1 })
       .select(
         "orderNumber createdAt actualDateOfDelivery otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
       )

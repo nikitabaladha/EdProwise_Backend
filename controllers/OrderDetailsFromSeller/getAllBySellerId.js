@@ -19,6 +19,7 @@ async function getAllBySellerId(req, res) {
       .select(
         "orderNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
       )
+      .sort({ createdAt: -1 })
       .lean();
 
     if (!orderDetails.length) {

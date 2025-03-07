@@ -42,6 +42,7 @@ async function getProductsForSeller(req, res) {
         { subCategoryId: { $in: subCategoryIds } },
       ],
     })
+      .sort({ createdAt: -1 })
       .populate("categoryId", "categoryName")
       .populate("subCategoryId", "subCategoryName");
 

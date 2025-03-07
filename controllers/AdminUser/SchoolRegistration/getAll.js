@@ -2,7 +2,9 @@ import SchoolRegistration from "../../../models/School.js";
 
 async function getAllSchools(req, res) {
   try {
-    const schools = await SchoolRegistration.find().lean();
+    const schools = await SchoolRegistration.find()
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
       message: "Schools fetched successfully!",
