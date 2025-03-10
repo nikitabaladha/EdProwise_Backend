@@ -12,7 +12,7 @@ async function create(req, res) {
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
-    const { subCategoryName, categoryId } = req.body;
+    const { subCategoryName, categoryId, mainCategoryId } = req.body;
 
     const categoryExists = await Category.findById(categoryId);
 
@@ -26,6 +26,7 @@ async function create(req, res) {
     const newSubCategory = new SubCategory({
       subCategoryName,
       categoryId,
+      mainCategoryId,
     });
 
     await newSubCategory.save();

@@ -11,6 +11,11 @@ const SubCategoryValidator = Joi.object({
     "string.empty": "CategoryId cannot be empty.",
     "any.required": "CategoryId is required.",
   }),
+  mainCategoryId: Joi.string().required().messages({
+    "string.base": "Main CategoryId must be a string.",
+    "string.empty": "Main CategoryId cannot be empty.",
+    "any.required": "Main CategoryId is required.",
+  }),
 });
 
 export default {

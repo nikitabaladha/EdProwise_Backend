@@ -4,12 +4,18 @@ import roleBasedMiddleware from "../../middleware/index.js";
 import {
   createMainCategory,
   getAllMainCategory,
+  updateMainCategory,
+  deleteMainCategory,
   createCategory,
   getAllCategory,
   getAllCategoryByMainCategoryId,
+  updateCategory,
+  deleteCategory,
   createSubCategory,
   getAllSubCategoryByCategoryId,
   getAllSubcategory,
+  updateSubCategory,
+  deleteSubCategory,
 } from "../../controllers/AdminUser/MainCategoryCategorySubCategory/index.js";
 
 const router = express.Router();
@@ -19,6 +25,16 @@ router.get(
   "/main-category",
   roleBasedMiddleware("Admin", "School", "Seller"),
   getAllMainCategory
+);
+router.put(
+  "/main-category/:id",
+  roleBasedMiddleware("Admin"),
+  updateMainCategory
+);
+router.delete(
+  "/main-category/:id",
+  roleBasedMiddleware("Admin"),
+  deleteMainCategory
 );
 
 router.post("/category", roleBasedMiddleware("Admin"), createCategory);
@@ -32,6 +48,8 @@ router.get(
   roleBasedMiddleware("Admin", "School", "Seller"),
   getAllCategoryByMainCategoryId
 );
+router.put("/category/:id", roleBasedMiddleware("Admin"), updateCategory);
+router.delete("/category/:id", roleBasedMiddleware("Admin"), deleteCategory);
 
 router.post("/sub-category", roleBasedMiddleware("Admin"), createSubCategory);
 router.get(
@@ -43,5 +61,11 @@ router.get(
   "/sub-category",
   roleBasedMiddleware("Admin", "School", "Seller"),
   getAllSubcategory
+);
+router.put("/sub-category", roleBasedMiddleware("Admin"), updateSubCategory);
+router.delete(
+  "/sub-category/:id",
+  roleBasedMiddleware("Admin"),
+  deleteSubCategory
 );
 export default router;

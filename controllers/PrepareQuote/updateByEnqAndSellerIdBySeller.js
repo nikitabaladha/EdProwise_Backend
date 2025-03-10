@@ -16,7 +16,6 @@ async function updateSingleProduct(req, res) {
       });
     }
 
-    // Validate the product data
     const { error } =
       PrepareQuoteValidator.prepareQuoteUpdate.validate(productData);
     if (error) {
@@ -24,7 +23,6 @@ async function updateSingleProduct(req, res) {
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
-    // Find the existing quote
     const existingQuote = await PrepareQuote.findOne({
       sellerId,
       enquiryNumber,
@@ -38,7 +36,18 @@ async function updateSingleProduct(req, res) {
       });
     }
 
-    // Update fields if new data is provided, otherwise retain existing values
+    const createdAt = existingQuote.createdAt;
+    const currentTime = new Date();
+    const timeDifference = currentTime - createdAt;
+    const fourHoursInMilliseconds = 4 * 60 * 60 * 1000;
+
+    if (timeDifference > fourHoursInMilliseconds) {
+      return res.status(403).json({
+        hasError: true,
+        message: "Update not allowed after 4 hours from creation time.",
+      });
+    }
+
     existingQuote.subcategoryName =
       productData.subcategoryName || existingQuote.subcategoryName;
     existingQuote.hsnSacc = productData.hsnSacc || existingQuote.hsnSacc;
@@ -71,12 +80,10 @@ async function updateSingleProduct(req, res) {
         ? parseFloat(productData.igstRate)
         : existingQuote.igstRate;
 
-    // Update image if uploaded
     if (uploadedImage) {
       existingQuote.prepareQuoteImage = `/Images/PrepareQuoteImage/${uploadedImage.filename}`;
     }
 
-    // Perform calculations with updated or existing values
     const listingRate = existingQuote.listingRate;
     const edprowiseMargin = existingQuote.edprowiseMargin;
     const quantity = existingQuote.quantity;
@@ -85,7 +92,6 @@ async function updateSingleProduct(req, res) {
     const sgstRate = existingQuote.sgstRate;
     const igstRate = existingQuote.igstRate;
 
-    // Recalculate fields
     const finalRateBeforeDiscount =
       listingRate + (listingRate * edprowiseMargin) / 100;
     const finalRate =
@@ -145,8 +151,6 @@ async function updateSingleProduct(req, res) {
       totalIgstAmount += quote.igstAmount;
       totalTaxAmount += quote.gstAmount;
     });
-
-    // at time of update i want to increase the count  updateCountBySeller in prepareQuote when data is updated
 
     const existingQuoteProposal = await QuoteProposal.findOne({
       sellerId,

@@ -12,12 +12,17 @@ const SubCategorySchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+    mainCategoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MainCategory",
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
 SubCategorySchema.index(
-  { categoryId: 1, subCategoryName: 1 },
+  { categoryId: 1, subCategoryName: 1, mainCategoryId: 1 },
   { unique: true }
 );
 
