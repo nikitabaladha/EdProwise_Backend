@@ -1,31 +1,50 @@
 // import SubCategory from "../../../../models/SubCategory.js";
 // import Category from "../../../../models/Category.js";
+
 // import SubCategoryValidator from "../../../../validators/AdminUser/SubCategoryValidator.js";
 
 // async function create(req, res) {
 //   try {
-//     const { error } = SubCategoryValidator.SubCategoryValidator.validate(
-//       req.body
-//     );
-
+//     const { error } =
+//       SubCategoryValidator.SubCategoryValidatorWithoutCategoryId.validate(
+//         req.body
+//       );
 //     if (error?.details?.length) {
 //       const errorMessages = error.details.map((err) => err.message).join(", ");
 //       return res.status(400).json({ hasError: true, message: errorMessages });
 //     }
-//     const { subCategoryName, categoryId, mainCategoryId } = req.body;
 
-//     const categoryExists = await Category.findById(categoryId);
+//     const { subCategoryName, categoryName, mainCategoryId } = req.body;
 
-//     if (!categoryExists) {
+//     let category = await Category.findOne({
+//       categoryName,
+//       mainCategoryId,
+//     });
+//     if (!category) {
+//       category = new Category({
+//         categoryName,
+//         mainCategoryId,
+//       });
+//       await category.save();
+//     }
+
+//     const subCategoryExists = await SubCategory.findOne({
+//       subCategoryName,
+//       categoryId: category._id,
+//       mainCategoryId,
+//     });
+
+//     if (subCategoryExists) {
 //       return res.status(400).json({
 //         hasError: true,
-//         message: "The specified category does not exist.",
+//         message:
+//           "A Sub Category with the same name already exists under this Category.",
 //       });
 //     }
 
 //     const newSubCategory = new SubCategory({
 //       subCategoryName,
-//       categoryId,
+//       categoryId: category._id,
 //       mainCategoryId,
 //     });
 
@@ -38,16 +57,9 @@
 //     });
 //   } catch (error) {
 //     console.error("Error creating Sub Category:", error);
-
-//     if (error.code === 11000) {
-//       return res.status(400).json({
-//         message: "A Sub Category with the same name already in same Category.",
-//         hasError: true,
-//       });
-//     }
 //     return res.status(500).json({
 //       hasError: true,
-//       message: "Failed to create Category.",
+//       message: "Failed to create Sub Category.",
 //       error: error.message,
 //     });
 //   }
@@ -61,12 +73,14 @@ import SubCategoryValidator from "../../../../validators/AdminUser/SubCategoryVa
 
 async function create(req, res) {
   try {
-    const data = Array.isArray(req.body) ? req.body : [req.body];
+    const data = Array.isArray(req.body) ? req.body : [req.body]; // Ensure it handles both single and multiple entries
 
-    // Validate all entries
+    // Validate all entries before proceeding
     for (const entry of data) {
       const { error } =
-        SubCategoryValidator.SubCategoryValidator.validate(entry);
+        SubCategoryValidator.SubCategoryValidatorWithoutCategoryId.validate(
+          entry
+        );
       if (error?.details?.length) {
         const errorMessages = error.details
           .map((err) => err.message)
@@ -78,19 +92,34 @@ async function create(req, res) {
     const createdSubCategories = [];
 
     for (const entry of data) {
-      const { subCategoryName, categoryId, mainCategoryId } = entry;
+      const { subCategoryName, categoryName, mainCategoryId } = entry;
 
-      const categoryExists = await Category.findById(categoryId);
-      if (!categoryExists) {
+      let category = await Category.findOne({ categoryName, mainCategoryId });
+
+      if (!category) {
+        category = new Category({
+          categoryName,
+          mainCategoryId,
+        });
+        await category.save();
+      }
+
+      const subCategoryExists = await SubCategory.findOne({
+        subCategoryName,
+        categoryId: category._id,
+        mainCategoryId,
+      });
+
+      if (subCategoryExists) {
         return res.status(400).json({
           hasError: true,
-          message: `The specified category (ID: ${categoryId}) does not exist.`,
+          message: `A Sub Category with the name "${subCategoryName}" already exists under this Category.`,
         });
       }
 
       const newSubCategory = new SubCategory({
         subCategoryName,
-        categoryId,
+        categoryId: category._id,
         mainCategoryId,
       });
 
@@ -105,14 +134,6 @@ async function create(req, res) {
     });
   } catch (error) {
     console.error("Error creating Sub Category:", error);
-
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message:
-          "A Sub Category with the same name already exists in the same Category.",
-        hasError: true,
-      });
-    }
     return res.status(500).json({
       hasError: true,
       message: "Failed to create Sub Category.",

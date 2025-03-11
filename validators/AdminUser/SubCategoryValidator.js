@@ -18,6 +18,46 @@ const SubCategoryValidator = Joi.object({
   }),
 });
 
+const SubCategoryValidatorWithoutCategoryId = Joi.object({
+  subCategoryName: Joi.string().required().messages({
+    "string.base": "Sub Category name must be a string.",
+    "string.empty": "Sub Category name cannot be empty.",
+    "any.required": "Sub Category name is required.",
+  }),
+
+  categoryName: Joi.string().required().messages({
+    "string.base": "Category name must be a string.",
+    "string.empty": "Category name cannot be empty.",
+    "any.required": "Category name is required.",
+  }),
+  mainCategoryId: Joi.string().required().messages({
+    "string.base": "Main CategoryId must be a string.",
+    "string.empty": "Main CategoryId cannot be empty.",
+    "any.required": "Main CategoryId is required.",
+  }),
+});
+
+const SubCategoryValidatorWithoutIds = Joi.object({
+  subCategoryName: Joi.string().required().messages({
+    "string.base": "Sub Category name must be a string.",
+    "string.empty": "Sub Category name cannot be empty.",
+    "any.required": "Sub Category name is required.",
+  }),
+
+  categoryName: Joi.string().required().messages({
+    "string.base": "Category name must be a string.",
+    "string.empty": "Category name cannot be empty.",
+    "any.required": "Category name is required 123.",
+  }),
+  mainCategoryName: Joi.string().required().messages({
+    "string.base": "Main Category name must be a string.",
+    "string.empty": "Main Category name cannot be empty. 123456",
+    "any.required": "Main Category name is required.",
+  }),
+});
+
 export default {
   SubCategoryValidator,
+  SubCategoryValidatorWithoutCategoryId,
+  SubCategoryValidatorWithoutIds,
 };

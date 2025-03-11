@@ -12,10 +12,13 @@ import {
   updateCategory,
   deleteCategory,
   createSubCategory,
+  createWithoutIds,
+  createWithoutCategoryId,
   getAllSubCategoryByCategoryId,
   getAllSubcategory,
   updateSubCategory,
   deleteSubCategory,
+  updateWithoutIds,
 } from "../../controllers/AdminUser/MainCategoryCategorySubCategory/index.js";
 
 const router = express.Router();
@@ -52,6 +55,17 @@ router.put("/category/:id", roleBasedMiddleware("Admin"), updateCategory);
 router.delete("/category/:id", roleBasedMiddleware("Admin"), deleteCategory);
 
 router.post("/sub-category", roleBasedMiddleware("Admin"), createSubCategory);
+router.post(
+  "/sub-category-without-ids",
+  roleBasedMiddleware("Admin"),
+  createWithoutIds
+);
+router.post(
+  "/sub-category-without-category-id",
+  roleBasedMiddleware("Admin"),
+  createWithoutCategoryId
+);
+
 router.get(
   "/sub-category/:categoryId",
   roleBasedMiddleware("Admin", "School", "Seller"),
@@ -62,7 +76,14 @@ router.get(
   roleBasedMiddleware("Admin", "School", "Seller"),
   getAllSubcategory
 );
-router.put("/sub-category", roleBasedMiddleware("Admin"), updateSubCategory);
+
+// router.put("/sub-category/:id", roleBasedMiddleware("Admin"), updateWithoutIds);
+
+router.put(
+  "/sub-category/:id",
+  roleBasedMiddleware("Admin"),
+  updateSubCategory
+);
 router.delete(
   "/sub-category/:id",
   roleBasedMiddleware("Admin"),

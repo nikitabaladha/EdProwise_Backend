@@ -13,10 +13,13 @@ import updateCategory from "./Category/updateByMainCategoryId.js";
 import deleteCategory from "./Category/deleteCategory.js";
 
 import createSubCategory from "./SubCategory/create.js";
+import createWithoutIds from "./SubCategory/createWithoutIds.js";
+import createWithoutCategoryId from "./SubCategory/createWithoutCategoryId.js";
 import getAllSubCategoryByCategoryId from "./SubCategory/getByCategoryId.js";
 import getAllSubcategory from "./SubCategory/getAll.js";
 import updateSubCategory from "./SubCategory/updateSubCategory.js";
 import deleteSubCategory from "./SubCategory/deleteSubCategory.js";
+import updateWithoutIds from "./SubCategory/updateWithoutIds.js";
 
 export {
   createMainCategory,
@@ -29,8 +32,11 @@ export {
   updateCategory,
   deleteCategory,
   createSubCategory,
+  createWithoutIds,
+  createWithoutCategoryId,
   getAllSubCategoryByCategoryId,
   getAllSubcategory,
   updateSubCategory,
   deleteSubCategory,
+  updateWithoutIds,
 };

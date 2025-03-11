@@ -23,6 +23,7 @@ async function getAll(req, res) {
     }
 
     const formattedSubCategories = subCategories.map((subCategory) => ({
+      id: subCategory._id,
       subCategoryId: subCategory._id,
       subCategoryName: subCategory.subCategoryName,
       categoryId: subCategory.categoryId._id,

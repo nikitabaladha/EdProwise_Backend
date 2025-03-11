@@ -1,9 +1,10 @@
+import MainCategory from "../../../../models/MainCategory.js";
 import SubCategory from "../../../../models/SubCategory.js";
+import Category from "../../../../models/Category.js";
 
 async function updateSubCategory(req, res) {
   try {
     const { id } = req.params;
-    const { subCategoryName, categoryId } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -12,24 +13,59 @@ async function updateSubCategory(req, res) {
       });
     }
 
-    if (!subCategoryName && !categoryId) {
+    const { subCategoryName, categoryId, mainCategoryId } = req.body;
+
+    if (!subCategoryName) {
       return res.status(400).json({
         hasError: true,
-        message:
-          "At least one field (subCategoryName or categoryId) is required for update.",
+        message: "SubCategoryName is required for update.",
+      });
+    }
+
+    if (!categoryId) {
+      return res.status(400).json({
+        hasError: true,
+        message: "CategoryId is required for update.",
+      });
+    }
+
+    if (!mainCategoryId) {
+      return res.status(400).json({
+        hasError: true,
+        message: "MainCategoryId is required for update.",
+      });
+    }
+
+    const categoryExists = await Category.findById(categoryId);
+    if (!categoryExists) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Category not found.",
+      });
+    }
+
+    const mainCategoryExists = await MainCategory.findById(mainCategoryId);
+    if (!mainCategoryExists) {
+      return res.status(404).json({
+        hasError: true,
+        message: "MainCategory not found.",
       });
     }
 
     const updatedSubCategory = await SubCategory.findByIdAndUpdate(
       id,
-      { $set: { subCategoryName, categoryId } },
+      { $set: { subCategoryName, categoryId, mainCategoryId } },
       { new: true }
     )
       .populate({
         path: "categoryId",
         select: "categoryName",
       })
-      .select("subCategoryName _id categoryId")
+      .populate({
+        path: "mainCategoryId",
+        select: "mainCategoryName",
+      })
+      .select("subCategoryName _id categoryId mainCategoryId")
       .exec();
 
     if (!updatedSubCategory) {
@@ -44,8 +80,11 @@ async function updateSubCategory(req, res) {
       message: "SubCategory updated successfully.",
       data: {
         id: updatedSubCategory._id,
-        subCategoryName: updatedSubCategory.subCategoryName,
+        mainCategoryId: updatedSubCategory.mainCategoryId?._id || null,
         categoryId: updatedSubCategory.categoryId?._id || null,
+        subCategoryName: updatedSubCategory.subCategoryName,
+        mainCategoryName:
+          updatedSubCategory.mainCategoryId?.mainCategoryName || null,
         categoryName: updatedSubCategory.categoryId?.categoryName || null,
       },
     });
