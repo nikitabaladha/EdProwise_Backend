@@ -20,14 +20,11 @@ const contactFormSchema = new mongoose.Schema(
     },
     note: {
       type: String,
-      required: true,
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
 export default mongoose.model("ContactForm", contactFormSchema);
-
- 

@@ -31,7 +31,7 @@ async function adminSignup(req, res) {
       password: hashedPassword,
       salt,
       role: "Admin",
-      status: "Pending",
+      status: "Completed",
     });
 
     // Remove sensitive information before sending the response
