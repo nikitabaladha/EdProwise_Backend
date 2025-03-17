@@ -11,7 +11,7 @@ const EdprowiseProfileSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-    },
+    },            
     companyType: {
       type: String,
       enum: [
@@ -49,7 +49,7 @@ const EdprowiseProfileSchema = new mongoose.Schema(
     },
     landmark: {
       type: String,
-      required: false,
+      required: true,
     },
     pincode: {
       type: String,

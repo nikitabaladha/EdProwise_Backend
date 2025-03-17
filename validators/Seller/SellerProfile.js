@@ -3,7 +3,7 @@ import Joi from "joi";
 const SellerProfileCreateValidator = Joi.object({
   companyName: Joi.string().required().messages({
     "string.base": "Company name must be a string.",
-    "string.empty": "Company name cannot be empty.",
+    "string.empty": "Company name cannot be empty.",                
     "any.required": "Company name is required.",
   }),
 
@@ -12,7 +12,7 @@ const SellerProfileCreateValidator = Joi.object({
       "Public Limited",
       "Private Limited",
       "Partnership",
-      "Sole Proprietor",
+      "Sole Proprietor"                    ,
       "HUF"
     )
     .required()
@@ -72,15 +72,26 @@ const SellerProfileCreateValidator = Joi.object({
       "any.required": "Pincode is required.",
     }),
 
-  contactNo: Joi.string().required().messages({
-    "string.base": "Contact number must be a string.",
-    "string.empty": "Contact number cannot be empty.",
-    "any.required": "Contact number is required.",
-  }),
 
-  alternateContactNo: Joi.string().optional().messages({
-    "string.base": "Alternate contact number must be a string.",
-  }),
+  contactNo: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .required()
+    .messages({
+      "string.base": "Contact number must be a string.",
+      "string.pattern.base": "Contact number must be a valid 10-digit number.",
+      "any.required": "Contact number is required.",
+    }),
+
+  alternateContactNo: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.base": "Alternate contact number must be a string.",
+      "string.pattern.base":
+        "Alternate contact number must be a valid 10-digit number.",
+    }),
+
 
   emailId: Joi.string().email().required().messages({
     "string.base": "Email ID must be a string.",

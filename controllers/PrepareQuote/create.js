@@ -111,7 +111,7 @@ async function create(req, res) {
       const finalRateBeforeDiscount =
         listingRate + (listingRate * edprowiseMargin) / 100;
 
-      // Calculate finalRate
+      // Calculate finalRate  
       const finalRate =
         finalRateBeforeDiscount - (finalRateBeforeDiscount * discount) / 100;
 
