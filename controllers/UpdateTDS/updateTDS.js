@@ -5,15 +5,16 @@
 //     const { enquiryNumber, quoteNumber, sellerId } = req.query;
 //     const { tDSAmount } = req.body;
 
+//     // Validate required parameters
 //     if (!enquiryNumber || !quoteNumber || !sellerId) {
 //       return res.status(400).json({
 //         hasError: true,
-//         message: "enquiryNumber and quoteNumber and sellerId are required",
+//         message: "enquiryNumber, quoteNumber, and sellerId are required",
 //       });
 //     }
 
+//     // Validate TDS amount
 //     const allowedTDS = [0, 1, 2, 10, 20.8];
-
 //     if (!allowedTDS.includes(tDSAmount)) {
 //       return res.status(400).json({
 //         hasError: true,
@@ -21,23 +22,25 @@
 //       });
 //     }
 
+//     // Find the existing QuoteProposal based on the combination of enquiryNumber, quoteNumber, and sellerId
 //     const existingQuoteProposal = await QuoteProposal.findOne({
 //       enquiryNumber,
 //       quoteNumber,
 //       sellerId,
 //     });
 
+//     // Check if the QuoteProposal exists
 //     if (!existingQuoteProposal) {
 //       return res.status(404).json({
 //         hasError: true,
 //         message:
-//           "No Quote Proposal found for the given enquiryNumber and quoteNumber.",
+//           "No Quote Proposal found for the given enquiryNumber, quoteNumber, and sellerId.",
 //       });
 //     }
 
+//     // Calculate the final payable amount after TDS deduction
 //     const finalPayableAmountWithoutTDS =
 //       existingQuoteProposal.finalPayableAmountWithoutTDS;
-
 //     if (
 //       finalPayableAmountWithoutTDS === undefined ||
 //       finalPayableAmountWithoutTDS === null
@@ -48,15 +51,15 @@
 //       });
 //     }
 
-//     // Calculating the final payable amount after TDS deduction
 //     const finalPayableAmountWithTDS =
 //       finalPayableAmountWithoutTDS -
 //       (finalPayableAmountWithoutTDS * tDSAmount) / 100;
 
-//     // Updating the values in the database
+//     // Update the values in the database
 //     existingQuoteProposal.tDSAmount = tDSAmount;
 //     existingQuoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
 
+//     // Save the updated QuoteProposal
 //     await existingQuoteProposal.save();
 
 //     return res.status(200).json({
@@ -75,14 +78,18 @@
 
 // export default updateTDS;
 
+
 import QuoteProposal from "../../models/QuoteProposal.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
+
+// find advanceRequiredAmount  from the submiteQuote table on the basis of qnquiryNumber, quoteNumber and sellerId 
 
 async function updateTDS(req, res) {
   try {
     const { enquiryNumber, quoteNumber, sellerId } = req.query;
     const { tDSAmount } = req.body;
 
-    // Validate required parameters
+
     if (!enquiryNumber || !quoteNumber || !sellerId) {
       return res.status(400).json({
         hasError: true,
@@ -90,7 +97,7 @@ async function updateTDS(req, res) {
       });
     }
 
-    // Validate TDS amount
+  
     const allowedTDS = [0, 1, 2, 10, 20.8];
     if (!allowedTDS.includes(tDSAmount)) {
       return res.status(400).json({
@@ -99,14 +106,14 @@ async function updateTDS(req, res) {
       });
     }
 
-    // Find the existing QuoteProposal based on the combination of enquiryNumber, quoteNumber, and sellerId
+   
     const existingQuoteProposal = await QuoteProposal.findOne({
       enquiryNumber,
       quoteNumber,
       sellerId,
     });
 
-    // Check if the QuoteProposal exists
+    
     if (!existingQuoteProposal) {
       return res.status(404).json({
         hasError: true,
@@ -115,25 +122,26 @@ async function updateTDS(req, res) {
       });
     }
 
-    // Calculate the final payable amount after TDS deduction
-    const finalPayableAmountWithoutTDS =
-      existingQuoteProposal.finalPayableAmountWithoutTDS;
-    if (
-      finalPayableAmountWithoutTDS === undefined ||
-      finalPayableAmountWithoutTDS === null
-    ) {
-      return res.status(400).json({
+    const existingSubmitQuote = await SubmitQuote.findOne({
+      enquiryNumber,
+      sellerId,
+    });
+
+    if (!existingSubmitQuote) {
+      return res.status(404).json({
         hasError: true,
-        message: "finalPayableAmountWithoutTDS is missing in the record.",
+        message: "No Submit Quote found for the given enquiryNumber and sellerId.",
       });
     }
 
-    const finalPayableAmountWithTDS =
-      finalPayableAmountWithoutTDS -
-      (finalPayableAmountWithoutTDS * tDSAmount) / 100;
 
-    // Update the values in the database
+    const tdsValue = (existingQuoteProposal.totalTaxableValue * tDSAmount) / 100;
+      
+      const finalPayableAmountWithTDS =
+      existingQuoteProposal.totalAmountBeforeGstAndDiscount - existingSubmitQuote.advanceRequiredAmount - tdsValue;
+  
     existingQuoteProposal.tDSAmount = tDSAmount;
+    existingQuoteProposal.tdsValue= tdsValue;
     existingQuoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
 
     // Save the updated QuoteProposal

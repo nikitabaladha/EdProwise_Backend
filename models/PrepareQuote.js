@@ -86,12 +86,13 @@ const PrepareQuoteSchema = new mongoose.Schema(
     },
     igstRate: {
       type: Number,
-      required: true,
+      required: false,
+      default: 0,
       set: roundToTwo,
     },
     igstAmount: {
       type: Number,
-      required: true,
+      required:false,
       set: roundToTwo,
     },
     amountBeforeGstAndDiscount: {

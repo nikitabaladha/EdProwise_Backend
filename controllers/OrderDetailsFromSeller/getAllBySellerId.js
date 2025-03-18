@@ -49,7 +49,7 @@ async function getAllBySellerId(req, res) {
           enquiryNumber,
         })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithoutTDS finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus"
+            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
           )
           .lean();
 
@@ -69,9 +69,9 @@ async function getAllBySellerId(req, res) {
           totalAmount: quoteProposal?.totalAmount || null,
           totalTaxableValue: quoteProposal?.totalTaxableValue || null,
           totalGstAmount: quoteProposal?.totalGstAmount || null,
-          advanceAdjustment: submitQuote?.advanceRequiredAmount || null,
-          finalPayableAmountWithoutTDS:
-            quoteProposal?.finalPayableAmountWithoutTDS || 0,
+          advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
+          tdsValue:
+            quoteProposal?.tdsValue|| 0,
           finalPayableAmountWithTDS:
             quoteProposal?.finalPayableAmountWithTDS || 0,
           tDSAmount: quoteProposal?.tDSAmount || 0,

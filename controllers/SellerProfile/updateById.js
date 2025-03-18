@@ -80,6 +80,37 @@ async function update(req, res) {
       ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
       : existingSeller.sellerProfile;
 
+      const panFile = req.files?.panFile ? req.files.panFile : null;
+      const gstFile = req.files?.gstFile ? req.files.gstFile : null;
+      const tanFile = req.files?.tanFile ? req.files.tanFile : null;
+      const cinFile = req.files?.cinFile ? req.files.cinFile : null;
+
+      // File path initialization for the documents (if they exist)
+    const panFilePath = panFile && panFile[0].mimetype.startsWith("image/")
+    ? `/Images/SellerPanFile/${panFile[0].filename}`
+    : panFile
+    ? `/Documents/SellerPanFile/${panFile[0].filename}`
+    : existingSeller.panFile;
+
+  const gstFilePath = gstFile && gstFile[0].mimetype.startsWith("image/")
+    ? `/Images/SellerGstFile/${gstFile[0].filename}`
+    : gstFile
+    ? `/Documents/SellerGstFile/${gstFile[0].filename}`
+    : existingSeller.gstFile;
+
+  const tanFilePath = tanFile && tanFile[0].mimetype.startsWith("image/")
+    ? `/Images/SellerTanFile/${tanFile[0].filename}`
+    : tanFile
+    ? `/Documents/SellerTanFile/${tanFile[0].filename}`
+    : existingSeller.tanFile;
+
+  const cinFilePath = cinFile && cinFile[0].mimetype.startsWith("image/")
+    ? `/Images/SellerCinFile/${cinFile[0].filename}`
+    : cinFile
+    ? `/Documents/SellerCinFile/${cinFile[0].filename}`
+    : existingSeller.cinFile;
+
+
     const updatedData = {
       companyName: companyName || existingSeller.companyName,
       companyType: companyType || existingSeller.companyType,
@@ -104,6 +135,10 @@ async function update(req, res) {
       ceoName: ceoName || existingSeller.ceoName,
       turnover: turnover || existingSeller.turnover,
       sellerProfile,
+      panFile: panFilePath,
+      gstFile: gstFilePath,
+      tanFile: tanFilePath,
+      cinFile: cinFilePath,
       dealingProducts: parsedDealingProducts || existingSeller.dealingProducts,
     };
 

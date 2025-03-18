@@ -49,7 +49,7 @@ const SellerProfileSchema = new mongoose.Schema(
     },
     landmark: {
       type: String,
-      required: false,
+      required: true,
     },
     pincode: {
       type: String,
@@ -70,6 +70,22 @@ const SellerProfileSchema = new mongoose.Schema(
     sellerProfile: {
       type: String,
       required: false,
+    },
+    panFile: {
+      type:String,
+      required:true,
+    },
+    gstFile:{
+      type:String,
+      required:true,
+    },
+    tanFile:{
+      type:String,
+      required:false
+    },
+    cinFile:{
+      type:String,
+      required:false,
     },
     accountNo: {
       type: String,
@@ -108,10 +124,16 @@ const SellerProfileSchema = new mongoose.Schema(
       required: false,
     },
     turnover: {
-      type: Number,
+      type: String,
       required: false,
+      enum: [
+        "1 to 10 Lakh",
+        "10 to 50 Lakh",
+        "50 Lakh to 1 Crore",
+        "More than 1 Crore",
+        "",
+      ],
     },
-
     dealingProducts: [
       {
         categoryId: {

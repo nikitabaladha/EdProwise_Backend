@@ -56,15 +56,49 @@ async function createByAdmin(req, res) {
       dealingProducts,
     } = req.body;
 
-    if (!req.files || !req.files.sellerProfile) {
+    const sellerProfileImagePath = "/Images/SellerProfile";
+    const sellerProfile =
+      req.files && req.files.sellerProfile && req.files.sellerProfile[0]
+        ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
+        : "/Images/DummyImages/Dummy_Profile.png";
+
+    // Ensure files are present before trying to access them
+    const panFile = req.files && req.files.panFile ? req.files.panFile : null;
+    const gstFile = req.files && req.files.gstFile ? req.files.gstFile : null;
+    const tanFile = req.files && req.files.tanFile ? req.files.tanFile : null;
+    const cinFile = req.files && req.files.cinFile ? req.files.cinFile : null;
+
+    // Check if required files are missing
+    if (!panFile || !panFile[0]) {
       return res.status(400).json({
         hasError: true,
-        message: "Seller Profile Photo is required.",
+        message: "Seller PAN File is required.",
+      });
+    }
+    if (!gstFile || !gstFile[0]) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Seller GST File is required.",
       });
     }
 
-    const sellerProfileImagePath = "/Images/SellerProfile";
-    const sellerProfile = `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`;
+    // File paths initialization
+    const panFilePath = panFile[0].mimetype.startsWith("image/")
+      ? `/Images/SellerPanFile/${panFile[0].filename}`
+      : `/Documents/SellerPanFile/${panFile[0].filename}`;
+    const gstFilePath = gstFile[0].mimetype.startsWith("image/")
+      ? `/Images/SellerGstFile/${gstFile[0].filename}`
+      : `/Documents/SellerGstFile/${gstFile[0].filename}`;
+    const tanFilePath = tanFile && tanFile[0].mimetype.startsWith("image/")
+      ? `/Images/SellerTanFile/${tanFile[0].filename}`
+      : tanFile
+      ? `/Documents/SellerTanFile/${tanFile[0].filename}`
+      : null;
+    const cinFilePath = cinFile && cinFile[0].mimetype.startsWith("image/")
+      ? `/Images/SellerCinFile/${cinFile[0].filename}`
+      : cinFile
+      ? `/Documents/SellerCinFile/${cinFile[0].filename}`
+      : null;
 
     const sellerId = new mongoose.Types.ObjectId();
 
@@ -84,6 +118,10 @@ async function createByAdmin(req, res) {
       alternateContactNo,
       emailId,
       sellerProfile,
+      panFile: panFilePath,
+      gstFile: gstFilePath,
+      tanFile: tanFilePath,
+      cinFile: cinFilePath,
       accountNo,
       ifsc,
       accountHolderName,
@@ -127,5 +165,6 @@ async function createByAdmin(req, res) {
     });
   }
 }
+
 
 export default createByAdmin;

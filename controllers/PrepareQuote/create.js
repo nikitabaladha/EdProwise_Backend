@@ -79,9 +79,7 @@ async function create(req, res) {
         "quantity",
         "discount",
         "cgstRate",
-        "sgstRate",
-        "igstRate",
-      ];
+        "sgstRate",];
 
       for (const field of requiredFields) {
         if (product[field] === undefined || product[field] === null) {
@@ -105,7 +103,9 @@ async function create(req, res) {
       const discount = parseFloat(product.discount);
       const cgstRate = parseFloat(product.cgstRate);
       const sgstRate = parseFloat(product.sgstRate);
-      const igstRate = parseFloat(product.igstRate);
+      const igstRate = product.igstRate !== undefined && product.igstRate !== "" 
+      ? parseFloat(product.igstRate) 
+      : 0;
 
       // Calculate finalRateBeforeDiscount
       const finalRateBeforeDiscount =

@@ -74,11 +74,7 @@ const QuoteProposalSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
-    finalPayableAmountWithoutTDS: {
-      type: Number,
-      default: 0,
-      set: roundToTwo,
-    },
+   
     finalPayableAmountWithTDS: {
       type: Number,
       default: 0,
@@ -88,6 +84,11 @@ const QuoteProposalSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       enum: [0, 1, 2, 10, 20.8],
+      set: roundToTwo,
+    },
+    tdsValue:{
+      type: Number,
+      default: 0,
       set: roundToTwo,
     },
     buyerStatus: {

@@ -34,6 +34,10 @@ async function getAll(req, res) {
       ceoName: profile.ceoName,
       turnover: profile.turnover,
       dealingProducts: profile.dealingProducts,
+      panFile:profile.panFile,
+      cinFile:profile.cinFile,
+      gstFile:profile.gstFile,
+      tanFile:profile.tanFile
     }));
 
     return res.status(200).json({

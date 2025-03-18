@@ -88,8 +88,8 @@
 
 //     const updatedQuote = await existingQuote.save();
 
-//     const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
-//       { enquiryNumber },
+//     const updatedQuoteProposal = await QuoteProposal.findOneAndUpdate(
+//       { enquiryNumber, sellerId },
 //       {
 //         supplierStatus: "Quote Submitted",
 //         edprowiseStatus: "Quote Received",
@@ -113,10 +113,12 @@
 
 // export default updateBySellerIdAndEnquiryNumber;
 
+
+
+
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SubmitQuoteValidator from "../../validators/SubmitQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
-import QuoteRequest from "../../models/QuoteRequest.js";
 
 async function updateBySellerIdAndEnquiryNumber(req, res) {
   try {
@@ -189,13 +191,13 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
         });
       }
 
-      const finalPayableAmountWithoutTDS =
-        quoteProposal.totalAmount - advanceRequiredAmount;
-      const finalPayableAmountWithTDS =
-        finalPayableAmountWithoutTDS -
-        (finalPayableAmountWithoutTDS * quoteProposal.tDSAmount) / 100;
 
-      quoteProposal.finalPayableAmountWithoutTDS = finalPayableAmountWithoutTDS;
+      const tdsValue =( quoteProposal.totalTaxableValue * quoteProposal.tDSAmount)/100 
+      
+      const finalPayableAmountWithTDS =
+      quoteProposal.totalAmountBeforeGstAndDiscount - advanceRequiredAmount -tdsValue
+
+      quoteProposal.tdsValue = tdsValue;
       quoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
 
       await quoteProposal.save();

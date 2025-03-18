@@ -4,115 +4,91 @@ import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolReg
 import saltFunction from "../../../validators/saltFunction.js";
 
 function generateRandomPassword(length = 10) {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join("");
 }
 
 function generateSchoolId() {
   const prefix = "SID";
-  const randomSuffix = Math.floor(Math.random() * 1000000);
-  const formattedSuffix = String(randomSuffix).padStart(6, "0");
-  return `${prefix}${formattedSuffix}`;
+  const randomSuffix = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
+  return `${prefix}${randomSuffix}`;
 }
 
 async function create(req, res) {
   try {
-    const { error } =
-      SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(
-        req.body
-      );
-
-    if (error?.details?.length) {
-      const errorMessages = error.details.map((err) => err.message).join(", ");
-      return res.status(400).json({ hasError: true, message: errorMessages });
+    // Validate request body
+    const { error } = SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(req.body);
+    if (error) {
+      return res.status(400).json({ hasError: true, message: error.details.map(err => err.message).join(", ") });
     }
 
-    const {
-      schoolName,
-      schoolMobileNo,
-      schoolEmail,
-      schoolAddress,
-      schoolLocation,
-      affiliationUpto,
-      panNo,
-    } = req.body;
+    const { schoolName, schoolMobileNo, schoolEmail, schoolAddress, schoolLocation, affiliationUpto, panNo } = req.body;
+    const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
-    if (!req.files || !req.files.profileImage) {
-      return res.status(400).json({
-        hasError: true,
-        message: "School Profile Photo is required.",
-      });
+    // Validate file uploads
+    if (!affiliationCertificate?.[0]) {
+      return res.status(400).json({ hasError: true, message: "Affiliation Certificate is required." });
+    }
+    if (!panFile?.[0]) {
+      return res.status(400).json({ hasError: true, message: "Pan file is required." });
     }
 
-    if (!req.files || !req.files.affiliationCertificate) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Affiliation Certificate is required.",
-      });
-    }
+    // Set profile image path (default to dummy image if not provided)
+    const profileImagePath = profileImage?.[0]
+      ? `/Images/SchoolProfile/${profileImage[0].filename}`
+      : "/Images/DummyImages/Dummy_Profile.png";
 
-    if (!req.files || !req.files.panFile) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Pan file is required.",
-      });
-    }
-
-    const profileImagePath = "/Images/SchoolProfile";
-    const profileImage = `${profileImagePath}/${req.files.profileImage[0].filename}`;
-
-    const affiliationCertificatePath =
-      req.files.affiliationCertificate[0].mimetype.startsWith("image/")
-        ? "/Images/SchoolAffiliationCertificate"
-        : "/Documents/SchoolAffiliationCertificate";
-    const affiliationCertificate = `${affiliationCertificatePath}/${req.files.affiliationCertificate[0].filename}`;
-
-    const panFilePath = req.files.panFile[0].mimetype.startsWith("image/")
+    // Determine file paths based on MIME type
+    const affiliationCertificatePath = affiliationCertificate[0].mimetype.startsWith("image/")
+      ? "/Images/SchoolAffiliationCertificate"
+      : "/Documents/SchoolAffiliationCertificate";
+    const panFilePath = panFile[0].mimetype.startsWith("image/")
       ? "/Images/SchoolPanFile"
       : "/Documents/SchoolPanFile";
-    const panFile = `${panFilePath}/${req.files.panFile[0].filename}`;
 
+    // Construct full paths
+    const affiliationCertificateFullPath = `${affiliationCertificatePath}/${affiliationCertificate[0].filename}`;
+    const panFileFullPath = `${panFilePath}/${panFile[0].filename}`;
+
+    // Generate unique School ID
     const schoolId = generateSchoolId();
 
+    // Create School Registration entry
     const newSchoolRegistration = new SchoolRegistration({
-      schoolId: schoolId,
+      schoolId,
       schoolName,
       schoolMobileNo,
       schoolEmail,
       schoolAddress,
       schoolLocation,
-      profileImage,
-      affiliationCertificate,
+      profileImage: profileImagePath,
+      affiliationCertificate: affiliationCertificateFullPath,
       affiliationUpto,
       panNo,
-      panFile,
+      panFile: panFileFullPath,
     });
 
     await newSchoolRegistration.save();
 
+    // Define user roles with unique prefixes
     const roles = [
       { role: "School", prefix: "SAdmin" },
       { role: "Principal", prefix: "Principal" },
       { role: "Auditor", prefix: "Audit" },
       { role: "User", prefix: "User1" },
       { role: "User", prefix: "User2" },
-      { role: "Principal", prefix: "Principal" },
     ];
 
+    // Create user accounts
     const usersToSave = roles.map(({ role, prefix }) => {
       const userId = `${prefix}_${schoolId}`;
       const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
-      console.log("userId", userId, "password", password);
+      console.log("User Created ->", { userId, password });
 
       return new User({
-        schoolId: schoolId,
+        schoolId,
         userId,
         password: hashedPassword,
         salt,
@@ -121,6 +97,7 @@ async function create(req, res) {
       });
     });
 
+    // Save user accounts in bulk
     await User.insertMany(usersToSave);
 
     return res.status(201).json({
@@ -129,14 +106,15 @@ async function create(req, res) {
       hasError: false,
     });
   } catch (error) {
+    console.error("Error creating School Registration:", error);
+
     if (error.code === 11000) {
       return res.status(400).json({
         hasError: true,
-        message: "Duplicate schoolId, userId and role.Please check the data.",
+        message: "Duplicate schoolId or userId. Please check the data and try again.",
       });
     }
 
-    console.error("Error creating School Registration:", error);
     return res.status(500).json({
       message: "Failed to create School Registration.",
       error: error.message,

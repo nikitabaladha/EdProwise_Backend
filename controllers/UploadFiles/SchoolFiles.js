@@ -3,10 +3,12 @@ import path from "path";
 import fs from "fs";
 
 const schoolProfileDir = "./Images/SchoolProfile";
+
 const schoolAffiliationCertificateDir =
   "./Documents/SchoolAffiliationCertificate";
-const schoolPanFileDir = "./Documents/SchoolPanFile";
 const schoolAffiliationImageDir = "./Images/SchoolAffiliationCertificate";
+
+const schoolPanFileDir = "./Documents/SchoolPanFile";
 const schoolPanImageDir = "./Images/SchoolPanFile";
 
 if (!fs.existsSync(schoolProfileDir)) {
@@ -17,12 +19,12 @@ if (!fs.existsSync(schoolAffiliationCertificateDir)) {
   fs.mkdirSync(schoolAffiliationCertificateDir, { recursive: true });
 }
 
-if (!fs.existsSync(schoolPanFileDir)) {
-  fs.mkdirSync(schoolPanFileDir, { recursive: true });
-}
-
 if (!fs.existsSync(schoolAffiliationImageDir)) {
   fs.mkdirSync(schoolAffiliationImageDir, { recursive: true });
+}
+
+if (!fs.existsSync(schoolPanFileDir)) {
+  fs.mkdirSync(schoolPanFileDir, { recursive: true });
 }
 
 if (!fs.existsSync(schoolPanImageDir)) {

@@ -48,6 +48,7 @@ const SchoolSchema = new mongoose.Schema(
     },
     schoolAlternateContactNo: {
       type: String,
+      required:false,
     },
     schoolEmail: {
       type: String,
@@ -56,11 +57,11 @@ const SchoolSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      require: true,
+      require: false,
     },
-    contactPersonName: { type: String },
-    numberOfStudents: { type: Number },
-    principalName: { type: String },
+    contactPersonName: { type: String, required:false },
+    numberOfStudents: { type: Number,required:false },
+    principalName: { type: String,requied:false },
     affiliationCertificate: {
       type: String,
       require: true,

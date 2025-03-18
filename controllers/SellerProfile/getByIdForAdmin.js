@@ -22,11 +22,13 @@ async function getByIdForAdmin(req, res) {
       });
     }
 
+
     return res.status(200).json({
       hasError: false,
       message: "Seller profile retrieved successfully.",
       data: sellerProfile,
     });
+    
   } catch (error) {
     console.error("Error retrieving Seller Profile:", error.message);
     return res.status(500).json({
