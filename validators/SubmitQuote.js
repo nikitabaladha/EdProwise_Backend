@@ -35,7 +35,7 @@ const SubmitQuoteCreate = Joi.object({
     }),
 
     expectedDeliveryDateBySeller: Joi.date()
-    .min(today) // Use precomputed date
+    .min(today) 
     .required()
     .messages({
       "any.required": "Expected delivery date by seller is required.",

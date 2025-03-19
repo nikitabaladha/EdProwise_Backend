@@ -264,7 +264,7 @@ const SchoolProfileUpdateValidator = Joi.object({
 
 const SchoolProfileCreateByUserValidator = Joi.object({
   panFile: Joi.string().optional().messages({}),
-  profileImage: Joi.string().optional().messages({}),
+  profileImage: Joi.string().optional().allow("").messages({}),
   affiliationCertificate: Joi.string().optional().messages({}),
 
   schoolName: Joi.string().required().messages({
