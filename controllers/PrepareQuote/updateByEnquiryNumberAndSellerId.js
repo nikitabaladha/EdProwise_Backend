@@ -171,22 +171,39 @@ async function updateSingleProduct(req, res) {
     existingQuoteProposal.totalIgstAmount = totalIgstAmount;
     existingQuoteProposal.totalTaxAmount = totalTaxAmount;
 
-    await existingQuoteProposal.save();
-
-    const existingSubmitted = await SubmitQuote.findOne({
-      sellerId,
-      enquiryNumber,
-    });
-
-    if (!existingSubmitted) {
-      return res.status(404).json({
-        hasError: true,
-        message: `No Submitted Quote found for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
-      });
-    }
-
-    existingSubmitted.quotedAmount = totalAmount;
-    await existingSubmitted.save();
+     // Retrieve the current TDS amount from QuoteProposal
+        const tDSAmount = existingQuoteProposal.tDSAmount || 0;
+    
+        // Calculate TDS value and final payable amount with TDS
+        const tdsValue = existingQuoteProposal.totalTaxableValue * (tDSAmount / 100);
+    
+        const existingSubmitted = await SubmitQuote.findOne({
+          sellerId,
+          enquiryNumber,
+        });
+    
+        if (!existingSubmitted) {
+          return res.status(404).json({
+            hasError: true,
+            message: `No Submitted Quote found for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+          });
+        }
+    
+        const finalPayableAmountWithTDS =
+          existingQuoteProposal.totalAmountBeforeGstAndDiscount -
+          existingSubmitted.advanceRequiredAmount -
+          tdsValue;
+    
+        // Update QuoteProposal with TDS calculations
+        existingQuoteProposal.tdsValue = tdsValue;
+        existingQuoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
+    
+        // Save the updated QuoteProposal
+        await existingQuoteProposal.save();
+    
+        // Update the quoted amount in SubmitQuote
+        existingSubmitted.quotedAmount = totalAmount;
+        await existingSubmitted.save();
 
     return res.status(200).json({
       hasError: false,
@@ -207,3 +224,6 @@ async function updateSingleProduct(req, res) {
 }
 
 export default updateSingleProduct;
+
+
+

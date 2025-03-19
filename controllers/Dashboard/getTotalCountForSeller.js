@@ -2,6 +2,7 @@ import SellerProfile from "../../models/SellerProfile.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
+import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 
 async function getTotalCountForSeller(req, res) {
   try {
@@ -32,7 +33,7 @@ async function getTotalCountForSeller(req, res) {
       (product) => product.subCategoryIds
     );
 
-    // Count matching products
+    // Find matching products
     const matchingProducts = await Product.find({
       $or: [
         { categoryId: { $in: categoryIds } },
@@ -45,9 +46,34 @@ async function getTotalCountForSeller(req, res) {
       ...new Set(matchingProducts.map((p) => p.enquiryNumber)),
     ];
 
-    // Count quote requests for those enquiry numbers
-    const quoteRequestCount = await QuoteRequest.countDocuments({
+    // Fetch all quote requests for these enquiry numbers
+    const quoteRequests = await QuoteRequest.find({
       enquiryNumber: { $in: enquiryNumbers },
+    });
+
+    // Fetch all OrderFromBuyer records for these enquiry numbers
+    const orderFromBuyers = await OrderFromBuyer.find({
+      enquiryNumber: { $in: enquiryNumbers },
+    });
+
+    // Create a map of orders by enquiry number
+    const orderMap = orderFromBuyers.reduce((acc, order) => {
+      if (!acc[order.enquiryNumber]) {
+        acc[order.enquiryNumber] = [];
+      }
+      acc[order.enquiryNumber].push(order);
+      return acc;
+    }, {});
+
+    // Filter quote requests based on order conditions
+    const filteredQuoteRequests = quoteRequests.filter((quoteRequest) => {
+      const orders = orderMap[quoteRequest.enquiryNumber] || [];
+
+      // Case 1: No orders exist for this enquiry number
+      if (orders.length === 0) return true;
+
+      // Case 2: Check if any order exists for this enquiry number and sellerId
+      return orders.some((order) => order.sellerId.toString() === id.toString());
     });
 
     // Count subcategories
@@ -66,7 +92,7 @@ async function getTotalCountForSeller(req, res) {
       data: {
         totalSubcategory: subCategoryCount,
         totalOrder: orderCount,
-        totalQuoteRequest: quoteRequestCount,
+        totalQuoteRequest: filteredQuoteRequests.length, // Updated count
       },
       hasError: false,
     });

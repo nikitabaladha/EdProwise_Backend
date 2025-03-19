@@ -1,4 +1,6 @@
 import PrepareQuote from "../../models/PrepareQuote.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
+
 
 async function getAllBySellerIdAndEnquiryNumber(req, res) {
   try {
@@ -27,10 +29,18 @@ async function getAllBySellerIdAndEnquiryNumber(req, res) {
       });
     }
 
+    const quoteProposal = await QuoteProposal.findOne({ sellerId, enquiryNumber });
+
+    // Add supplierStatus to each PrepareQuote object
+    const prepareQuotesWithStatus = prepareQuotes.map((quote) => ({
+      ...quote.toObject(),
+      supplierStatus: quoteProposal ? quoteProposal.supplierStatus : null,
+    }));
+
     return res.status(200).json({
       hasError: false,
       message: "Prepare quotes retrieved successfully.",
-      data: prepareQuotes,
+      data: prepareQuotesWithStatus,
     });
   } catch (error) {
     console.error("Error retrieving Prepare quotes:", error);

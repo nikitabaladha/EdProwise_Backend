@@ -16,6 +16,7 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    // Validate the product data
     const { error } =
       PrepareQuoteValidator.prepareQuoteUpdate.validate(productData);
     if (error) {
@@ -23,6 +24,7 @@ async function updateSingleProduct(req, res) {
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
+    // Find the existing PrepareQuote
     const existingQuote = await PrepareQuote.findOne({
       sellerId,
       enquiryNumber,
@@ -36,6 +38,7 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    // Check if the update is allowed within 40 hours of creation
     const createdAt = existingQuote.createdAt;
     const currentTime = new Date();
     const timeDifference = currentTime - createdAt;
@@ -48,6 +51,7 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    // Update fields if new data is provided, otherwise retain existing values
     existingQuote.subcategoryName =
       productData.subcategoryName || existingQuote.subcategoryName;
     existingQuote.hsnSacc = productData.hsnSacc || existingQuote.hsnSacc;
@@ -80,10 +84,12 @@ async function updateSingleProduct(req, res) {
         ? parseFloat(productData.igstRate)
         : existingQuote.igstRate;
 
+    // Update image if uploaded
     if (uploadedImage) {
       existingQuote.prepareQuoteImage = `/Images/PrepareQuoteImage/${uploadedImage.filename}`;
     }
 
+    // Perform calculations with updated or existing values
     const listingRate = existingQuote.listingRate;
     const edprowiseMargin = existingQuote.edprowiseMargin;
     const quantity = existingQuote.quantity;
@@ -92,6 +98,7 @@ async function updateSingleProduct(req, res) {
     const sgstRate = existingQuote.sgstRate;
     const igstRate = existingQuote.igstRate;
 
+    // Recalculate fields
     const finalRateBeforeDiscount =
       listingRate + (listingRate * edprowiseMargin) / 100;
     const finalRate =
@@ -121,6 +128,7 @@ async function updateSingleProduct(req, res) {
 
     await existingQuote.save();
 
+    // Aggregate all PrepareQuotes for the seller and enquiry
     const allPrepareQuotes = await PrepareQuote.find({
       sellerId,
       enquiryNumber,
@@ -152,6 +160,7 @@ async function updateSingleProduct(req, res) {
       totalTaxAmount += quote.gstAmount;
     });
 
+    // Find the existing QuoteProposal
     const existingQuoteProposal = await QuoteProposal.findOne({
       sellerId,
       enquiryNumber,
@@ -164,6 +173,7 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    // Update QuoteProposal with aggregated values
     existingQuoteProposal.totalQuantity = totalQuantity;
     existingQuoteProposal.totalFinalRateBeforeDiscount =
       totalFinalRateBeforeDiscount;
@@ -178,7 +188,11 @@ async function updateSingleProduct(req, res) {
     existingQuoteProposal.totalIgstAmount = totalIgstAmount;
     existingQuoteProposal.totalTaxAmount = totalTaxAmount;
 
-    await existingQuoteProposal.save();
+    // Retrieve the current TDS amount from QuoteProposal
+    const tDSAmount = existingQuoteProposal.tDSAmount || 0;
+
+    // Calculate TDS value and final payable amount with TDS
+    const tdsValue = existingQuoteProposal.totalTaxableValue * (tDSAmount / 100);
 
     const existingSubmitted = await SubmitQuote.findOne({
       sellerId,
@@ -192,6 +206,19 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    const finalPayableAmountWithTDS =
+      existingQuoteProposal.totalAmountBeforeGstAndDiscount -
+      existingSubmitted.advanceRequiredAmount -
+      tdsValue;
+
+    // Update QuoteProposal with TDS calculations
+    existingQuoteProposal.tdsValue = tdsValue;
+    existingQuoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
+
+    // Save the updated QuoteProposal
+    await existingQuoteProposal.save();
+
+    // Update the quoted amount in SubmitQuote
     existingSubmitted.quotedAmount = totalAmount;
     await existingSubmitted.save();
 

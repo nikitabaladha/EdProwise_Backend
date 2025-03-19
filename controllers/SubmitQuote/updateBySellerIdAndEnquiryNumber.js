@@ -191,8 +191,7 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
         });
       }
 
-
-      const tdsValue =( quoteProposal.totalTaxableValue * quoteProposal.tDSAmount)/100 
+      const tdsValue = (quoteProposal.totalTaxableValue * (quoteProposal.tDSAmount / 100)); 
       
       const finalPayableAmountWithTDS =
       quoteProposal.totalAmountBeforeGstAndDiscount - advanceRequiredAmount -tdsValue

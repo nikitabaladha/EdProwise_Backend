@@ -1,6 +1,7 @@
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
+import OrderFromBuyer from "../../models/OrderFromBuyer.js"
 
 async function getProductsForSeller(req, res) {
   try {
@@ -110,13 +111,38 @@ async function getProductsForSeller(req, res) {
       }
     }
 
-    // Convert map values to an array (first product of each enquiry number)
     const formattedProducts = Array.from(enquiryProductMap.values());
+
+    const enquiryNumbers = formattedProducts.map(p => p.enquiryNumber);
+
+    const orderFromBuyers = await OrderFromBuyer.find({
+      enquiryNumber: { $in: enquiryNumbers }
+    });
+
+    const orderMap = orderFromBuyers.reduce((acc, order) => {
+      if (!acc[order.enquiryNumber]) {
+        acc[order.enquiryNumber] = [];
+      }
+      acc[order.enquiryNumber].push(order);
+      return acc;
+    }, {});
+
+    const filteredProducts = formattedProducts.filter(product => {
+      const orders = orderMap[product.enquiryNumber] || [];
+      
+      if (orders.length === 0) return true;
+      
+      const hasSellerOrder = orders.some(order => 
+        order.sellerId.toString() === sellerId.toString()
+      );
+
+      return hasSellerOrder;
+    });
 
     return res.status(200).json({
       hasError: false,
       message: "Data fetched successfully.",
-      data: formattedProducts,
+      data: filteredProducts, 
     });
   } catch (error) {
     console.error("Error fetching products for seller:", error.message);
@@ -129,3 +155,7 @@ async function getProductsForSeller(req, res) {
 }
 
 export default getProductsForSeller;
+
+
+
+

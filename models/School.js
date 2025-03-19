@@ -57,7 +57,7 @@ const SchoolSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      require: false,
+      required: false,
     },
     contactPersonName: { type: String, required:false },
     numberOfStudents: { type: Number,required:false },
