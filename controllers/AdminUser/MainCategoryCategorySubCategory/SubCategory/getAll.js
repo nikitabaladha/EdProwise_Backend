@@ -12,7 +12,7 @@ async function getAll(req, res) {
           model: MainCategory,
           select: "mainCategoryName _id",
         },
-      })
+      }).sort({ createdAt: -1 })
       .select("subCategoryName _id categoryId");
 
     if (!subCategories.length) {

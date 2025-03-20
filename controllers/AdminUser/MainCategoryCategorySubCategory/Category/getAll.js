@@ -6,7 +6,7 @@ async function getAll(req, res) {
       .populate({
         path: "mainCategoryId",
         select: "mainCategoryName",
-      })
+      }).sort({ createdAt: -1 })
       .select("categoryName _id");
 
     if (categories.length === 0) {

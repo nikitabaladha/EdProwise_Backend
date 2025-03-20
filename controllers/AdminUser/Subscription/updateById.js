@@ -5,7 +5,6 @@ async function updateById(req, res) {
   try {
     const { id } = req.params;
 
-    // Check if ID is provided
     if (!id) {
       return res.status(400).json({
         hasError: true,
@@ -13,7 +12,6 @@ async function updateById(req, res) {
       });
     }
 
-    // Validate request body
     const { error } =
       SubscriptionValidator.SubscriptionUpdateValidator.validate(req.body);
     if (error) {
@@ -24,7 +22,6 @@ async function updateById(req, res) {
       });
     }
 
-    // Check if subscription exists
     const existingSubscription = await Subscription.findById(id);
     if (!existingSubscription) {
       return res.status(404).json({
@@ -33,7 +30,6 @@ async function updateById(req, res) {
       });
     }
 
-    // Destructure the request body
     const {
       schoolId,
       subscriptionFor,
@@ -42,7 +38,6 @@ async function updateById(req, res) {
       monthlyRate,
     } = req.body;
 
-    // Check for duplicate subscription
     const duplicateSubscription = await Subscription.findOne({
       schoolId,
       subscriptionFor,
@@ -57,7 +52,6 @@ async function updateById(req, res) {
       });
     }
 
-    // Prepare updated data
     const updatedData = {
       schoolId: schoolId || existingSubscription.schoolId,
       subscriptionFor: subscriptionFor || existingSubscription.subscriptionFor,
@@ -68,14 +62,12 @@ async function updateById(req, res) {
       monthlyRate: monthlyRate || existingSubscription.monthlyRate,
     };
 
-    // Update the subscription
     const updatedSubscription = await Subscription.findByIdAndUpdate(
       id,
       { $set: updatedData },
       { new: true }
     );
 
-    // Success response
     return res.status(200).json({
       hasError: false,
       message: "Subscription updated successfully!",

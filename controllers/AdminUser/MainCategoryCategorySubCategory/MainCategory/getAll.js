@@ -2,7 +2,7 @@ import MainCategory from "../../../../models/MainCategory.js";
 
 async function getAll(req, res) {
   try {
-    const mainCategories = await MainCategory.find();
+    const mainCategories = await MainCategory.find().sort({ createdAt: -1 });
 
     if (!mainCategories.length) {
       return res.status(404).json({

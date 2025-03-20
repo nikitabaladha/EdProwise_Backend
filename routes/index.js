@@ -10,10 +10,13 @@ import schoolUserRoutes from "./SchoolRoutes/school-user.js";
 import SellerRoutes from "./SellerRoutes/seller-profile.js";
 import SellerUserRoutes from "./SellerRoutes/seller-user.js";
 import subscriptionRoutes from "./AdminRoutes/subscriptionRoutes.js";
-import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
 import EdprowiseProfileRoutes from "./AdminRoutes/edprowiseProfile.js";
 import AdminUserRoutes from "./AdminRoutes/admin.js";
 import NewAdminRoutes from "./AdminRoutes/NewAdmin.js";
+
+// ======================Procurement Services==================
+import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
+import EdprowiseBankDetailRoutes from "./Procurement/bank-detail.js";
 
 import QuoteRoutes from "./Procurement/quote-request.js";
 import PrepareQuoteRoutes from "./Procurement/prepare-quote-by-seller.js";
@@ -26,6 +29,10 @@ import PdfMakingRequiredRoutes from "./Procurement/pdf-requirements.js";
 import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-seller.js";
 import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
 import UpdateTDSRoutes from "./Procurement/update-tds.js";
+
+// ====================Fees Module===================
+
+import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 
 // Umesh Routes
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
@@ -40,10 +47,14 @@ export default (app) => {
   app.use("/api", userRoutes);
   app.use("/api", subscriptionRoutes);
   app.use("/api", schoolProfileRoutes);
-  app.use("/api", MainCategoryCategorySubCategoryRoutes);
   app.use("/api", EdprowiseProfileRoutes);
   app.use("/api", AdminUserRoutes);
   app.use("/api", NewAdminRoutes);
+
+  //=====================Procurement Routes===============
+  app.use("/api", MainCategoryCategorySubCategoryRoutes);
+  app.use("/api", EdprowiseBankDetailRoutes);
+
   app.use("/api", QuoteRoutes);
   app.use("/api", PrepareQuoteRoutes);
   app.use("/api", SubmitQuoteRoutes);
@@ -56,6 +67,9 @@ export default (app) => {
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
   app.use("/api", DashboardRoutes);
+
+  // ================Fees Module====================
+  app.use("./api", AdminSettingRoutes);
 
   // Umesh Routes
 
