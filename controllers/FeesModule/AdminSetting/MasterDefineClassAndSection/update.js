@@ -1,18 +1,19 @@
-import MasterDefineClass from "../../../../models/FeesModule/MasterDefineClass.js";
+import MasterDefineClass from "../../../../models/FeesModule/Class&Section.js";
 import MasterDefineClassValidator from "../../../../validators/FeesModule/MasterDefineClass.js";
 
 async function updateMasterDefineClass(req, res) {
   try {
     const { id } = req.params;
 
-    const { error } = MasterDefineClassValidator.MasterDefineClassUpdate.validate(req.body);
+    const { error } =
+      MasterDefineClassValidator.MasterDefineClassUpdate.validate(req.body);
     if (error?.details?.length) {
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
     const { masterDefineClassName } = req.body;
-    
+
     const existingMasterDefineClass = await MasterDefineClass.findById(id);
     if (!existingMasterDefineClass) {
       return res.status(404).json({
@@ -21,8 +22,9 @@ async function updateMasterDefineClass(req, res) {
       });
     }
 
-    
-    const duplicateClass = await MasterDefineClass.findOne({ masterDefineClassName });
+    const duplicateClass = await MasterDefineClass.findOne({
+      masterDefineClassName,
+    });
     if (duplicateClass && duplicateClass._id.toString() !== id) {
       return res.status(400).json({
         hasError: true,

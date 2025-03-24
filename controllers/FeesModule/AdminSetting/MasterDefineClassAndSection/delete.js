@@ -1,10 +1,9 @@
-import MasterDefineClass from "../../../../models/FeesModule/MasterDefineClass.js";
+import MasterDefineClass from "../../../../models/FeesModule/Class&Section.js";
 
 async function deleteMasterDefineClass(req, res) {
   try {
     const { id } = req.params;
 
-    
     const masterDefineClass = await MasterDefineClass.findById(id);
     if (!masterDefineClass) {
       return res.status(404).json({
@@ -13,7 +12,6 @@ async function deleteMasterDefineClass(req, res) {
       });
     }
 
-    
     await MasterDefineClass.findByIdAndDelete(id);
 
     return res.status(200).json({

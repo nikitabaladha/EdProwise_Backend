@@ -2,11 +2,16 @@ import mongoose from "mongoose";
 
 const MasterDefineClassSchema = new mongoose.Schema(
   {
-    masterDefineClassName: {
+    schoolId: {
+      type: String,
+      required: true,
+    },
+    className: {
       type: String,
       required: true,
       unique: true,
     },
+    numberOfSEctions: {},
   },
   { timestamps: true }
 );

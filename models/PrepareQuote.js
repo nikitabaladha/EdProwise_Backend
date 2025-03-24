@@ -59,7 +59,17 @@ const PrepareQuoteSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
+    finalRateForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
     taxableValue: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    taxableValueForEdprowise: {
       type: Number,
       required: true,
       set: roundToTwo,
@@ -74,12 +84,22 @@ const PrepareQuoteSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
+    cgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
     sgstRate: {
       type: Number,
       required: true,
       set: roundToTwo,
     },
     sgstAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    sgstAmountForEdprowise: {
       type: Number,
       required: true,
       set: roundToTwo,
@@ -92,7 +112,12 @@ const PrepareQuoteSchema = new mongoose.Schema(
     },
     igstAmount: {
       type: Number,
-      required:false,
+      required: false,
+      set: roundToTwo,
+    },
+    igstAmountForEdprowise: {
+      type: Number,
+      required: false,
       set: roundToTwo,
     },
     amountBeforeGstAndDiscount: {
@@ -110,7 +135,17 @@ const PrepareQuoteSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
+    gstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
     totalAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalAmountForEdprowise: {
       type: Number,
       required: true,
       set: roundToTwo,

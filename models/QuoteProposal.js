@@ -39,11 +39,7 @@ const QuoteProposalSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
-    totalGstAmount: {
-      type: Number,
-      required: true,
-      set: roundToTwo,
-    },
+
     totalAmount: {
       type: Number,
       required: true,
@@ -74,8 +70,57 @@ const QuoteProposalSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
-   
+    totalFinalRate: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRateForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRateBeforeDiscountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxableValueForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalCgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalSgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalIgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
     finalPayableAmountWithTDS: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    finalPayableAmountWithTDSForEdprowise: {
       type: Number,
       default: 0,
       set: roundToTwo,
@@ -86,7 +131,12 @@ const QuoteProposalSchema = new mongoose.Schema(
       enum: [0, 1, 2, 10, 20.8],
       set: roundToTwo,
     },
-    tdsValue:{
+    tdsValue: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    tdsValueForEdprowise: {
       type: Number,
       default: 0,
       set: roundToTwo,
@@ -109,6 +159,7 @@ const QuoteProposalSchema = new mongoose.Schema(
       enum: [
         "Quote Requested",
         "Quote Submitted",
+        "Quote Rejected",
         "Order Received",
         "Work In Progress",
         "Ready For Transit",

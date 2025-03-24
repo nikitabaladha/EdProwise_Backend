@@ -49,7 +49,7 @@ async function getAllBySellerId(req, res) {
           enquiryNumber,
         })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
+            "totalAmountBeforeGstAndDiscount totalAmount  totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
           )
           .lean();
 
@@ -67,13 +67,21 @@ async function getAllBySellerId(req, res) {
           totalAmountBeforeGstAndDiscount:
             quoteProposal?.totalAmountBeforeGstAndDiscount || null,
           totalAmount: quoteProposal?.totalAmount || null,
+          totalAmountForEdprowise: quoteProposal?.totalAmountForEdprowise || 0,
+
           totalTaxableValue: quoteProposal?.totalTaxableValue || null,
-          totalGstAmount: quoteProposal?.totalGstAmount || null,
+          totalGstAmount: quoteProposal?.totalTaxAmount || null,
+          totalGstAmountForEdprowise:
+            quoteProposal?.totalTaxAmountForEdprowise || 0,
+          totalTaxableValueForEdprowise:
+            quoteProposal?.totalTaxableValueForEdprowise || 0,
           advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
-          tdsValue:
-            quoteProposal?.tdsValue|| 0,
+          tdsValue: quoteProposal?.tdsValue || 0,
+          tdsValueForEdprowise: quoteProposal?.tdsValueForEdprowise || 0,
           finalPayableAmountWithTDS:
             quoteProposal?.finalPayableAmountWithTDS || 0,
+          finalPayableAmountWithTDSForEdprowise:
+            quoteProposal?.finalPayableAmountWithTDSForEdprowise || 0,
           tDSAmount: quoteProposal?.tDSAmount || 0,
         };
       })

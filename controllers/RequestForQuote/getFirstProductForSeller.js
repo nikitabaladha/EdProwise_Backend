@@ -1,7 +1,8 @@
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
-import OrderFromBuyer from "../../models/OrderFromBuyer.js"
+import OrderFromBuyer from "../../models/OrderFromBuyer.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function getProductsForSeller(req, res) {
   try {
@@ -74,6 +75,16 @@ async function getProductsForSeller(req, res) {
 
     for (const product of products) {
       if (!enquiryProductMap.has(product.enquiryNumber)) {
+        const existingSubmittedQuote = await SubmitQuote.findOne({
+          enquiryNumber: product.enquiryNumber,
+          sellerId,
+        });
+
+        const venderStatusFromBuyer =
+          existingSubmittedQuote?.venderStatusFromBuyer || null;
+        const rejectCommentFromBuyer =
+          existingSubmittedQuote?.rejectCommentFromBuyer || null;
+
         enquiryProductMap.set(product.enquiryNumber, {
           id: product._id,
           schoolId: product.schoolId,
@@ -107,16 +118,18 @@ async function getProductsForSeller(req, res) {
             quoteRequestsMap[product.enquiryNumber]?.edprowiseStatus || null,
           createdAt: quoteRequestsMap[product.enquiryNumber]?.createdAt || null,
           updatedAt: quoteRequestsMap[product.enquiryNumber]?.updatedAt || null,
+          venderStatusFromBuyer, // Include vendor status from buyer
+          rejectCommentFromBuyer,
         });
       }
     }
 
     const formattedProducts = Array.from(enquiryProductMap.values());
 
-    const enquiryNumbers = formattedProducts.map(p => p.enquiryNumber);
+    const enquiryNumbers = formattedProducts.map((p) => p.enquiryNumber);
 
     const orderFromBuyers = await OrderFromBuyer.find({
-      enquiryNumber: { $in: enquiryNumbers }
+      enquiryNumber: { $in: enquiryNumbers },
     });
 
     const orderMap = orderFromBuyers.reduce((acc, order) => {
@@ -127,13 +140,13 @@ async function getProductsForSeller(req, res) {
       return acc;
     }, {});
 
-    const filteredProducts = formattedProducts.filter(product => {
+    const filteredProducts = formattedProducts.filter((product) => {
       const orders = orderMap[product.enquiryNumber] || [];
-      
+
       if (orders.length === 0) return true;
-      
-      const hasSellerOrder = orders.some(order => 
-        order.sellerId.toString() === sellerId.toString()
+
+      const hasSellerOrder = orders.some(
+        (order) => order.sellerId.toString() === sellerId.toString()
       );
 
       return hasSellerOrder;
@@ -142,7 +155,7 @@ async function getProductsForSeller(req, res) {
     return res.status(200).json({
       hasError: false,
       message: "Data fetched successfully.",
-      data: filteredProducts, 
+      data: filteredProducts,
     });
   } catch (error) {
     console.error("Error fetching products for seller:", error.message);
@@ -155,7 +168,3 @@ async function getProductsForSeller(req, res) {
 }
 
 export default getProductsForSeller;
-
-
-
-

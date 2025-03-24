@@ -1,4 +1,5 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
 
 async function updateVenderStatus(req, res) {
   try {
@@ -35,9 +36,25 @@ async function updateVenderStatus(req, res) {
       });
     }
 
+    const existingQuoteRequest = await QuoteRequest.findOne({
+      enquiryNumber,
+    });
+
+    if (!existingQuoteRequest) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Quote not found for the given enquiryNumber.",
+      });
+    }
+
     existingQuote.venderStatus = venderStatus;
     await existingQuote.save();
 
+    if (venderStatus === "Quote Accepted") {
+      existingQuoteRequest.buyerStatus = "Quote Received";
+
+      await existingQuoteRequest.save();
+    }
     return res.status(200).json({
       hasError: false,
       message: "Quote status updated successfully.",

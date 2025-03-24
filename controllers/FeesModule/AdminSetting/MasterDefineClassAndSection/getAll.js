@@ -1,9 +1,10 @@
-import MasterDefineClass from "../../../../models/FeesModule/MasterDefineClass.js";
+import MasterDefineClass from "../../../../models/FeesModule/Class&Section.js";
 
 async function getAllMasterDefineClasses(req, res) {
   try {
-    
-    const masterDefineClasses = await MasterDefineClass.find().sort({ createdAt: -1 });
+    const masterDefineClasses = await MasterDefineClass.find().sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       hasError: false,

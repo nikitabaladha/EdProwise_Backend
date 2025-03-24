@@ -1,4 +1,4 @@
-import MasterDefineClass from "../../../../models/FeesModule/MasterDefineClass.js";
+import MasterDefineClass from "../../../../models/FeesModule/Class&Section.js";
 import MasterDefineClassValidator from "../../../../validators/FeesModule/MasterDefineClass.js";
 
 async function create(req, res) {

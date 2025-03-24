@@ -40,7 +40,7 @@ async function getAllBySchoolId(req, res) {
               .lean(),
             QuoteProposal.findOne({ enquiryNumber, quoteNumber, sellerId })
               .select(
-                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
+                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
               )
               .lean(),
             SubmitQuote.findOne({ enquiryNumber, sellerId })
@@ -68,9 +68,8 @@ async function getAllBySchoolId(req, res) {
             quoteProposals?.totalAmountBeforeGstAndDiscount || 0,
           totalAmount: quoteProposals?.totalAmount || 0,
           totalTaxableValue: quoteProposals?.totalTaxableValue || 0,
-          totalGstAmount: quoteProposals?.totalGstAmount || 0,
-          tdsValue:
-            quoteProposals?.tdsValue|| 0,
+          totalGstAmount: quoteProposals?.totalTaxAmount || 0,
+          tdsValue: quoteProposals?.tdsValue || 0,
           finalPayableAmountWithTDS:
             quoteProposals?.finalPayableAmountWithTDS || 0,
           tDSAmount: quoteProposals?.tDSAmount || 0,

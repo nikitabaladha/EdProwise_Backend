@@ -22,7 +22,6 @@ const OrderDetailsFromSellerSchema = new mongoose.Schema(
     },
     actualDeliveryDate: { type: Date, default: null },
     otherCharges: { type: Number, default: 0, set: roundToTwo },
-    finalReceivableFromEdprowise: { type: Number, default: 0, set: roundToTwo },
     invoiceDate: { type: Date, default: null },
     invoiceForSchool: { type: String, required: true },
     invoiceForEdprowise: { type: String, required: true },

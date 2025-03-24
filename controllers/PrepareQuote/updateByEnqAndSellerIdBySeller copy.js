@@ -38,7 +38,7 @@ async function updateSingleProduct(req, res) {
       });
     }
 
-    // Check if the update is allowed within 4 hours of creation
+    // Check if the update is allowed within 40 hours of creation
     const createdAt = existingQuote.createdAt;
     const currentTime = new Date();
     const timeDifference = currentTime - createdAt;
@@ -55,6 +55,10 @@ async function updateSingleProduct(req, res) {
     existingQuote.subcategoryName =
       productData.subcategoryName || existingQuote.subcategoryName;
     existingQuote.hsnSacc = productData.hsnSacc || existingQuote.hsnSacc;
+    existingQuote.listingRate =
+      productData.listingRate !== undefined
+        ? parseFloat(productData.listingRate)
+        : existingQuote.listingRate;
     existingQuote.listingRate =
       productData.listingRate !== undefined
         ? parseFloat(productData.listingRate)
@@ -103,43 +107,27 @@ async function updateSingleProduct(req, res) {
       listingRate + (listingRate * edprowiseMargin) / 100;
     const finalRate =
       finalRateBeforeDiscount - (finalRateBeforeDiscount * discount) / 100;
-    const finalRateForEdprowise = (finalRate / (edprowiseMargin + 100)) * 100;
     const taxableValue = finalRate * quantity;
-    const taxableValueForEdprowise = finalRateForEdprowise * quantity;
     const cgstAmount = (taxableValue * cgstRate) / 100;
     const sgstAmount = (taxableValue * sgstRate) / 100;
     const igstAmount = (taxableValue * igstRate) / 100;
-    const cgstAmountForEdprowise = (taxableValueForEdprowise * cgstRate) / 100;
-    const sgstAmountForEdprowise = (taxableValueForEdprowise * sgstRate) / 100;
-    const igstAmountForEdprowise = (taxableValueForEdprowise * igstRate) / 100;
     const amountBeforeGstAndDiscount = finalRateBeforeDiscount * quantity;
     const discountAmount = (amountBeforeGstAndDiscount * discount) / 100;
     const gstAmount = cgstAmount + sgstAmount + igstAmount;
-    const gstAmountForEdprowise =
-      cgstAmountForEdprowise + sgstAmountForEdprowise + igstAmountForEdprowise;
     const totalAmountForProduct =
       amountBeforeGstAndDiscount - discountAmount + gstAmount;
-    const totalAmountForProductForEdprowise =
-      taxableValueForEdprowise + gstAmountForEdprowise;
 
-    // Update the existing PrepareQuote with all fields
+    // Update the existing PrepareQuote
     existingQuote.finalRateBeforeDiscount = finalRateBeforeDiscount;
     existingQuote.finalRate = finalRate;
-    existingQuote.finalRateForEdprowise = finalRateForEdprowise;
     existingQuote.taxableValue = taxableValue;
-    existingQuote.taxableValueForEdprowise = taxableValueForEdprowise;
     existingQuote.cgstAmount = cgstAmount;
     existingQuote.sgstAmount = sgstAmount;
     existingQuote.igstAmount = igstAmount;
-    existingQuote.cgstAmountForEdprowise = cgstAmountForEdprowise;
-    existingQuote.sgstAmountForEdprowise = sgstAmountForEdprowise;
-    existingQuote.igstAmountForEdprowise = igstAmountForEdprowise;
     existingQuote.amountBeforeGstAndDiscount = amountBeforeGstAndDiscount;
     existingQuote.discountAmount = discountAmount;
     existingQuote.gstAmount = gstAmount;
-    existingQuote.gstAmountForEdprowise = gstAmountForEdprowise;
     existingQuote.totalAmount = totalAmountForProduct;
-    existingQuote.totalAmountForEdprowise = totalAmountForProductForEdprowise;
     existingQuote.updateCountBySeller += 1;
 
     await existingQuote.save();
@@ -162,14 +150,6 @@ async function updateSingleProduct(req, res) {
     let totalIgstAmount = 0;
     let totalTaxAmount = 0;
 
-    let totalFinalRateBeforeDiscountForEdprowise = 0;
-    let totalTaxableValueForEdprowise = 0;
-    let totalCgstAmountForEdprowise = 0;
-    let totalSgstAmountForEdprowise = 0;
-    let totalIgstAmountForEdprowise = 0;
-    let totalTaxAmountForEdprowise = 0;
-    let totalAmountForEdprowise = 0;
-
     allPrepareQuotes.forEach((quote) => {
       totalQuantity += quote.quantity;
       totalFinalRateBeforeDiscount += quote.finalRateBeforeDiscount;
@@ -182,14 +162,6 @@ async function updateSingleProduct(req, res) {
       totalSgstAmount += quote.sgstAmount;
       totalIgstAmount += quote.igstAmount;
       totalTaxAmount += quote.gstAmount;
-
-      totalFinalRateBeforeDiscountForEdprowise += quote.finalRateBeforeDiscount;
-      totalTaxableValueForEdprowise += quote.taxableValueForEdprowise;
-      totalCgstAmountForEdprowise += quote.cgstAmountForEdprowise;
-      totalSgstAmountForEdprowise += quote.sgstAmountForEdprowise;
-      totalIgstAmountForEdprowise += quote.igstAmountForEdprowise;
-      totalTaxAmountForEdprowise += quote.gstAmountForEdprowise;
-      totalAmountForEdprowise += quote.totalAmountForEdprowise;
     });
 
     // Find the existing QuoteProposal
@@ -218,20 +190,6 @@ async function updateSingleProduct(req, res) {
     existingQuoteProposal.totalSgstAmount = totalSgstAmount;
     existingQuoteProposal.totalIgstAmount = totalIgstAmount;
     existingQuoteProposal.totalTaxAmount = totalTaxAmount;
-
-    existingQuoteProposal.totalFinalRateBeforeDiscountForEdprowise =
-      totalFinalRateBeforeDiscountForEdprowise;
-    existingQuoteProposal.totalTaxableValueForEdprowise =
-      totalTaxableValueForEdprowise;
-    existingQuoteProposal.totalCgstAmountForEdprowise =
-      totalCgstAmountForEdprowise;
-    existingQuoteProposal.totalSgstAmountForEdprowise =
-      totalSgstAmountForEdprowise;
-    existingQuoteProposal.totalIgstAmountForEdprowise =
-      totalIgstAmountForEdprowise;
-    existingQuoteProposal.totalTaxAmountForEdprowise =
-      totalTaxAmountForEdprowise;
-    existingQuoteProposal.totalAmountForEdprowise = totalAmountForEdprowise;
 
     // Retrieve the current TDS amount from QuoteProposal
     const tDSAmount = existingQuoteProposal.tDSAmount || 0;
@@ -263,7 +221,7 @@ async function updateSingleProduct(req, res) {
     const finalPayableAmountWithTDSForEdprowise =
       existingQuoteProposal.totalAmountForEdprowise -
       existingSubmitted.advanceRequiredAmount -
-      tdsValueForEdprowise;
+      tdsValue;
 
     // Update QuoteProposal with TDS calculations
     existingQuoteProposal.tdsValue = tdsValue;

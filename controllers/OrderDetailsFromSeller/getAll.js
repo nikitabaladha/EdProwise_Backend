@@ -52,7 +52,7 @@ async function getAll(req, res) {
       enquiryNumber: { $in: enquiryNumbers },
     })
       .select(
-        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalGstAmount tdsValue finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus"
+        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
       )
       .lean();
 
@@ -88,17 +88,32 @@ async function getAll(req, res) {
         quoteProposalMap[order.enquiryNumber]
           ?.totalAmountBeforeGstAndDiscount || null,
       totalAmount: quoteProposalMap[order.enquiryNumber]?.totalAmount || null,
+      totalAmountForEdprowise:
+        quoteProposalMap[order.enquiryNumber]?.totalAmountForEdprowise || null,
+
       totalTaxableValue:
         quoteProposalMap[order.enquiryNumber]?.totalTaxableValue || null,
+      totalTaxableValueForEdprowise:
+        quoteProposalMap[order.enquiryNumber]?.totalTaxableValueForEdprowise ||
+        null,
+
       totalGstAmount:
-        quoteProposalMap[order.enquiryNumber]?.totalGstAmount || null,
+        quoteProposalMap[order.enquiryNumber]?.totalTaxAmount || null,
+      totalGstAmountForEdprowise:
+        quoteProposalMap[order.enquiryNumber]?.totalTaxAmountForEdprowise ||
+        null,
+
       advanceAdjustment:
         submitQuoteMap[order.enquiryNumber]?.advanceRequiredAmount || 0,
-      
       finalPayableAmountWithTDS:
         quoteProposalMap[order.enquiryNumber]?.finalPayableAmountWithTDS || 0,
+      finalPayableAmountWithTDSForEdprowise:
+        quoteProposalMap[order.enquiryNumber]
+          ?.finalPayableAmountWithTDSForEdprowise || 0,
       tDSAmount: quoteProposalMap[order.enquiryNumber]?.tDSAmount || 0,
       tdsValue: quoteProposalMap[order.enquiryNumber]?.tdsValue || 0,
+      tdsValueForEdprowise:
+        quoteProposalMap[order.enquiryNumber]?.tdsValueForEdprowise || 0,
     }));
 
     return res.status(200).json({

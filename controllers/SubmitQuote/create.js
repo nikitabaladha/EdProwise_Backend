@@ -58,15 +58,17 @@ async function create(req, res) {
       });
     }
 
-    const finalPayableAmountWithoutTDS =
-      quoteProposal.totalAmount - advanceRequiredAmount;
-
     const finalPayableAmountWithTDS =
-      finalPayableAmountWithoutTDS -
-      (finalPayableAmountWithoutTDS * quoteProposal.tDSAmount) / 100;
+      quoteProposal.totalAmount - advanceRequiredAmount - tdsValue;
 
-    quoteProposal.finalPayableAmountWithoutTDS = finalPayableAmountWithoutTDS;
+    const finalPayableAmountWithTDSForEdprowise =
+      quoteProposal.totalAmountForEdprowise -
+      advanceRequiredAmount -
+      tdsValueForEdprowise;
+
     quoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
+    quoteProposal.finalPayableAmountWithTDSForEdprowise =
+      finalPayableAmountWithTDSForEdprowise;
 
     await quoteProposal.save();
 

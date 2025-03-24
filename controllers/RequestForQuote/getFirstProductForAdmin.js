@@ -28,7 +28,6 @@ async function getFirstProductForAdmin(req, res) {
           edprowiseStatus: quote.edprowiseStatus,
           createdAt: quote.createdAt,
           updatedAt: quote.updatedAt,
-
           categoryId: product?.categoryId?._id || null,
           categoryName: product?.categoryId?.categoryName || null,
           subCategoryId: product?.subCategoryId?._id || null,

@@ -30,7 +30,8 @@ const prepareQuoteCreate = Joi.object({
     .messages({
       "any.required": "HSN/SAC code is required.",
       "string.empty": "HSN/SAC code cannot be empty.",
-      "string.pattern.base": "HSN/SAC code must be a numeric value between 4 to 8 digits.",
+      "string.pattern.base":
+        "HSN/SAC code must be a numeric value between 4 to 8 digits.",
     }),
 
   listingRate: Joi.number().positive().precision(2).required().messages({
@@ -39,12 +40,17 @@ const prepareQuoteCreate = Joi.object({
     "number.positive": "Listing rate must be a positive number.",
   }),
 
-  edprowiseMargin: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "EDP-wise margin is required.",
-    "number.base": "EDP-wise margin must be a number.",
-    "number.min": "EDP-wise margin cannot be negative.",
-    "number.max": "EDP-wise margin cannot exceed 100%.",
-  }),
+  edprowiseMargin: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .required()
+    .messages({
+      "any.required": "EDP-wise margin is required.",
+      "number.base": "EDP-wise margin must be a number.",
+      "number.min": "EDP-wise margin cannot be negative.",
+      "number.max": "EDP-wise margin cannot exceed 100%.",
+    }),
 
   quantity: Joi.number().integer().positive().required().messages({
     "any.required": "Quantity is required.",
@@ -74,14 +80,18 @@ const prepareQuoteCreate = Joi.object({
     "number.max": "SGST rate cannot exceed 100%.",
   }),
 
-  igstRate: Joi.number().min(0).max(100).precision(2).optional().allow(null, "").messages({
-    "number.base": "IGST rate must be a number.",
-    "number.min": "IGST rate cannot be negative.",
-    "number.max": "IGST rate cannot exceed 100%.",
-  }),
+  igstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "number.base": "IGST rate must be a number.",
+      "number.min": "IGST rate cannot be negative.",
+      "number.max": "IGST rate cannot exceed 100%.",
+    }),
 });
-
-
 
 const prepareQuoteUpdate = Joi.object({
   prepareQuoteImage: Joi.string()
@@ -103,7 +113,8 @@ const prepareQuoteUpdate = Joi.object({
     .messages({
       "any.required": "HSN/SAC code is required.",
       "string.empty": "HSN/SAC code cannot be empty.",
-      "string.pattern.base": "HSN/SAC code must be a numeric value between 4 to 8 digits.",
+      "string.pattern.base":
+        "HSN/SAC code must be a numeric value between 4 to 8 digits.",
     }),
 
   listingRate: Joi.number().positive().precision(2).required().messages({
@@ -112,12 +123,17 @@ const prepareQuoteUpdate = Joi.object({
     "number.positive": "Listing rate must be a positive number.",
   }),
 
-  edprowiseMargin: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "EDP-wise margin is required.",
-    "number.base": "EDP-wise margin must be a number.",
-    "number.min": "EDP-wise margin cannot be negative.",
-    "number.max": "EDP-wise margin cannot exceed 100%.",
-  }),
+  edprowiseMargin: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .required()
+    .messages({
+      "any.required": "EDP-wise margin is required.",
+      "number.base": "EDP-wise margin must be a number.",
+      "number.min": "EDP-wise margin cannot be negative.",
+      "number.max": "EDP-wise margin cannot exceed 100%.",
+    }),
 
   quantity: Joi.number().integer().positive().required().messages({
     "any.required": "Quantity is required.",
@@ -147,11 +163,17 @@ const prepareQuoteUpdate = Joi.object({
     "number.max": "SGST rate cannot exceed 100%.",
   }),
 
-  igstRate: Joi.number().min(0).max(100).precision(2).optional().allow(null, "").messages({
-    "number.base": "IGST rate must be a number.",
-    "number.min": "IGST rate cannot be negative.",
-    "number.max": "IGST rate cannot exceed 100%.",
-  }),
+  igstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "number.base": "IGST rate must be a number.",
+      "number.min": "IGST rate cannot be negative.",
+      "number.max": "IGST rate cannot exceed 100%.",
+    }),
 });
 
 export default {
