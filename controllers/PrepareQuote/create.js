@@ -292,6 +292,9 @@ import PrepareQuote from "../../models/PrepareQuote.js";
 import PrepareQuoteValidator from "../../validators/PrepareQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
+
+// in QuoteRequest table find enquiryNumber i want to update the edprowiseStatus = "Quote Requested"
 
 function generateQuoteNumber() {
   const prefix = "QUOTE";
@@ -543,8 +546,21 @@ async function create(req, res) {
       totalFinalRateForEdprowise,
       supplierStatus: "Quote Submitted",
       edprowiseStatus: "Quote Received",
-      buyerStatus: "Quote Received",
+      buyerStatus: "Quote Requested",
     });
+
+    const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
+      { enquiryNumber },
+      { edprowiseStatus: "Quote Received" },
+      { new: true }
+    );
+
+    if (!updatedQuoteRequest) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Quote request not found with the given enquiry number.",
+      });
+    }
 
     // Save the QuoteProposal entry
     await newQuoteProposal.save();

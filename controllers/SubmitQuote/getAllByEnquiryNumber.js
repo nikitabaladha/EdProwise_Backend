@@ -26,6 +26,7 @@ async function getAllByEnquiryNumber(req, res) {
     const quoteRequest = await QuoteRequest.findOne({ enquiryNumber });
 
     const buyerStatus = quoteRequest?.buyerStatus || null;
+
     const edprowiseStatus = quoteRequest?.edprowiseStatus || null;
 
     const sellerIds = quotes.map((quote) => quote.sellerId);

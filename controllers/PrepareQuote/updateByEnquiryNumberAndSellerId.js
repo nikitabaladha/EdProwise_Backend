@@ -264,6 +264,9 @@ async function updateSingleProduct(req, res) {
 
     // Update the quoted amount in SubmitQuote
     existingSubmitted.quotedAmount = totalAmount;
+    existingSubmitted.venderStatusFromBuyer = "Pending";
+    existingSubmitted.rejectCommentFromBuyer = "";
+
     await existingSubmitted.save();
 
     return res.status(200).json({

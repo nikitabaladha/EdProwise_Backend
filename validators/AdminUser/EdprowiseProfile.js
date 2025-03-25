@@ -1,4 +1,3 @@
-
 import Joi from "joi";
 
 const EdprowiseProfileCreateValidator = Joi.object({
@@ -24,7 +23,7 @@ const EdprowiseProfileCreateValidator = Joi.object({
       "any.required": "Company type is required.",
     }),
 
-    gstin: Joi.string()
+  gstin: Joi.string()
     .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/)
     .required()
     .messages({
@@ -43,23 +42,24 @@ const EdprowiseProfileCreateValidator = Joi.object({
     }),
 
   tan: Joi.string()
-  .pattern(/^[A-Z]{4}[0-9]{5}[A-Z]{1}$/)
-  .allow("")
-  .optional()
-  .messages({
-    "string.pattern.base": "TAN must be in the format AAAA99999A (4 letters, 5 digits, 1 letter).",
-    "string.base": "TAN must be a string.",
-  }),
+    .pattern(/^[A-Z]{4}[0-9]{5}[A-Z]{1}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.pattern.base":
+        "TAN must be in the format AAAA99999A (4 letters, 5 digits, 1 letter).",
+      "string.base": "TAN must be a string.",
+    }),
 
   cin: Joi.string()
-  .pattern(/^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/)
-  .allow("")
-  .optional()
-  .messages({
-    "string.pattern.base": "CIN must be a 21-character alphanumeric string in the format L12345MH2024PLC123456.",
-    "string.base": "CIN must be a string.",
-  }),
-
+    .pattern(/^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.pattern.base":
+        "CIN must be a 21-character alphanumeric string in the format L12345MH2024PLC123456.",
+      "string.base": "CIN must be a string.",
+    }),
 
   address: Joi.string().required().messages({
     "string.base": "Address must be a string.",
@@ -100,19 +100,19 @@ const EdprowiseProfileCreateValidator = Joi.object({
     }),
 
   alternateContactNo: Joi.string()
-    . pattern(/^[0-9]{10}$/)
+    .pattern(/^[0-9]{10}$/)
     .allow("")
     .optional()
     .messages({
       "string.base": "Alternate contact number must be a string.",
       "string.pattern.base":
-         "Alternate contact number must be a valid 10-digit number.",
+        "Alternate contact number must be a valid 10-digit number.",
     }),
 
-    emailId: Joi.string()
+  emailId: Joi.string()
     .trim()
     .lowercase()
-    .email({ tlds: { allow: false } }) // Allows all domains, removes strict TLD check
+    .email({ tlds: { allow: false } })
     .required()
     .messages({
       "string.base": "Email ID must be a string.",
@@ -123,7 +123,6 @@ const EdprowiseProfileCreateValidator = Joi.object({
     "string.base": "Edprowise Profile must be a string.",
   }),
 });
-
 
 const EdprowiseProfileUpdateValidator = Joi.object({
   companyName: Joi.string().required().messages({
@@ -148,7 +147,7 @@ const EdprowiseProfileUpdateValidator = Joi.object({
       "any.required": "Company type is required.",
     }),
 
-    gstin: Joi.string()
+  gstin: Joi.string()
     .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/)
     .required()
     .messages({
@@ -167,23 +166,24 @@ const EdprowiseProfileUpdateValidator = Joi.object({
     }),
 
   tan: Joi.string()
-  .pattern(/^[A-Z]{4}[0-9]{5}[A-Z]{1}$/)
-  .allow("")
-  .optional()
-  .messages({
-    "string.pattern.base": "TAN must be in the format AAAA99999A (4 letters, 5 digits, 1 letter).",
-    "string.base": "TAN must be a string.",
-  }),
+    .pattern(/^[A-Z]{4}[0-9]{5}[A-Z]{1}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.pattern.base":
+        "TAN must be in the format AAAA99999A (4 letters, 5 digits, 1 letter).",
+      "string.base": "TAN must be a string.",
+    }),
 
   cin: Joi.string()
-  .pattern(/^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/)
-  .allow("")
-  .optional()
-  .messages({
-    "string.pattern.base": "CIN must be a 21-character alphanumeric string in the format L12345MH2024PLC123456.",
-    "string.base": "CIN must be a string.",
-  }),
-
+    .pattern(/^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/)
+    .allow("")
+    .optional()
+    .messages({
+      "string.pattern.base":
+        "CIN must be a 21-character alphanumeric string in the format L12345MH2024PLC123456.",
+      "string.base": "CIN must be a string.",
+    }),
 
   address: Joi.string().required().messages({
     "string.base": "Address must be a string.",
@@ -224,16 +224,16 @@ const EdprowiseProfileUpdateValidator = Joi.object({
     }),
 
   alternateContactNo: Joi.string()
-    . pattern(/^[0-9]{10}$/)
+    .pattern(/^[0-9]{10}$/)
     .allow("")
     .optional()
     .messages({
       "string.base": "Alternate contact number must be a string.",
       "string.pattern.base":
-         "Alternate contact number must be a valid 10-digit number.",
+        "Alternate contact number must be a valid 10-digit number.",
     }),
 
-    emailId: Joi.string()
+  emailId: Joi.string()
     .trim()
     .lowercase()
     .email({ tlds: { allow: false } }) // Allows all domains, removes strict TLD check

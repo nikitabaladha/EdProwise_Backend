@@ -3,8 +3,10 @@ const router = express.Router();
 
 import roleBasedMiddleware from "../../middleware/index.js";
 
-import { updateTDS } from "../../controllers/UpdateTDS/index.js";
+import { updateTDS, getTDSAmount } from "../../controllers/UpdateTDS/index.js";
 
-router.put("/update-tds", roleBasedMiddleware("School"), updateTDS);
+router.put("/update-tds", roleBasedMiddleware("Admin"), updateTDS);
+
+router.get("/tds-amount", roleBasedMiddleware("Admin"), getTDSAmount);
 
 export default router;

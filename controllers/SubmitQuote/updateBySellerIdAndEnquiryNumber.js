@@ -105,6 +105,7 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       {
         supplierStatus: "Quote Submitted",
         edprowiseStatus: "Quote Received",
+        buyerStatus: "Quote Received",
       },
       { new: true }
     );
