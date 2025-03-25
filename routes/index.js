@@ -20,6 +20,9 @@ import CartRoutes from "./Procurement/cart-by-school.js";
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
 import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
+// add routes by umesh///
+import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
+
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", registrationRoutes);
@@ -39,5 +42,7 @@ export default (app) => {
   app.use("/api", UpdateVenderStatusRoutes);
   app.use("/api", CartRoutes);
   app.use("/api", RequestForDemoRoutes); 
-  app.use("/api", ContactUsFormRoutes)
+  app.use("/api", ContactUsFormRoutes);
+
+  app.use("/api", SMTPEmailSettings)
 };

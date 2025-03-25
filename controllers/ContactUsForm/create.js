@@ -17,6 +17,7 @@ async function create(req, res) {
     const newContactSubmission = new ContactForm({
       name: req.body.name,
       email: req.body.email,
+      query:req.body.query,
       phone: req.body.phone,
       service: req.body.service,
       note: req.body.note || ""
