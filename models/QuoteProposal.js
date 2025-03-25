@@ -178,6 +178,11 @@ const QuoteProposalSchema = new mongoose.Schema(
         "In-Transit",
         "Delivered",
       ],
+    },
+    orderStatus: {
+      type: String,
+      enum: ["Open", "Close", "Pending"],
+      default: "Pending",
       required: true,
     },
   },

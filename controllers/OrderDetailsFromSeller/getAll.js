@@ -52,7 +52,7 @@ async function getAll(req, res) {
       enquiryNumber: { $in: enquiryNumbers },
     })
       .select(
-        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
+        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise orderStatus"
       )
       .lean();
 
@@ -82,6 +82,7 @@ async function getAll(req, res) {
       supplierStatus:
         quoteProposalMap[order.enquiryNumber]?.supplierStatus || null,
       buyerStatus: quoteProposalMap[order.enquiryNumber]?.buyerStatus || null,
+      orderStatus: quoteProposalMap[order.enquiryNumber]?.orderStatus || null,
       edprowiseStatus:
         quoteProposalMap[order.enquiryNumber]?.edprowiseStatus || null,
       totalAmountBeforeGstAndDiscount:

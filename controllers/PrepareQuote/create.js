@@ -547,6 +547,7 @@ async function create(req, res) {
       supplierStatus: "Quote Submitted",
       edprowiseStatus: "Quote Received",
       buyerStatus: "Quote Requested",
+      orderStatus: "Pending",
     });
 
     const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(

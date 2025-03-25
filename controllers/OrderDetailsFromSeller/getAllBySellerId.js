@@ -49,7 +49,7 @@ async function getAllBySellerId(req, res) {
           enquiryNumber,
         })
           .select(
-            "totalAmountBeforeGstAndDiscount totalAmount  totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
+            "totalAmountBeforeGstAndDiscount totalAmount orderStatus totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
           )
           .lean();
 
@@ -63,6 +63,7 @@ async function getAllBySellerId(req, res) {
           expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
           supplierStatus: quoteProposal?.supplierStatus || null,
           buyerStatus: quoteProposal?.buyerStatus || null,
+          orderStatus: quoteProposal?.orderStatus || null,
           edprowiseStatus: quoteProposal?.edprowiseStatus || null,
           totalAmountBeforeGstAndDiscount:
             quoteProposal?.totalAmountBeforeGstAndDiscount || null,

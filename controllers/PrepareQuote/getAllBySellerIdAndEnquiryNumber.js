@@ -1,7 +1,6 @@
 import PrepareQuote from "../../models/PrepareQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 
-
 async function getAllBySellerIdAndEnquiryNumber(req, res) {
   try {
     const { sellerId, enquiryNumber } = req.query;
@@ -29,7 +28,10 @@ async function getAllBySellerIdAndEnquiryNumber(req, res) {
       });
     }
 
-    const quoteProposal = await QuoteProposal.findOne({ sellerId, enquiryNumber });
+    const quoteProposal = await QuoteProposal.findOne({
+      sellerId,
+      enquiryNumber,
+    });
 
     // Add supplierStatus to each PrepareQuote object
     const prepareQuotesWithStatus = prepareQuotes.map((quote) => ({

@@ -25,7 +25,7 @@ const prepareQuoteCreate = Joi.object({
   }),
 
   hsnSacc: Joi.string()
-    .pattern(/^\d{4,8}$/) // HSN/SAC codes are typically numeric with 4-8 digits
+    .pattern(/^\d{4,8}$/)
     .required()
     .messages({
       "any.required": "HSN/SAC code is required.",

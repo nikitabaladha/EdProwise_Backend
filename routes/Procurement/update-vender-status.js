@@ -6,12 +6,19 @@ import roleBasedMiddleware from "../../middleware/index.js";
 import {
   updateVenderStatus,
   rejectCommentFromBuyer,
+  updateOrderStatus,
 } from "../../controllers/UpdateVenderStatus/index.js";
 
 router.put(
   "/update-vender-status",
   roleBasedMiddleware("Admin"),
   updateVenderStatus
+);
+
+router.put(
+  "/update-order-status",
+  roleBasedMiddleware("Admin"),
+  updateOrderStatus
 );
 
 router.put(
