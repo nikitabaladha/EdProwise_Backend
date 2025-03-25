@@ -1,4 +1,4 @@
-import ContactUsForm from "../../models/ContactForm.js"; 
+import ContactUsForm from "../../models/ContactForm.js";
 
 // GET all contact form submissions
 async function get(req, res) {

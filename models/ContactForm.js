@@ -10,6 +10,10 @@ const contactFormSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    query: {
+      type: String,
+      required: true,
+    },
     phone: {
       type: String,
       required: true,

@@ -12,8 +12,13 @@ const contactFormValidation = Joi.object({
     "string.email": "Email must be a valid email address.",
   }),
 
+  query: Joi.string().required().messages({
+    "any.required": "query is required.",
+    "string.empty": "query cannot be empty.",
+  }),
+
   phone: Joi.string()
-    .pattern(/^[0-9]{10}$/) // Assuming a 10-digit phone number
+    .pattern(/^[0-9]{10}$/)
     .required()
     .messages({
       "any.required": "Phone number is required.",
@@ -27,7 +32,8 @@ const contactFormValidation = Joi.object({
     .messages({
       "any.required": "Service is required.",
       "string.empty": "Service cannot be empty.",
-      "any.only": "Service must be one of: Web Development, Web Design, Marketing.",
+      "any.only":
+        "Service must be one of: Web Development, Web Design, Marketing.",
     }),
 
   note: Joi.string().optional().allow("").messages({
