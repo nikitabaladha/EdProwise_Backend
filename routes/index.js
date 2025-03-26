@@ -30,6 +30,8 @@ import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-selle
 import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
 import UpdateTDSRoutes from "./Procurement/update-tds.js";
 
+import GlobalSearchRoutes from "./Procurement/global-search.js";
+
 // ====================Fees Module===================
 
 import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
@@ -67,6 +69,8 @@ export default (app) => {
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
   app.use("/api", DashboardRoutes);
+
+  app.use("/api", GlobalSearchRoutes);
 
   // ================Fees Module====================
   app.use("./api", AdminSettingRoutes);

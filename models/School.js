@@ -48,7 +48,7 @@ const SchoolSchema = new mongoose.Schema(
     },
     schoolAlternateContactNo: {
       type: String,
-      required:false,
+      required: false,
     },
     schoolEmail: {
       type: String,
@@ -59,9 +59,9 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    contactPersonName: { type: String, required:false },
-    numberOfStudents: { type: Number,required:false },
-    principalName: { type: String,requied:false },
+    contactPersonName: { type: String, required: false },
+    numberOfStudents: { type: Number, required: false },
+    principalName: { type: String, requied: false },
     affiliationCertificate: {
       type: String,
       require: true,

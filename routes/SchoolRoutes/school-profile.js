@@ -26,21 +26,18 @@ const uploadFiles = (req, res, next) => {
   });
 };
 
-// router.put(
-//   "/school-profile/:id",
-//   uploadFiles,
-//   roleBasedMiddleware("School"),
-//   updateById
-// );
 router.put(
   "/school-profile/:schoolId",
   uploadFiles,
   roleBasedMiddleware("School"),
   updateById
 );
-// router.get("/school-profile/:id", roleBasedMiddleware("School"), getById);
 
-router.get("/school-profile/:schoolId", roleBasedMiddleware("School"), getById);
+router.get(
+  "/school-profile/:schoolId",
+  roleBasedMiddleware("School", "Admin"),
+  getById
+);
 router.post(
   "/school-profile/:schoolId",
   uploadFiles,
