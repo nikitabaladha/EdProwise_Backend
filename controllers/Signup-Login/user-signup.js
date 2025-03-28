@@ -4,6 +4,10 @@ import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import signupValidationSchema from "../../validators/signupValidationSchema.js";
 
+import nodemailer from "nodemailer";
+import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+import SignUpEmailTemplate from "../../models/SignUpEmailTemplate.js";
+
 async function userSignup(req, res) {
   try {
     const { error } =
@@ -34,6 +38,8 @@ async function userSignup(req, res) {
     }
 
     const { hashedPassword, salt } = saltFunction.hashPassword(password);
+   
+
 
     if (role === "School") {
       const counter = await Counter.findOneAndUpdate(
@@ -57,6 +63,10 @@ async function userSignup(req, res) {
 
       await schoolUser.save();
 
+      // add
+      await sendSignupEmail(userId, role, nextSchoolId);
+    //  
+
       return res.status(201).json({
         hasError: false,
         message: "School user registered successfully",
@@ -78,6 +88,10 @@ async function userSignup(req, res) {
 
       await seller.save();
 
+        // Send email after successful registration
+        await sendSignupEmail(userId, role);
+         // 
+
       return res.status(201).json({
         hasError: false,
         message: "Seller registered successfully",
@@ -93,5 +107,70 @@ async function userSignup(req, res) {
     return res.status(500).json({ hasError: true, message: "Server error" });
   }
 }
+
+async function sendSignupEmail(userId, role, schoolId = "N/A", password = "******") {
+  try {
+    // Fetch SMTP settings from the database
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) {
+      console.error("SMTP settings not found.");
+      return;
+    }
+
+    // Fetch email template from the database
+    const emailTemplate = await SignUpEmailTemplate.findOne();
+    if (!emailTemplate) {
+      console.error("Signup email template not found.");
+      return;
+    }
+
+    // Dynamic data object to replace placeholders
+    const dynamicData = {
+      "{userName}": userId,
+      "{mailForm}": smtpSettings.mailFromName,
+      "{email}": userId,
+      "{password}": password, 
+      "{app_url}": "http://localhost:3000/login", 
+      "{role}": role,
+      "{schoolId}": schoolId !== "N/A" ? schoolId : "", 
+    };
+
+    // Replace all placeholders dynamically
+    let emailContent = emailTemplate.content;
+    Object.keys(dynamicData).forEach((key) => {
+      emailContent = emailContent.replace(new RegExp(key, "g"), dynamicData[key]);
+    });
+
+    const isSSL = smtpSettings.mailEncryption === "SSL" && smtpSettings.mailPort == "465";
+    const isTLS = smtpSettings.mailEncryption === "TLS" && smtpSettings.mailPort == "587";
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: parseInt(smtpSettings.mailPort),
+      secure: isSSL,
+      requireTLS: isTLS,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: `${smtpSettings.mailFromName} <${smtpSettings.mailFromAddress}>`,
+      to: userId,
+      subject: emailTemplate.subject,
+      html: emailContent, // Ensure email is sent as HTML
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+    console.log("Signup email sent successfully!");
+  } catch (error) {
+    console.error("Error sending signup email:", error);
+  }
+}
+
 
 export default userSignup;

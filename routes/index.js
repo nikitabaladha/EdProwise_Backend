@@ -22,6 +22,7 @@ import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
 // add routes by umesh///
 import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
+import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
 
 export default (app) => {
   app.use("/api", loginSignupRoutes);
@@ -44,5 +45,6 @@ export default (app) => {
   app.use("/api", RequestForDemoRoutes); 
   app.use("/api", ContactUsFormRoutes);
 
-  app.use("/api", SMTPEmailSettings)
+  app.use("/api", SMTPEmailSettings);
+  app.use("/api", SignUPTemplatesRoutes);
 };
