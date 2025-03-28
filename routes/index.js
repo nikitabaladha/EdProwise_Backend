@@ -40,6 +40,10 @@ import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
 import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
+// new Added Umesh
+import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
+import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
+import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js"
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", schoolRoutes);
@@ -79,4 +83,9 @@ export default (app) => {
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
+
+  // new umesh 
+  app.use("/api", SMTPEmailSettings);
+  app.use("/api", SignUPTemplatesRoutes);
+  app.use("/api", SellerEmailTemplateRoutes);
 };
