@@ -6,11 +6,12 @@ import SellerProfile from "../../models/SellerProfile.js";
 
 async function getAll(req, res) {
   try {
-    // Fetch all orders
+    // Fetch all orders with necessary fields
     const orders = await OrderDetailsFromSeller.find()
       .sort({ createdAt: -1 })
       .select(
-        "orderNumber quoteNumber createdAt actualDateOfDelivery otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
+        "orderNumber quoteNumber createdAt actualDeliveryDate otherCharges " +
+          "finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
       )
       .lean();
 
@@ -21,17 +22,43 @@ async function getAll(req, res) {
       });
     }
 
-    // Extract unique sellerIds
+    // Get unique sellerIds and enquiryNumbers
     const sellerIds = [...new Set(orders.map((order) => order.sellerId))];
+    const enquiryNumbers = [
+      ...new Set(orders.map((order) => order.enquiryNumber)),
+    ];
 
-    // Fetch seller profiles
-    const sellerProfiles = await SellerProfile.find({
-      sellerId: { $in: sellerIds },
-    })
-      .select("sellerId companyName")
-      .lean();
+    // Fetch related data in parallel
+    const [sellerProfiles, quoteRequests, quoteProposals, submitQuotes] =
+      await Promise.all([
+        SellerProfile.find({ sellerId: { $in: sellerIds } })
+          .select("sellerId companyName")
+          .lean(),
+        QuoteRequest.find({ enquiryNumber: { $in: enquiryNumbers } })
+          .select("enquiryNumber expectedDeliveryDate")
+          .lean(),
+        QuoteProposal.find({
+          enquiryNumber: { $in: enquiryNumbers },
+          sellerId: { $in: sellerIds },
+        })
+          .select(
+            "enquiryNumber sellerId totalAmountBeforeGstAndDiscount totalAmount " +
+              "totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS " +
+              "tDSAmount supplierStatus edprowiseStatus buyerStatus " +
+              "totalTaxableValueForEdprowise totalAmountForEdprowise " +
+              "totalTaxAmountForEdprowise tdsValueForEdprowise " +
+              "finalPayableAmountWithTDSForEdprowise orderStatus"
+          )
+          .lean(),
+        SubmitQuote.find({
+          enquiryNumber: { $in: enquiryNumbers },
+          sellerId: { $in: sellerIds },
+        })
+          .select("enquiryNumber sellerId advanceRequiredAmount")
+          .lean(),
+      ]);
 
-    // Create a seller map for quick lookup
+    // Create lookup maps
     const sellerMap = Object.fromEntries(
       sellerProfiles.map((seller) => [
         seller.sellerId.toString(),
@@ -39,83 +66,53 @@ async function getAll(req, res) {
       ])
     );
 
-    // Fetch all related data in one go
-    const enquiryNumbers = orders.map((order) => order.enquiryNumber);
-
-    const quoteRequests = await QuoteRequest.find({
-      enquiryNumber: { $in: enquiryNumbers },
-    })
-      .select("enquiryNumber expectedDeliveryDate ")
-      .lean();
-
-    const quoteProposals = await QuoteProposal.find({
-      enquiryNumber: { $in: enquiryNumbers },
-    })
-      .select(
-        "enquiryNumber totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS tDSAmount supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise orderStatus"
-      )
-      .lean();
-
-    const submitQuotes = await SubmitQuote.find({
-      enquiryNumber: { $in: enquiryNumbers },
-    })
-      .select("enquiryNumber advanceRequiredAmount")
-      .lean();
-
-    // Convert fetched data into a map for quick lookup
     const quoteRequestMap = Object.fromEntries(
       quoteRequests.map((q) => [q.enquiryNumber, q])
     );
+
+    // Create composite key maps for quoteProposals and submitQuotes
     const quoteProposalMap = Object.fromEntries(
-      quoteProposals.map((qp) => [qp.enquiryNumber, qp])
+      quoteProposals.map((qp) => [`${qp.enquiryNumber}_${qp.sellerId}`, qp])
     );
+
     const submitQuoteMap = Object.fromEntries(
-      submitQuotes.map((sq) => [sq.enquiryNumber, sq])
+      submitQuotes.map((sq) => [`${sq.enquiryNumber}_${sq.sellerId}`, sq])
     );
 
-    // Enrich each order with additional details, including companyName
-    const enrichedOrders = orders.map((order) => ({
-      ...order,
-      companyName: sellerMap[order.sellerId?.toString()] || null,
-      expectedDeliveryDate:
-        quoteRequestMap[order.enquiryNumber]?.expectedDeliveryDate || null,
-      supplierStatus:
-        quoteProposalMap[order.enquiryNumber]?.supplierStatus || null,
-      buyerStatus: quoteProposalMap[order.enquiryNumber]?.buyerStatus || null,
-      orderStatus: quoteProposalMap[order.enquiryNumber]?.orderStatus || null,
-      edprowiseStatus:
-        quoteProposalMap[order.enquiryNumber]?.edprowiseStatus || null,
-      totalAmountBeforeGstAndDiscount:
-        quoteProposalMap[order.enquiryNumber]
-          ?.totalAmountBeforeGstAndDiscount || null,
-      totalAmount: quoteProposalMap[order.enquiryNumber]?.totalAmount || null,
-      totalAmountForEdprowise:
-        quoteProposalMap[order.enquiryNumber]?.totalAmountForEdprowise || null,
+    // Enrich orders with related data
+    const enrichedOrders = orders.map((order) => {
+      const compositeKey = `${order.enquiryNumber}_${order.sellerId}`;
+      const quoteProposal = quoteProposalMap[compositeKey] || {};
+      const submitQuote = submitQuoteMap[compositeKey] || {};
 
-      totalTaxableValue:
-        quoteProposalMap[order.enquiryNumber]?.totalTaxableValue || null,
-      totalTaxableValueForEdprowise:
-        quoteProposalMap[order.enquiryNumber]?.totalTaxableValueForEdprowise ||
-        null,
-
-      totalGstAmount:
-        quoteProposalMap[order.enquiryNumber]?.totalTaxAmount || null,
-      totalGstAmountForEdprowise:
-        quoteProposalMap[order.enquiryNumber]?.totalTaxAmountForEdprowise ||
-        null,
-
-      advanceAdjustment:
-        submitQuoteMap[order.enquiryNumber]?.advanceRequiredAmount || 0,
-      finalPayableAmountWithTDS:
-        quoteProposalMap[order.enquiryNumber]?.finalPayableAmountWithTDS || 0,
-      finalPayableAmountWithTDSForEdprowise:
-        quoteProposalMap[order.enquiryNumber]
-          ?.finalPayableAmountWithTDSForEdprowise || 0,
-      tDSAmount: quoteProposalMap[order.enquiryNumber]?.tDSAmount || 0,
-      tdsValue: quoteProposalMap[order.enquiryNumber]?.tdsValue || 0,
-      tdsValueForEdprowise:
-        quoteProposalMap[order.enquiryNumber]?.tdsValueForEdprowise || 0,
-    }));
+      return {
+        ...order,
+        companyName: sellerMap[order.sellerId?.toString()] || null,
+        expectedDeliveryDate:
+          quoteRequestMap[order.enquiryNumber]?.expectedDeliveryDate || null,
+        supplierStatus: quoteProposal.supplierStatus || null,
+        buyerStatus: quoteProposal.buyerStatus || null,
+        orderStatus: quoteProposal.orderStatus || null,
+        edprowiseStatus: quoteProposal.edprowiseStatus || null,
+        totalAmountBeforeGstAndDiscount:
+          quoteProposal.totalAmountBeforeGstAndDiscount || null,
+        totalAmount: quoteProposal.totalAmount || null,
+        totalAmountForEdprowise: quoteProposal.totalAmountForEdprowise || null,
+        totalTaxableValue: quoteProposal.totalTaxableValue || null,
+        totalTaxableValueForEdprowise:
+          quoteProposal.totalTaxableValueForEdprowise || null,
+        totalGstAmount: quoteProposal.totalTaxAmount || null,
+        totalGstAmountForEdprowise:
+          quoteProposal.totalTaxAmountForEdprowise || null,
+        advanceAdjustment: submitQuote.advanceRequiredAmount || 0,
+        finalPayableAmountWithTDS: quoteProposal.finalPayableAmountWithTDS || 0,
+        finalPayableAmountWithTDSForEdprowise:
+          quoteProposal.finalPayableAmountWithTDSForEdprowise || 0,
+        tDSAmount: quoteProposal.tDSAmount || 0,
+        tdsValue: quoteProposal.tdsValue || 0,
+        tdsValueForEdprowise: quoteProposal.tdsValueForEdprowise || 0,
+      };
+    });
 
     return res.status(200).json({
       message: "All order details retrieved successfully!",
@@ -127,6 +124,7 @@ async function getAll(req, res) {
     return res.status(500).json({
       message: "Failed to retrieve Order Details.",
       error: error.message,
+      hasError: true,
     });
   }
 }

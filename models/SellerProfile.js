@@ -26,10 +26,12 @@ const SellerProfileSchema = new mongoose.Schema(
     gstin: {
       type: String,
       required: true,
+      unique: true,
     },
     pan: {
       type: String,
       required: true,
+      unique: true,
     },
     tan: {
       type: String,
@@ -58,6 +60,7 @@ const SellerProfileSchema = new mongoose.Schema(
     contactNo: {
       type: String,
       required: true,
+      unique: true,
     },
     alternateContactNo: {
       type: String,
@@ -66,34 +69,37 @@ const SellerProfileSchema = new mongoose.Schema(
     emailId: {
       type: String,
       required: true,
+      unique: true,
     },
     sellerProfile: {
       type: String,
       required: false,
     },
     panFile: {
-      type:String,
-      required:true,
+      type: String,
+      required: true,
     },
-    gstFile:{
-      type:String,
-      required:true,
+    gstFile: {
+      type: String,
+      required: true,
     },
-    tanFile:{
-      type:String,
-      required:false
+    tanFile: {
+      type: String,
+      required: false,
     },
-    cinFile:{
-      type:String,
-      required:false,
+    cinFile: {
+      type: String,
+      required: false,
     },
     accountNo: {
       type: String,
       required: true,
+      unique: true,
     },
     ifsc: {
       type: String,
       required: true,
+      unique: true,
     },
     accountHolderName: {
       type: String,

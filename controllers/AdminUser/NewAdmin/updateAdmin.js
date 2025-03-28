@@ -69,10 +69,26 @@ async function updateAdmin(req, res) {
       },
     });
   } catch (error) {
-    console.error("Error updating Admin:", error);
+    console.error("Error Update Admin:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        email: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error.",
+      message: "Failed to update Admin.",
       error: error.message,
     });
   }

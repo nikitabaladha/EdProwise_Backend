@@ -32,18 +32,6 @@ async function create(req, res) {
       });
     }
 
-    const existingSubscription = await Subscription.findOne({
-      schoolId,
-      subscriptionFor,
-    });
-    if (existingSubscription) {
-      return res.status(400).json({
-        hasError: true,
-        message:
-          "A subscription already exists for this school and subscription type.",
-      });
-    }
-
     const newSubscription = new Subscription({
       schoolId,
       subscriptionFor,
@@ -60,10 +48,18 @@ async function create(req, res) {
       data: newSubscription,
     });
   } catch (error) {
-    console.error("Error creating subscription:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "This Subscription Details already exists for same school on same date.",
+      });
+    }
+
+    console.error("Error submitting Subscription Details:", error);
     return res.status(500).json({
       hasError: true,
-      message: "An error occurred while creating the subscription.",
+      message: "Internal server error. Please try again later.",
     });
   }
 }

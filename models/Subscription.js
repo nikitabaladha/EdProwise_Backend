@@ -29,6 +29,13 @@ const SubscriptionSchema = new mongoose.Schema(
   }
 );
 
-SubscriptionSchema.index({ schoolId: 1, subscriptionFor: 1 }, { unique: true });
+SubscriptionSchema.index(
+  {
+    schoolId: 1,
+    subscriptionFor: 1,
+    subscriptionStartDate: 1,
+  },
+  { unique: true }
+);
 
 export default mongoose.model("Subscription", SubscriptionSchema);

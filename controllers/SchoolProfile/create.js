@@ -47,28 +47,25 @@ async function create(req, res) {
     // Validate required file uploads
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
-    if (!affiliationCertificate?.[0] ) {
+    if (!affiliationCertificate?.[0]) {
       return res.status(400).json({
         hasError: true,
-        message:
-          "Affiliation Certificate is required.",
+        message: "Affiliation Certificate is required.",
       });
     }
 
     if (!panFile?.[0]) {
       return res.status(400).json({
         hasError: true,
-        message:
-          "PAN File is required.",
+        message: "PAN File is required.",
       });
     }
 
-  
     const profileImagePath =
       profileImage && profileImage[0]
         ? `/Images/SchoolProfile/${profileImage[0].filename}`
         : "/Images/DummyImages/Dummy_Profile.png";
-    
+
     const affiliationCertificatePath =
       affiliationCertificate[0].mimetype.startsWith("image/")
         ? `/Images/SchoolAffiliationCertificate/${affiliationCertificate[0].filename}`

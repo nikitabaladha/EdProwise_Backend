@@ -129,7 +129,11 @@ const CartSchema = new mongoose.Schema(
 );
 
 CartSchema.index(
-  { schoolId: 1, prepareQuoteId: 1, sellerId: 1 },
+  {
+    schoolId: 1,
+    sellerId: 1,
+    enquiryNumber: 1,
+  },
   { unique: true }
 );
 

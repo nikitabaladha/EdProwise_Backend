@@ -68,11 +68,18 @@ async function createUser(req, res) {
       hasError: false,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "This User Alredy exists with same UserId for same school for same role.",
+      });
+    }
+
+    console.error("Error Creating User:", error);
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error.",
-      error: error.message,
+      message: "Internal server error. Please try again later.",
     });
   }
 }

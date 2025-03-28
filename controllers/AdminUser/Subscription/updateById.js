@@ -38,20 +38,6 @@ async function updateById(req, res) {
       monthlyRate,
     } = req.body;
 
-    const duplicateSubscription = await Subscription.findOne({
-      schoolId,
-      subscriptionFor,
-      _id: { $ne: id },
-    });
-
-    if (duplicateSubscription) {
-      return res.status(400).json({
-        hasError: true,
-        message:
-          "School with the same subscription module already exists. Please choose another module.",
-      });
-    }
-
     const updatedData = {
       schoolId: schoolId || existingSubscription.schoolId,
       subscriptionFor: subscriptionFor || existingSubscription.subscriptionFor,
@@ -74,11 +60,18 @@ async function updateById(req, res) {
       data: updatedSubscription,
     });
   } catch (error) {
-    console.error("Error updating Subscription:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        hasError: true,
+        message:
+          "This Subscription Details already exists for same school on same date.",
+      });
+    }
+
+    console.error("Error updating Subscription Details:", error);
     return res.status(500).json({
       hasError: true,
-      message: "Failed to update Subscription.",
-      error: error.message,
+      message: "Internal server error. Please try again later.",
     });
   }
 }

@@ -29,7 +29,6 @@ async function getAllBySellerId(req, res) {
       });
     }
 
-    // Fetch company name from SellerProfile
     const sellerProfile = await SellerProfile.findOne({ sellerId: id })
       .select("companyName")
       .lean();

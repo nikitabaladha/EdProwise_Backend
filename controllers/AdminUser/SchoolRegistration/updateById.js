@@ -89,9 +89,28 @@ async function updateById(req, res) {
       hasError: false,
     });
   } catch (error) {
-    console.error("Error updating School Registration:", error);
+    console.error("Error updating School Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        panNo: "PAN",
+        schoolMobileNo: "Mobile Number",
+        schoolEmail: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
-      message: "Failed to update School Registration.",
+      hasError: true,
+      message: "Failed to Update School Profile.",
       error: error.message,
     });
   }

@@ -26,10 +26,12 @@ const EdprowiseProfileSchema = new mongoose.Schema(
     gstin: {
       type: String,
       required: true,
+      unique: true,
     },
     pan: {
       type: String,
       required: true,
+      unique: true,
     },
     tan: {
       type: String,
@@ -58,6 +60,7 @@ const EdprowiseProfileSchema = new mongoose.Schema(
     contactNo: {
       type: String,
       required: true,
+      unique: true,
     },
     alternateContactNo: {
       type: String,
@@ -66,6 +69,7 @@ const EdprowiseProfileSchema = new mongoose.Schema(
     emailId: {
       type: String,
       required: true,
+      unique: true,
     },
     edprowiseProfile: {
       type: String,

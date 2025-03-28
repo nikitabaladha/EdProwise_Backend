@@ -56,7 +56,7 @@ async function create(req, res) {
       cin,
       address,
       cityStateCountry,
-      landmark    ,
+      landmark,
       pincode,
       contactNo,
       alternateContactNo,
@@ -85,10 +85,29 @@ async function create(req, res) {
       data: newEdprowiseProfile,
     });
   } catch (error) {
-    console.error("Error creating EdProwise Profile:", error.message);
+    console.error("Error creating Edprowise Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        gstin: "GSTIN",
+        pan: "PAN",
+        contactNo: "contact number",
+        emailId: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
       hasError: true,
-      message: "Failed to create EdProwise Profile.",
+      message: "Failed to create Edprowise Profile.",
       error: error.message,
     });
   }

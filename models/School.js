@@ -15,6 +15,7 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       trim: true,
       require: true,
+      unique: true,
     },
     schoolAddress: {
       type: String,
@@ -45,6 +46,7 @@ const SchoolSchema = new mongoose.Schema(
     schoolMobileNo: {
       type: String,
       required: true,
+      unique: true,
     },
     schoolAlternateContactNo: {
       type: String,
