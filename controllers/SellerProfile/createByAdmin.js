@@ -89,16 +89,18 @@ async function createByAdmin(req, res) {
     const gstFilePath = gstFile[0].mimetype.startsWith("image/")
       ? `/Images/SellerGstFile/${gstFile[0].filename}`
       : `/Documents/SellerGstFile/${gstFile[0].filename}`;
-    const tanFilePath = tanFile && tanFile[0].mimetype.startsWith("image/")
-      ? `/Images/SellerTanFile/${tanFile[0].filename}`
-      : tanFile
-      ? `/Documents/SellerTanFile/${tanFile[0].filename}`
-      : null;
-    const cinFilePath = cinFile && cinFile[0].mimetype.startsWith("image/")
-      ? `/Images/SellerCinFile/${cinFile[0].filename}`
-      : cinFile
-      ? `/Documents/SellerCinFile/${cinFile[0].filename}`
-      : null;
+    const tanFilePath =
+      tanFile && tanFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerTanFile/${tanFile[0].filename}`
+        : tanFile
+        ? `/Documents/SellerTanFile/${tanFile[0].filename}`
+        : null;
+    const cinFilePath =
+      cinFile && cinFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerCinFile/${cinFile[0].filename}`
+        : cinFile
+        ? `/Documents/SellerCinFile/${cinFile[0].filename}`
+        : null;
 
     const sellerId = new mongoose.Types.ObjectId();
 
@@ -158,6 +160,27 @@ async function createByAdmin(req, res) {
     });
   } catch (error) {
     console.error("Error creating Seller Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        gstin: "GSTIN",
+        pan: "PAN",
+        contactNo: "contact number",
+        emailId: "email",
+        accountNo: "account number",
+        ifsc: "IFSC code",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
       hasError: true,
       message: "Failed to create Seller Profile.",
@@ -165,6 +188,5 @@ async function createByAdmin(req, res) {
     });
   }
 }
-
 
 export default createByAdmin;

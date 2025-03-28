@@ -31,9 +31,10 @@ async function getAllByEnquiryNumber(req, res) {
       .lean();
 
     if (!cartData.length) {
-      return res.status(404).json({
-        hasError: true,
-        message: "No cart data found for the given school and enquiry number.",
+      return res.status(200).json({
+        hasError: false,
+        message: "Cart Data retrieved successfully.",
+        data: [],
       });
     }
 

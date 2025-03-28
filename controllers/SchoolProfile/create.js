@@ -13,7 +13,6 @@ async function create(req, res) {
       });
     }
 
-    // Validate request body using the validator
     const { error } =
       SchoolRegistrationValidator.SchoolProfileCreateByUserValidator.validate(
         req.body
@@ -23,7 +22,6 @@ async function create(req, res) {
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
-    // Destructure validated fields
     const {
       schoolName,
       schoolMobileNo,
@@ -44,7 +42,6 @@ async function create(req, res) {
       principalName,
     } = req.body;
 
-    // Validate required file uploads
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
     if (!affiliationCertificate?.[0]) {
@@ -74,7 +71,6 @@ async function create(req, res) {
       ? `/Images/SchoolPanFile/${panFile[0].filename}`
       : `/Documents/SchoolPanFile/${panFile[0].filename}`;
 
-    // Create new school registration entry
     const newSchoolRegistration = new SchoolRegistration({
       schoolId,
       schoolName,
@@ -113,18 +109,28 @@ async function create(req, res) {
       hasError: false,
     });
   } catch (error) {
-    // Handle duplicate school email error
-    if (error.code === 11000 && error.keyValue?.schoolEmail) {
+    console.error("Error creating School Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        panNo: "PAN",
+        schoolMobileNo: "Mobile Number",
+        schoolEmail: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
       return res.status(400).json({
         hasError: true,
-        message: "This school is already registered with the provided email.",
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
       });
     }
-
-    console.error("Error creating School Registration:", error);
     return res.status(500).json({
       hasError: true,
-      message: "Failed to create School Registration.",
+      message: "Failed to create School Profile.",
       error: error.message,
     });
   }
