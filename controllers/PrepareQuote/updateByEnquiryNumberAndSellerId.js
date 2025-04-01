@@ -6,7 +6,6 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
 
-// Helper function to extract state from location string
 function extractState(locationString) {
   if (!locationString) return null;
   const parts = locationString.split(",");

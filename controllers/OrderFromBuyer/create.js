@@ -263,6 +263,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import Cart from "../../models/Cart.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 function generateOrderNumber() {
   const prefix = "ORD";
@@ -270,6 +271,7 @@ function generateOrderNumber() {
   const randomSuffix = Math.floor(Math.random() * 10000);
   return `${prefix}${timestamp}${randomSuffix}`;
 }
+
 function generateInvoiceNumberForEdprowise() {
   const prefix = "EINV";
   const randomSuffix = Math.floor(Math.random() * 1000000);
@@ -480,6 +482,14 @@ async function create(req, res) {
           supplierStatus: "Order Received",
           edprowiseStatus: "Order Placed",
           buyerStatus: "Order Placed",
+        },
+        { new: true }
+      );
+
+      await SubmitQuote.findOneAndUpdate(
+        { sellerId: entry.sellerId, enquiryNumber: enquiryNumber },
+        {
+          venderStatusFromBuyer: "Order Placed",
         },
         { new: true }
       );

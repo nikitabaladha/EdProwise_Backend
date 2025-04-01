@@ -1,10 +1,11 @@
+import mongoose from "mongoose";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function updateStatus(req, res) {
   try {
     const { enquiryNumber, sellerId } = req.query;
-
     const { supplierStatus } = req.body;
 
     if (!enquiryNumber) {
@@ -13,6 +14,7 @@ async function updateStatus(req, res) {
         message: "enquiryNumber is required",
       });
     }
+
     if (!sellerId) {
       return res.status(400).json({
         hasError: true,
@@ -36,40 +38,66 @@ async function updateStatus(req, res) {
       });
     }
 
-    const existingOder = await QuoteProposal.findOne({
-      sellerId,
-      enquiryNumber,
-    });
+    // Find and update all related documents in a transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    if (!existingOder) {
-      return res.status(404).json({
-        hasError: true,
-        message: "Order not found for the given enquiryNumber",
-      });
-    }
+    try {
+      const existingOrder = await QuoteProposal.findOneAndUpdate(
+        { sellerId, enquiryNumber },
+        {
+          supplierStatus,
+          edprowiseStatus: supplierStatus,
+          buyerStatus: supplierStatus,
+        },
+        { new: true, session }
+      );
 
-    existingOder.supplierStatus = supplierStatus;
-    existingOder.edprowiseStatus = supplierStatus;
-    existingOder.buyerStatus = supplierStatus;
-    await existingOder.save();
-
-    if (supplierStatus === "Ready For Transit") {
-      const orderDetails = await OrderDetailsFromSeller.findOne({
-        enquiryNumber,
-        sellerId,
-      });
-
-      if (orderDetails) {
-        orderDetails.invoiceDate = new Date();
-        await orderDetails.save();
+      if (!existingOrder) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({
+          hasError: true,
+          message: "Order not found for the given enquiryNumber",
+        });
       }
-    }
 
-    return res.status(200).json({
-      hasError: false,
-      message: "Order status updated successfully.",
-      data: existingOder,
-    });
+      const existingSubmitQuote = await SubmitQuote.findOneAndUpdate(
+        { sellerId, enquiryNumber },
+        { venderStatusFromBuyer: supplierStatus },
+        { new: true, session }
+      );
+
+      if (!existingSubmitQuote) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({
+          hasError: true,
+          message: "Submit Quote not found for the given enquiryNumber",
+        });
+      }
+
+      if (supplierStatus === "Ready For Transit") {
+        await OrderDetailsFromSeller.findOneAndUpdate(
+          { enquiryNumber, sellerId },
+          { invoiceDate: new Date() },
+          { new: true, session }
+        );
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return res.status(200).json({
+        hasError: false,
+        message: "Order status updated successfully.",
+        data: existingOrder,
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (error) {
     console.error("Error updating Order Status:", error);
     return res.status(500).json({

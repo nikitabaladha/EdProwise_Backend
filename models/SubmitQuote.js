@@ -56,7 +56,16 @@ const SubmitQuoteSchema = new mongoose.Schema(
     },
     venderStatusFromBuyer: {
       type: String,
-      enum: ["Quote Accepted", "Quote Not Accepted", "Pending"],
+      enum: [
+        "Quote Accepted",
+        "Quote Not Accepted",
+        "Pending",
+        "Order Placed",
+        "Work In Progress",
+        "Ready For Transit",
+        "In-Transit",
+        "Delivered",
+      ],
       required: true,
       default: "Pending",
     },
