@@ -2,7 +2,19 @@ import PrepareQuote from "../../models/PrepareQuote.js";
 import PrepareQuoteValidator from "../../validators/PrepareQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
-import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import QuoteRequest from "../../models/QuoteRequest.js";
+import SellerProfile from "../../models/SellerProfile.js";
+import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+
+// Helper function to extract state from location string
+function extractState(locationString) {
+  if (!locationString) return null;
+  const parts = locationString.split(",");
+  if (parts.length >= 2) {
+    return parts[1].trim();
+  }
+  return null;
+}
 
 async function updateSingleProduct(req, res) {
   try {
@@ -39,6 +51,32 @@ async function updateSingleProduct(req, res) {
       });
     }
 
+    // Fetch location data for all parties
+    const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
+      QuoteRequest.findOne({ enquiryNumber }),
+      SellerProfile.findOne({ sellerId }),
+      EdprowiseProfile.findOne(),
+    ]);
+
+    if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Required profile data not found.",
+      });
+    }
+
+    // Extract states from location strings
+    const schoolState = extractState(quoteRequest.deliveryLocation);
+    const sellerState = extractState(sellerProfile.cityStateCountry);
+    const edprowiseState = extractState(edprowiseProfile.cityStateCountry);
+
+    if (!schoolState || !sellerState || !edprowiseState) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Location data is incomplete.",
+      });
+    }
+
     // Update fields if new data is provided, otherwise retain existing values
     existingQuote.subcategoryName =
       productData.subcategoryName || existingQuote.subcategoryName;
@@ -72,6 +110,40 @@ async function updateSingleProduct(req, res) {
         ? parseFloat(productData.igstRate)
         : existingQuote.igstRate;
 
+    // Calculate GST rates for Edprowise based on location scenarios
+    let cgstRateForEdprowise = 0;
+    let sgstRateForEdprowise = 0;
+    let igstRateForEdprowise = 0;
+
+    // Scenario 1: All locations match
+    if (schoolState === edprowiseState && edprowiseState === sellerState) {
+      cgstRateForEdprowise = existingQuote.cgstRate;
+      sgstRateForEdprowise = existingQuote.sgstRate;
+      igstRateForEdprowise = existingQuote.igstRate;
+    }
+    // Scenario 2: School ≠ Edprowise = Seller
+    else if (schoolState !== edprowiseState && edprowiseState === sellerState) {
+      cgstRateForEdprowise = existingQuote.igstRate / 2;
+      sgstRateForEdprowise = existingQuote.igstRate / 2;
+      igstRateForEdprowise = 0;
+    }
+    // Scenario 3: All locations different
+    else if (schoolState !== edprowiseState && edprowiseState !== sellerState) {
+      cgstRateForEdprowise = 0;
+      sgstRateForEdprowise = 0;
+      igstRateForEdprowise = existingQuote.igstRate;
+    }
+    // Scenario 4: School = Edprowise ≠ Seller
+    else if (schoolState === edprowiseState && edprowiseState !== sellerState) {
+      cgstRateForEdprowise = 0;
+      sgstRateForEdprowise = 0;
+      igstRateForEdprowise = existingQuote.cgstRate + existingQuote.sgstRate;
+    }
+
+    existingQuote.cgstRateForEdprowise = cgstRateForEdprowise;
+    existingQuote.sgstRateForEdprowise = sgstRateForEdprowise;
+    existingQuote.igstRateForEdprowise = igstRateForEdprowise;
+
     // Update image if uploaded
     if (uploadedImage) {
       existingQuote.prepareQuoteImage = `/Images/PrepareQuoteImage/${uploadedImage.filename}`;
@@ -97,9 +169,12 @@ async function updateSingleProduct(req, res) {
     const cgstAmount = (taxableValue * cgstRate) / 100;
     const sgstAmount = (taxableValue * sgstRate) / 100;
     const igstAmount = (taxableValue * igstRate) / 100;
-    const cgstAmountForEdprowise = (taxableValueForEdprowise * cgstRate) / 100;
-    const sgstAmountForEdprowise = (taxableValueForEdprowise * sgstRate) / 100;
-    const igstAmountForEdprowise = (taxableValueForEdprowise * igstRate) / 100;
+    const cgstAmountForEdprowise =
+      (taxableValueForEdprowise * cgstRateForEdprowise) / 100;
+    const sgstAmountForEdprowise =
+      (taxableValueForEdprowise * sgstRateForEdprowise) / 100;
+    const igstAmountForEdprowise =
+      (taxableValueForEdprowise * igstRateForEdprowise) / 100;
     const amountBeforeGstAndDiscount = finalRateBeforeDiscount * quantity;
     const discountAmount = (amountBeforeGstAndDiscount * discount) / 100;
     const gstAmount = cgstAmount + sgstAmount + igstAmount;
@@ -128,7 +203,6 @@ async function updateSingleProduct(req, res) {
     existingQuote.gstAmountForEdprowise = gstAmountForEdprowise;
     existingQuote.totalAmount = totalAmountForProduct;
     existingQuote.totalAmountForEdprowise = totalAmountForProductForEdprowise;
-    existingQuote.updateCountBySeller += 1;
 
     await existingQuote.save();
 
