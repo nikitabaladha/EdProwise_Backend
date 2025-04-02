@@ -75,6 +75,7 @@ const SchoolSchema = new mongoose.Schema(
         "Pre-Primary",
         "Primary (Upto Class 5)",
         "Secondary (Upto Class 10)",
+        "Senior Secondary",
         "Higher Secondary (Upto Class 12)",
         "College",
         "University",

@@ -48,6 +48,7 @@ const SchoolRegistrationCreateValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
+      "Senior Secondary",
       "Higher Secondary (Upto Class 12)",
       "College",
       "University"
@@ -119,6 +120,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
+      "Senior Secondary",
       "Higher Secondary (Upto Class 12)",
       "College",
       "University"
@@ -143,7 +145,6 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 });
 
 const SchoolProfileUpdateValidator = Joi.object({
-
   panFile: Joi.string().optional().messages({}),
   profileImage: Joi.string().optional().messages({}),
   affiliationCertificate: Joi.string().optional().messages({}),
@@ -213,7 +214,8 @@ const SchoolProfileUpdateValidator = Joi.object({
 
   schoolAlternateContactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .optional().allow("")
+    .optional()
+    .allow("")
     .messages({
       "string.base": "School alternate contact number must be a string.",
       "string.pattern.base":
@@ -221,14 +223,15 @@ const SchoolProfileUpdateValidator = Joi.object({
     }),
 
   schoolEmail: Joi.string()
-  .trim()
-  .lowercase()
-  .email({ tlds: { allow: false } }) 
-  .required().messages({
-    "string.base": "School email must be a string.",
-    "string.empty": "School email is required.",
-    "string.email": "School email must be a valid email address.",
-  }), 
+    .trim()
+    .lowercase()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.base": "School email must be a string.",
+      "string.empty": "School email is required.",
+      "string.email": "School email must be a valid email address.",
+    }),
 
   contactPersonName: Joi.string().optional().allow("").messages({
     "string.base": "Contact person name must be a string.",
@@ -242,13 +245,14 @@ const SchoolProfileUpdateValidator = Joi.object({
 
   principalName: Joi.string().optional().allow("").messages({
     "string.base": "Principal name must be a string.",
-      }),
+  }),
 
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
+      "Senior Secondary",
       "Higher Secondary (Upto Class 12)",
       "College",
       "University"
@@ -332,7 +336,8 @@ const SchoolProfileCreateByUserValidator = Joi.object({
 
   schoolAlternateContactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .optional().allow("")
+    .optional()
+    .allow("")
     .messages({
       "string.base": "School alternate contact number must be a string.",
       "string.pattern.base":
@@ -340,14 +345,15 @@ const SchoolProfileCreateByUserValidator = Joi.object({
     }),
 
   schoolEmail: Joi.string()
-  .trim()
-  .lowercase()
-  .email({ tlds: { allow: false } }) 
-  .required().messages({
-    "string.base": "School email must be a string.",
-    "string.empty": "School email is required.",
-    "string.email": "School email must be a valid email address.",
-  }), 
+    .trim()
+    .lowercase()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.base": "School email must be a string.",
+      "string.empty": "School email is required.",
+      "string.email": "School email must be a valid email address.",
+    }),
 
   contactPersonName: Joi.string().optional().allow("").messages({
     "string.base": "Contact person name must be a string.",
@@ -361,13 +367,14 @@ const SchoolProfileCreateByUserValidator = Joi.object({
 
   principalName: Joi.string().optional().allow("").messages({
     "string.base": "Principal name must be a string.",
-      }),
+  }),
 
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
+      "Senior Secondary",
       "Higher Secondary (Upto Class 12)",
       "College",
       "University"

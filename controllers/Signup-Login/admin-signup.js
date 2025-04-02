@@ -34,7 +34,6 @@ async function adminSignup(req, res) {
       status: "Completed",
     });
 
-    // Remove sensitive information before sending the response
     delete user.password;
     delete user.salt;
 

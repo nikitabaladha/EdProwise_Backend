@@ -41,13 +41,16 @@ async function create(req, res) {
     });
   } catch (error) {
     if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)
+        .map((key) => `${key}: ${error.keyValue[key]}`)
+        .join(", ");
       return res.status(400).json({
         hasError: true,
-        message: "This Bank Details already exists.",
+        message: `Duplicate entry for ${field}. Bank details with the same account number and IFSC code for this bank already exists.`,
       });
     }
 
-    console.error("Error submitting Bank Details:", error);
+    console.error("Error Creating Bank Details:", error);
     return res.status(500).json({
       hasError: true,
       message: "Internal server error. Please try again later.",

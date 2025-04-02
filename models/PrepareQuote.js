@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
+
 const roundToTwo = (num) => {
   const isArgString = typeof num === "string";
   if (isArgString) num = Number(num);
-
   return Math.round(num);
 };
 

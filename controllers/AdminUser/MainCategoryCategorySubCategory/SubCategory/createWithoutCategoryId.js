@@ -134,6 +134,14 @@ async function create(req, res) {
     });
   } catch (error) {
     console.error("Error creating Sub Category:", error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message:
+          "A Sub Category with the same name already exists in the same Category.",
+        hasError: true,
+      });
+    }
     return res.status(500).json({
       hasError: true,
       message: "Failed to create Sub Category.",

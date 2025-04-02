@@ -13,7 +13,6 @@ const EdprowiseBankDetailSchema = new mongoose.Schema(
     ifscCode: {
       type: String,
       required: true,
-      unique: true,
     },
     accountType: {
       type: String,
@@ -27,7 +26,7 @@ const EdprowiseBankDetailSchema = new mongoose.Schema(
 );
 
 EdprowiseBankDetailSchema.index(
-  { accountNumber: 1, bankName: 1 },
+  { accountNumber: 1, ifscCode: 1, bankName: 1 },
   { unique: true }
 );
 

@@ -3,6 +3,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
+import PrepareQuote from "../../models/PrepareQuote.js";
 
 async function getAll(req, res) {
   try {
@@ -11,7 +12,7 @@ async function getAll(req, res) {
       .sort({ createdAt: -1 })
       .select(
         "orderNumber quoteNumber createdAt actualDeliveryDate otherCharges " +
-          "finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
+          "enquiryNumber sellerId schoolId"
       )
       .lean();
 
@@ -29,34 +30,47 @@ async function getAll(req, res) {
     ];
 
     // Fetch related data in parallel
-    const [sellerProfiles, quoteRequests, quoteProposals, submitQuotes] =
-      await Promise.all([
-        SellerProfile.find({ sellerId: { $in: sellerIds } })
-          .select("sellerId companyName")
-          .lean(),
-        QuoteRequest.find({ enquiryNumber: { $in: enquiryNumbers } })
-          .select("enquiryNumber expectedDeliveryDate")
-          .lean(),
-        QuoteProposal.find({
-          enquiryNumber: { $in: enquiryNumbers },
-          sellerId: { $in: sellerIds },
-        })
-          .select(
-            "enquiryNumber sellerId totalAmountBeforeGstAndDiscount totalAmount " +
-              "totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS " +
-              "tDSAmount supplierStatus edprowiseStatus buyerStatus " +
-              "totalTaxableValueForEdprowise totalAmountForEdprowise " +
-              "totalTaxAmountForEdprowise tdsValueForEdprowise " +
-              "finalPayableAmountWithTDSForEdprowise orderStatus"
-          )
-          .lean(),
-        SubmitQuote.find({
-          enquiryNumber: { $in: enquiryNumbers },
-          sellerId: { $in: sellerIds },
-        })
-          .select("enquiryNumber sellerId advanceRequiredAmount")
-          .lean(),
-      ]);
+    const [
+      sellerProfiles,
+      quoteRequests,
+      quoteProposals,
+      submitQuotes,
+      prepareQuotes,
+    ] = await Promise.all([
+      SellerProfile.find({ sellerId: { $in: sellerIds } })
+        .select("sellerId companyName")
+        .lean(),
+      QuoteRequest.find({ enquiryNumber: { $in: enquiryNumbers } })
+        .select("enquiryNumber expectedDeliveryDate")
+        .lean(),
+      QuoteProposal.find({
+        enquiryNumber: { $in: enquiryNumbers },
+        sellerId: { $in: sellerIds },
+      })
+        .select(
+          "enquiryNumber sellerId totalAmountBeforeGstAndDiscount totalAmount " +
+            "totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS " +
+            "tDSAmount supplierStatus edprowiseStatus buyerStatus " +
+            "totalTaxableValueForEdprowise totalAmountForEdprowise " +
+            "totalTaxAmountForEdprowise tdsValueForEdprowise " +
+            "finalPayableAmountWithTDSForEdprowise orderStatus"
+        )
+        .lean(),
+      SubmitQuote.find({
+        enquiryNumber: { $in: enquiryNumbers },
+        sellerId: { $in: sellerIds },
+      })
+        .select("enquiryNumber sellerId advanceRequiredAmount")
+        .lean(),
+      PrepareQuote.find({
+        enquiryNumber: { $in: enquiryNumbers },
+        sellerId: { $in: sellerIds },
+      })
+        .select(
+          "enquiryNumber sellerId cgstRate sgstRate igstRate cgstRateForEdprowise sgstRateForEdprowise igstRateForEdprowise "
+        )
+        .lean(),
+    ]);
 
     // Create lookup maps
     const sellerMap = Object.fromEntries(
@@ -79,11 +93,16 @@ async function getAll(req, res) {
       submitQuotes.map((sq) => [`${sq.enquiryNumber}_${sq.sellerId}`, sq])
     );
 
+    const prepareQuoteMap = Object.fromEntries(
+      prepareQuotes.map((pq) => [`${pq.enquiryNumber}_${pq.sellerId}`, pq])
+    );
+
     // Enrich orders with related data
     const enrichedOrders = orders.map((order) => {
       const compositeKey = `${order.enquiryNumber}_${order.sellerId}`;
       const quoteProposal = quoteProposalMap[compositeKey] || {};
       const submitQuote = submitQuoteMap[compositeKey] || {};
+      const prepareQuote = prepareQuoteMap[compositeKey] || {};
 
       return {
         ...order,
@@ -111,6 +130,13 @@ async function getAll(req, res) {
         tDSAmount: quoteProposal.tDSAmount || 0,
         tdsValue: quoteProposal.tdsValue || 0,
         tdsValueForEdprowise: quoteProposal.tdsValueForEdprowise || 0,
+
+        cgstRate: prepareQuote.cgstRate || 0,
+        sgstRate: prepareQuote.sgstRate || 0,
+        igstRate: prepareQuote.igstRate || 0,
+        cgstRateForEdprowise: prepareQuote.cgstRateForEdprowise || 0,
+        sgstRateForEdprowise: prepareQuote.sgstRateForEdprowise || 0,
+        igstRateForEdprowise: prepareQuote.igstRateForEdprowise || 0,
       };
     });
 

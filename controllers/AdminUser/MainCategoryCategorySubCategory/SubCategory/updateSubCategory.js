@@ -89,10 +89,18 @@ async function updateSubCategory(req, res) {
       },
     });
   } catch (error) {
-    console.error("Error updating SubCategory:", error.message);
+    console.error("Error updating Sub Category:", error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message:
+          "A Sub Category with the same name already exists in the same Category.",
+        hasError: true,
+      });
+    }
     return res.status(500).json({
       hasError: true,
-      message: "Server error",
+      message: "Failed to update Sub Category.",
       error: error.message,
     });
   }

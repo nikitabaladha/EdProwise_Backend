@@ -3,17 +3,17 @@ import RequestForDemoValidator from "../../validators/RequestForDemoValidation.j
 
 async function create(req, res) {
   try {
-    // Validate request body
-    const { error } = RequestForDemoValidator.requestForDemoCreate.validate(req.body);
+    const { error } = RequestForDemoValidator.requestForDemoCreate.validate(
+      req.body
+    );
     if (error) {
-      const errorMessages = error.details.map(err => err.message).join(", ");
+      const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({
         hasError: true,
-        message: errorMessages
+        message: errorMessages,
       });
     }
 
-    // Create new demo request
     const newDemoRequest = new RequestForDemo({
       name: req.body.name,
       schoolName: req.body.schoolName,
@@ -22,33 +22,30 @@ async function create(req, res) {
       phone: req.body.phone,
       demoDateTime: new Date(req.body.demoDateTime),
       selectedServices: req.body.selectedServices,
-      note: req.body.note || ""
+      note: req.body.note || "",
     });
 
-    // Save to database
     const savedRequest = await newDemoRequest.save();
 
     return res.status(201).json({
       hasError: false,
       message: "Demo request submitted successfully!",
-      data: savedRequest
+      data: savedRequest,
     });
-
   } catch (error) {
-    // Handle duplicate email error
     if (error.code === 11000) {
       return res.status(400).json({
         hasError: true,
-        message: "A demo request with this email already exists."
+        message: "A demo request with this email already exists.",
       });
     }
 
     console.error("Error submitting demo request:", error);
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error. Please try again later."
+      message: "Internal server error. Please try again later.",
     });
   }
 }
 
-export default create ;
+export default create;

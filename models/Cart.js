@@ -133,6 +133,7 @@ CartSchema.index(
     schoolId: 1,
     sellerId: 1,
     enquiryNumber: 1,
+    prepareQuoteId: 1,
   },
   { unique: true }
 );
