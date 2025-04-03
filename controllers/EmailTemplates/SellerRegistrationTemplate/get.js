@@ -4,7 +4,7 @@ const get = async (req, res) => {
         const sellerTemplate = await SellerRegistrationEmailTemplate.findOne();
         
         if (!sellerTemplate) {
-            return res.status(404).json({ hasError: true, message: "No signup email template found." });
+            return res.status(404).json({ hasError: true, message: "No seller Registration email template found." });
         }
 
         res.status(200).json({ hasError: false, data: sellerTemplate });

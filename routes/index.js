@@ -44,6 +44,7 @@ import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
 import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
 import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js"
+import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js"
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", schoolRoutes);
@@ -84,8 +85,9 @@ export default (app) => {
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
 
-  // new umesh 
+  // new umesh for email
   app.use("/api", SMTPEmailSettings);
   app.use("/api", SignUPTemplatesRoutes);
   app.use("/api", SellerEmailTemplateRoutes);
+  app.use("/api", PasswordUpdateEmailTemplateRoutes)
 };
