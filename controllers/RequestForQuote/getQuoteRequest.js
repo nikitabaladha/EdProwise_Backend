@@ -1,4 +1,5 @@
 import QuoteRequest from "../../models/QuoteRequest.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function getQuoteRequest(req, res) {
   try {

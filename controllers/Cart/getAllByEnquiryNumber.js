@@ -1,5 +1,6 @@
 import Cart from "../../models/Cart.js";
 import SellerProfile from "../../models/SellerProfile.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function getAllByEnquiryNumber(req, res) {
   try {
@@ -48,6 +49,23 @@ async function getAllByEnquiryNumber(req, res) {
       .select("sellerId companyName")
       .lean();
 
+    // Get all submit quotes for these sellers and enquiry number
+    const submitQuotes = await SubmitQuote.find({
+      sellerId: { $in: sellerIds },
+      enquiryNumber,
+    })
+      .select("sellerId expectedDeliveryDateBySeller")
+      .lean();
+
+    // Find the single latest delivery date across all sellers
+    let latestDeliveryDate = null;
+    submitQuotes.forEach((quote) => {
+      const currentDate = quote.expectedDeliveryDateBySeller;
+      if (!latestDeliveryDate || currentDate > latestDeliveryDate) {
+        latestDeliveryDate = currentDate;
+      }
+    });
+
     const sellerProfileMap = {};
     sellerProfiles.forEach((profile) => {
       sellerProfileMap[profile.sellerId.toString()] = profile.companyName;
@@ -73,7 +91,10 @@ async function getAllByEnquiryNumber(req, res) {
     return res.status(200).json({
       hasError: false,
       message: "Cart Data retrieved successfully.",
-      data: groupedData,
+      data: {
+        groupedData,
+        latestDeliveryDate: latestDeliveryDate || null,
+      },
     });
   } catch (error) {
     console.error("Error retrieving Cart Data:", error);

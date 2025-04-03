@@ -21,6 +21,7 @@ const PrepareQuoteSchema = new mongoose.Schema(
     prepareQuoteImage: {
       type: String,
     },
+
     subcategoryName: {
       type: String,
       required: true,

@@ -51,8 +51,20 @@ async function getByEnquiryNumberForSeller(req, res) {
     }
 
     const products = await Product.find(queryConditions)
-      .populate("categoryId", "categoryName")
-      .populate("subCategoryId", "subCategoryName");
+      .populate({
+        path: "categoryId",
+        select: "categoryName edprowiseMargin",
+      })
+      .populate({
+        path: "subCategoryId",
+        select: "subCategoryName",
+      })
+      .exec();
+
+    //
+    // const products = await Product.find(queryConditions)
+    //   .populate("categoryId", "categoryName")
+    //   .populate("subCategoryId", "subCategoryName");
 
     // Fetch quote requests associated with the seller
     const quoteRequests = await QuoteRequest.find();
@@ -83,6 +95,7 @@ async function getByEnquiryNumberForSeller(req, res) {
         id: product._id,
         schoolId: product.schoolId,
         categoryId: product.categoryId?._id || null,
+        edprowiseMargin: product.categoryId?.edprowiseMargin || null,
         categoryName: product.categoryId?.categoryName || null,
         subCategoryId: product.subCategoryId?._id || null,
         subCategoryName: product.subCategoryId?.subCategoryName || null,
