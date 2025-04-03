@@ -2,7 +2,7 @@ import SellerProfile from "../../models/SellerProfile.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
-import OrderFromBuyer from "../../models/OrderFromBuyer.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function getTotalCountForSeller(req, res) {
   try {
@@ -51,29 +51,31 @@ async function getTotalCountForSeller(req, res) {
       enquiryNumber: { $in: enquiryNumbers },
     });
 
-    // Fetch all OrderFromBuyer records for these enquiry numbers
-    const orderFromBuyers = await OrderFromBuyer.find({
+    // Fetch all quoteProposals records for these enquiry numbers
+    const quoteProposals = await QuoteProposal.find({
       enquiryNumber: { $in: enquiryNumbers },
     });
 
-    // Create a map of orders by enquiry number
-    const orderMap = orderFromBuyers.reduce((acc, order) => {
-      if (!acc[order.enquiryNumber]) {
-        acc[order.enquiryNumber] = [];
+    // Create a map of quoteProposal by enquiry number
+    const quoteProposalMap = quoteProposals.reduce((acc, quoteProposal) => {
+      if (!acc[quoteProposal.enquiryNumber]) {
+        acc[quoteProposal.enquiryNumber] = [];
       }
-      acc[order.enquiryNumber].push(order);
+      acc[quoteProposal.enquiryNumber].push(quoteProposal);
       return acc;
     }, {});
 
     // Filter quote requests based on order conditions
     const filteredQuoteRequests = quoteRequests.filter((quoteRequest) => {
-      const orders = orderMap[quoteRequest.enquiryNumber] || [];
+      const quoteProposals = quoteProposalMap[quoteRequest.enquiryNumber] || [];
 
       // Case 1: No orders exist for this enquiry number
-      if (orders.length === 0) return true;
+      if (quoteProposals.length === 0) return true;
 
       // Case 2: Check if any order exists for this enquiry number and sellerId
-      return orders.some((order) => order.sellerId.toString() === id.toString());
+      return quoteProposals.some(
+        (quoteProposal) => quoteProposal.sellerId.toString() === id.toString()
+      );
     });
 
     // Count subcategories

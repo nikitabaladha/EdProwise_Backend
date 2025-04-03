@@ -1,8 +1,8 @@
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
-import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function getProductsForSeller(req, res) {
   try {
@@ -128,28 +128,29 @@ async function getProductsForSeller(req, res) {
 
     const enquiryNumbers = formattedProducts.map((p) => p.enquiryNumber);
 
-    const orderFromBuyers = await OrderFromBuyer.find({
+    const quoteProposals = await QuoteProposal.find({
       enquiryNumber: { $in: enquiryNumbers },
     });
 
-    const orderMap = orderFromBuyers.reduce((acc, order) => {
-      if (!acc[order.enquiryNumber]) {
-        acc[order.enquiryNumber] = [];
+    const quoteProposalMap = quoteProposals.reduce((acc, quoteProposal) => {
+      if (!acc[quoteProposal.enquiryNumber]) {
+        acc[quoteProposal.enquiryNumber] = [];
       }
-      acc[order.enquiryNumber].push(order);
+      acc[quoteProposal.enquiryNumber].push(quoteProposal);
       return acc;
     }, {});
 
     const filteredProducts = formattedProducts.filter((product) => {
-      const orders = orderMap[product.enquiryNumber] || [];
+      const quoteProposals = quoteProposalMap[product.enquiryNumber] || [];
 
-      if (orders.length === 0) return true;
+      if (quoteProposals.length === 0) return true;
 
-      const hasSellerOrder = orders.some(
-        (order) => order.sellerId.toString() === sellerId.toString()
+      const hasSellerQuoteProposal = quoteProposals.some(
+        (quoteProposal) =>
+          quoteProposal.sellerId.toString() === sellerId.toString()
       );
 
-      return hasSellerOrder;
+      return hasSellerQuoteProposal;
     });
 
     return res.status(200).json({

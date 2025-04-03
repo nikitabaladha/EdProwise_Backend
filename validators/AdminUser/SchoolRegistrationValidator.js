@@ -48,8 +48,7 @@ const SchoolRegistrationCreateValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Senior Secondary",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -120,8 +119,7 @@ const SchoolRegistrationUpdateValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Senior Secondary",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -252,8 +250,7 @@ const SchoolProfileUpdateValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Senior Secondary",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -374,8 +371,7 @@ const SchoolProfileCreateByUserValidator = Joi.object({
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Senior Secondary",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )

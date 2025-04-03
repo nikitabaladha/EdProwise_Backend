@@ -13,7 +13,8 @@ async function updateSubCategory(req, res) {
       });
     }
 
-    const { subCategoryName, categoryId, mainCategoryId } = req.body;
+    const { subCategoryName, categoryId, mainCategoryId, edprowiseMargin } =
+      req.body;
 
     if (!subCategoryName) {
       return res.status(400).json({
@@ -52,6 +53,7 @@ async function updateSubCategory(req, res) {
       });
     }
 
+    // Update the SubCategory first
     const updatedSubCategory = await SubCategory.findByIdAndUpdate(
       id,
       { $set: { subCategoryName, categoryId, mainCategoryId } },
@@ -73,6 +75,14 @@ async function updateSubCategory(req, res) {
         hasError: true,
         message: "SubCategory not found.",
       });
+    }
+
+    if (edprowiseMargin !== undefined) {
+      await Category.findByIdAndUpdate(
+        categoryId,
+        { $set: { edprowiseMargin } },
+        { new: true }
+      );
     }
 
     return res.status(200).json({

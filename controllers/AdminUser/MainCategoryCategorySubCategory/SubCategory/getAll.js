@@ -12,7 +12,8 @@ async function getAll(req, res) {
           model: MainCategory,
           select: "mainCategoryName _id",
         },
-      }).sort({ createdAt: -1 })
+      })
+      .sort({ createdAt: -1 })
       .select("subCategoryName _id categoryId");
 
     if (!subCategories.length) {
@@ -30,6 +31,7 @@ async function getAll(req, res) {
       categoryName: subCategory.categoryId.categoryName,
       mainCategoryId: subCategory.categoryId.mainCategoryId._id,
       mainCategoryName: subCategory.categoryId.mainCategoryId.mainCategoryName,
+      edprowiseMargin: subCategory.categoryId.edprowiseMargin,
     }));
 
     return res.status(200).json({

@@ -22,7 +22,12 @@ async function create(req, res) {
     const createdSubCategories = [];
 
     for (const entry of data) {
-      const { subCategoryName, categoryName, mainCategoryName } = entry;
+      const {
+        subCategoryName,
+        categoryName,
+        mainCategoryName,
+        edprowiseMargin,
+      } = entry;
 
       let mainCategory = await MainCategory.findOne({ mainCategoryName });
       if (!mainCategory) {
@@ -39,6 +44,7 @@ async function create(req, res) {
         category = new Category({
           categoryName,
           mainCategoryId: mainCategory._id,
+          edprowiseMargin,
         });
         await category.save();
       }
