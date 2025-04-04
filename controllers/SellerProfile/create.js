@@ -90,7 +90,16 @@ async function create(req, res) {
         ? `/Documents/SellerCinFile/${cinFile[0].filename}`
         : null;
 
+    const seller = await Seller.findOne({ _id: sellerId }).select("randomId");
+
+    if (!seller) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Seller not found.",
+      });
+    }
     const newSellerProfile = new SellerProfile({
+      randomId: seller.randomId,
       sellerId,
       companyName,
       companyType,
@@ -152,7 +161,6 @@ async function create(req, res) {
         contactNo: "contact number",
         emailId: "email",
         accountNo: "account number",
-        ifsc: "IFSC code",
       };
 
       const displayName = fieldNames[field] || field;

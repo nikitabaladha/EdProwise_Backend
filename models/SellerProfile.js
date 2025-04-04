@@ -7,6 +7,11 @@ const SellerProfileSchema = new mongoose.Schema(
       ref: "Seller",
       required: true,
     },
+    randomId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     companyName: {
       type: String,
       required: true,
@@ -99,7 +104,6 @@ const SellerProfileSchema = new mongoose.Schema(
     ifsc: {
       type: String,
       required: true,
-      unique: true,
     },
     accountHolderName: {
       type: String,

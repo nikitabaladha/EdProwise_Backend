@@ -8,12 +8,19 @@ import {
   getAllBySchoolId,
   getByOrderNumber,
   updateByOrderNumber,
+  getOneByOrderNumberForAll,
 } from "../../controllers/OrderDetailsFromSeller/index.js";
 
 router.get(
   "/order-details-by-seller-id/:id",
   roleBasedMiddleware("Seller"),
   getAllBySellerId
+);
+
+router.get(
+  "/order-details-by-orderNumber/:orderNumber",
+  roleBasedMiddleware("Seller", "Admin", "School"),
+  getOneByOrderNumberForAll
 );
 
 router.get(

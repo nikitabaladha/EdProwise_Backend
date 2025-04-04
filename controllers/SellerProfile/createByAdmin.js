@@ -103,6 +103,9 @@ async function createByAdmin(req, res) {
         : null;
 
     const sellerId = new mongoose.Types.ObjectId();
+    const userId = generateUserId();
+    const password = generateRandomPassword();
+    const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
     const newSellerProfile = new SellerProfile({
       sellerId,
@@ -133,13 +136,10 @@ async function createByAdmin(req, res) {
       ceoName,
       turnover,
       dealingProducts,
+      randomId: userId,
     });
 
     await newSellerProfile.save();
-
-    const userId = generateUserId();
-    const password = generateRandomPassword();
-    const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
     const newSeller = new Seller({
       _id: sellerId,
@@ -169,7 +169,6 @@ async function createByAdmin(req, res) {
         contactNo: "contact number",
         emailId: "email",
         accountNo: "account number",
-        ifsc: "IFSC code",
       };
 
       const displayName = fieldNames[field] || field;

@@ -118,7 +118,7 @@ async function getProductsForSeller(req, res) {
             quoteRequestsMap[product.enquiryNumber]?.edprowiseStatus || null,
           createdAt: quoteRequestsMap[product.enquiryNumber]?.createdAt || null,
           updatedAt: quoteRequestsMap[product.enquiryNumber]?.updatedAt || null,
-          venderStatusFromBuyer,
+          venderStatusFromBuyer, // Include vendor status from buyer
           rejectCommentFromBuyer,
         });
       }
@@ -143,15 +143,14 @@ async function getProductsForSeller(req, res) {
     const filteredProducts = formattedProducts.filter((product) => {
       const quoteProposals = quoteProposalMap[product.enquiryNumber] || [];
 
-      // if (quoteProposals.length === 0) return true;
+      if (quoteProposals.length === 0) return true;
 
-      // const hasSellerQuoteProposal = quoteProposals.some(
-      //   (quoteProposal) =>
-      //     quoteProposal.sellerId.toString() === sellerId.toString()
-      // );
-      return quoteProposals;
+      const hasSellerQuoteProposal = quoteProposals.some(
+        (quoteProposal) =>
+          quoteProposal.sellerId.toString() === sellerId.toString()
+      );
 
-      // return hasSellerQuoteProposal;
+      return hasSellerQuoteProposal;
     });
 
     return res.status(200).json({
