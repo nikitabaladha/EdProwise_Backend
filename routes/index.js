@@ -40,8 +40,26 @@ import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
 import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
+// ==================Email Routes =========================
+import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js";
+import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js";
+import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js";
+import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
+import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
+
 export default (app) => {
+  // ==================Email Routes =========================
+
+  app.use("/api", SMTPEmailSettings);
+  app.use("/api", SignUPTemplatesRoutes);
+  app.use("/api", SellerEmailTemplateRoutes);
+  app.use("/api", PasswordUpdateEmailTemplateRoutes);
+  app.use("/api", ForgotPasswordRoutes);
+
+  // ===================Login/Signup ==================
   app.use("/api", loginSignupRoutes);
+
+  // ====================School/Seller/Edprowise Routes==========
   app.use("/api", schoolRoutes);
   app.use("/api", SellerRoutes);
   app.use("/api", schoolUserRoutes);
@@ -70,6 +88,7 @@ export default (app) => {
   app.use("/api", UpdateTDSRoutes);
   app.use("/api", DashboardRoutes);
 
+  //=====================Globar search for dashboard routes===============
   app.use("/api", GlobalSearchRoutes);
 
   // ================Fees Module====================

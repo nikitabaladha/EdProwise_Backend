@@ -2,6 +2,85 @@ import SchoolRegistration from "../../models/School.js";
 import SchoolRegistrationValidator from "../../validators/AdminUser/SchoolRegistrationValidator.js";
 import User from "../../models/User.js";
 
+import nodemailer from "nodemailer";
+import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+import SignUpEmailTemplate from "../../models/SignUpEmailTemplate.js";
+
+async function sendSchoolRegistrationEmail(
+  schoolName,
+  schoolEmail,
+  usersWithCredentials
+) {
+  let hasError = false;
+  let message = "";
+  try {
+    // 1. Get SMTP settings from database
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) {
+      console.error("SMTP settings not found");
+      return false;
+    }
+
+    // 2. Get email template from database
+    const emailTemplate = await SignUpEmailTemplate.findOne();
+    if (!emailTemplate) {
+      console.error("Email template not found");
+      return false;
+    }
+
+    // 3. Create Nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    // 4. Prepare credentials
+    const credentialsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead><tr><th>Role</th><th>UserID</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>School</td>
+            <td>${usersWithCredentials.userId}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    // 5. Replace placeholders in email template
+    const emailContent = emailTemplate.content
+      .replace(/{SchoolName}/g, schoolName)
+      .replace(/{mailForm}/g, smtpSettings.mailFromName)
+      .replace(/{Credentials}/g, credentialsHtml)
+      .replace(/{app_url}/g, smtpSettings.mailHost);
+
+    // 6. Send email
+    await transporter.sendMail({
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: schoolEmail,
+      subject: emailTemplate.subject,
+      html: emailContent,
+    });
+
+    console.log("Registration email sent successfully");
+    return { hasError: false, message: "Email sent successfully." };
+  } catch (error) {
+    console.error("Error sending registration email:", error);
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
+  }
+}
+
 async function create(req, res) {
   try {
     const { schoolId } = req.params;
@@ -96,6 +175,10 @@ async function create(req, res) {
     });
 
     await newSchoolRegistration.save();
+
+    await sendSchoolRegistrationEmail(schoolName, schoolEmail, {
+      userId: schoolId,
+    });
 
     await User.findOneAndUpdate(
       { schoolId, role: "School" },

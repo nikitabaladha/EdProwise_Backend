@@ -2,6 +2,69 @@ import SellerProfile from "../../models/SellerProfile.js";
 import SellerProfileValidator from "../../validators/Seller/SellerProfile.js";
 import Seller from "../../models/Seller.js";
 
+import nodemailer from "nodemailer";
+import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+import SellerRegistrationEmailTemplate from "../../models/EmailTeamplates/SellerRegistrationEmailTemplate.js";
+
+async function sendSellerRegistrationEmail(
+  companyName,
+  companyEmail,
+  userCredentials
+) {
+  try {
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) throw new Error("SMTP settings not found");
+
+    const emailTemplate = await SellerRegistrationEmailTemplate.findOne();
+    if (!emailTemplate) throw new Error("Email template not found");
+    console.log(emailTemplate);
+
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const credentialsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead><tr><th>Role</th><th>UserID</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Seller</td>
+            <td>${userCredentials.userId}</td>
+
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const emailContent = emailTemplate.content
+      // .replace(/{CompanyName}/g, emailTemplate.mailFrom)
+      .replace(/{mailForm}/g, emailTemplate.mailFrom)
+      .replace(/{sellerCompanyName}/g, companyName)
+      .replace(/{Credentials}/g, credentialsHtml)
+      .replace(/{app_url}/g, smtpSettings.mailHost);
+
+    await transporter.sendMail({
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: companyEmail,
+      subject: emailTemplate.subject,
+      html: emailContent,
+    });
+
+    console.log("Seller registration email sent successfully");
+    return true;
+  } catch (error) {
+    console.error("Error sending registration email:", error);
+    return false;
+  }
+}
+
 async function create(req, res) {
   try {
     const sellerId = req.user?.id;
@@ -130,7 +193,13 @@ async function create(req, res) {
       dealingProducts,
     });
 
+    const SellerDetails = await Seller.findById(sellerId);
+
     await newSellerProfile.save();
+
+    await sendSellerRegistrationEmail(companyName, emailId, {
+      userId: SellerDetails.userId,
+    });
 
     const updatedSeller = await Seller.findOneAndUpdate(
       { _id: sellerId },

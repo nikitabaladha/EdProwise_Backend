@@ -4,6 +4,10 @@ import SellerProfileValidator from "../../validators/Seller/SellerProfile.js";
 import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 
+import nodemailer from "nodemailer";
+import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+import SellerRegistrationEmailTemplate from "../../models/EmailTeamplates/SellerRegistrationEmailTemplate.js";
+
 function generateUserId() {
   const prefix = "SELID";
   const randomSuffix = Math.floor(Math.random() * 1000000);
@@ -19,6 +23,65 @@ function generateRandomPassword(length = 10) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
+}
+
+async function sendSellerRegistrationEmail(
+  companyName,
+  companyEmail,
+  userCredentials
+) {
+  try {
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) throw new Error("SMTP settings not found");
+
+    const emailTemplate = await SellerRegistrationEmailTemplate.findOne();
+    if (!emailTemplate) throw new Error("Email template not found");
+    console.log(emailTemplate);
+
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const credentialsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 50%;">
+        <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Seller</td>
+            <td>${userCredentials.userId}</td>
+            <td>${userCredentials.password}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const emailContent = emailTemplate.content
+      // .replace(/{CompanyName}/g, emailTemplate.mailFrom)
+      .replace(/{mailForm}/g, emailTemplate.mailFrom)
+      .replace(/{sellerCompanyName}/g, companyName)
+      .replace(/{Credentials}/g, credentialsHtml)
+      .replace(/{app_url}/g, smtpSettings.mailHost);
+
+    await transporter.sendMail({
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: companyEmail,
+      subject: emailTemplate.subject,
+      html: emailContent,
+    });
+
+    console.log("Seller registration email sent successfully");
+    return true;
+  } catch (error) {
+    console.error("Error sending registration email:", error);
+    return false;
+  }
 }
 
 async function createByAdmin(req, res) {
@@ -140,6 +203,12 @@ async function createByAdmin(req, res) {
     });
 
     await newSellerProfile.save();
+
+    await sendSellerRegistrationEmail(companyName, emailId, {
+      userId,
+
+      password,
+    });
 
     const newSeller = new Seller({
       _id: sellerId,
