@@ -1,4 +1,5 @@
 import passwordUpdateEmailTemplate from "../../../models/EmailTeamplates/passwordUpdateEmailTemplate.js";
+
 const createAndUpdate = async (req, res) => {
     try {
         const { subject, content, mailFrom } = req.body;

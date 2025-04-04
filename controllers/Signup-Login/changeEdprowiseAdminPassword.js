@@ -98,7 +98,6 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
 async function changeAdminPassword(req, res) {
   try {
     const userId = req.user?.id;
-
     if (!userId) {
       return res.status(401).json({
         hasError: true,

@@ -45,6 +45,8 @@ import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
 import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
 import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js"
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js"
+import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js"
+
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", schoolRoutes);
@@ -89,5 +91,6 @@ export default (app) => {
   app.use("/api", SMTPEmailSettings);
   app.use("/api", SignUPTemplatesRoutes);
   app.use("/api", SellerEmailTemplateRoutes);
-  app.use("/api", PasswordUpdateEmailTemplateRoutes)
+  app.use("/api", PasswordUpdateEmailTemplateRoutes);
+  app.use("/api", ForgotPasswordRoutes);
 };
