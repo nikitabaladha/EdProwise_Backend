@@ -24,6 +24,10 @@ const prepareQuoteCreate = Joi.object({
     "string.empty": "Subcategory name cannot be empty.",
   }),
 
+  subCategoryId: Joi.string().required().messages({
+    "any.required": "Subcategory ID is a required field.",
+  }),
+
   hsnSacc: Joi.string()
     .pattern(/^\d{4,8}$/)
     .required()
@@ -120,7 +124,7 @@ const prepareQuoteUpdate = Joi.object({
   }),
 
   hsnSacc: Joi.string()
-    .pattern(/^\d{4,8}$/) // HSN/SAC codes are typically numeric with 4-8 digits
+    .pattern(/^\d{4,8}$/)
     .required()
     .messages({
       "any.required": "HSN/SAC code is required.",

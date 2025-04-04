@@ -2,7 +2,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
-import QuoteProposal from "../../models/QuoteProposal.js";
+import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 
 async function getProductsForSeller(req, res) {
   try {
@@ -28,8 +28,11 @@ async function getProductsForSeller(req, res) {
       });
     }
 
-    // Extract the dealing products
+    // Extract the dealing products and subcategory IDs
     const dealingProducts = sellerProfile.dealingProducts;
+    const sellerSubCategoryIds = dealingProducts.flatMap((product) =>
+      product.subCategoryIds.map((id) => id.toString())
+    );
 
     // Create arrays for categoryIds and subCategoryIds
     const categoryIds = dealingProducts.map((product) => product.categoryId);
@@ -80,11 +83,6 @@ async function getProductsForSeller(req, res) {
           sellerId,
         });
 
-        const venderStatusFromBuyer =
-          existingSubmittedQuote?.venderStatusFromBuyer || null;
-        const rejectCommentFromBuyer =
-          existingSubmittedQuote?.rejectCommentFromBuyer || null;
-
         enquiryProductMap.set(product.enquiryNumber, {
           id: product._id,
           schoolId: product.schoolId,
@@ -97,7 +95,6 @@ async function getProductsForSeller(req, res) {
           unit: product.unit,
           quantity: product.quantity,
           enquiryNumber: product.enquiryNumber,
-          // Attach quote request details
           quoteRequestId: quoteRequestsMap[product.enquiryNumber]?.id || null,
           deliveryAddress:
             quoteRequestsMap[product.enquiryNumber]?.deliveryAddress || null,
@@ -118,40 +115,53 @@ async function getProductsForSeller(req, res) {
             quoteRequestsMap[product.enquiryNumber]?.edprowiseStatus || null,
           createdAt: quoteRequestsMap[product.enquiryNumber]?.createdAt || null,
           updatedAt: quoteRequestsMap[product.enquiryNumber]?.updatedAt || null,
-          venderStatusFromBuyer,
-          rejectCommentFromBuyer,
+          venderStatusFromBuyer:
+            existingSubmittedQuote?.venderStatusFromBuyer || null,
+          rejectCommentFromBuyer:
+            existingSubmittedQuote?.rejectCommentFromBuyer || null,
         });
       }
     }
 
     const formattedProducts = Array.from(enquiryProductMap.values());
-
     const enquiryNumbers = formattedProducts.map((p) => p.enquiryNumber);
 
-    const quoteProposals = await QuoteProposal.find({
+    // Fetch all relevant orders from buyers
+    const orderFromBuyers = await OrderFromBuyer.find({
       enquiryNumber: { $in: enquiryNumbers },
     });
 
-    const quoteProposalMap = quoteProposals.reduce((acc, quoteProposal) => {
-      if (!acc[quoteProposal.enquiryNumber]) {
-        acc[quoteProposal.enquiryNumber] = [];
+    // Create a map of orders by enquiry number and subcategory
+    const orderFromBuyerMap = orderFromBuyers.reduce((acc, order) => {
+      const key = `${order.enquiryNumber}-${order.subCategoryId.toString()}`;
+      if (!acc[key]) {
+        acc[key] = [];
       }
-      acc[quoteProposal.enquiryNumber].push(quoteProposal);
+      acc[key].push(order);
       return acc;
     }, {});
 
+    // Filter products based on the three scenarios
     const filteredProducts = formattedProducts.filter((product) => {
-      const quoteProposals = quoteProposalMap[product.enquiryNumber] || [];
+      const productKey = `${product.enquiryNumber}-${product.subCategoryId}`;
+      const ordersForProduct = orderFromBuyerMap[productKey] || [];
 
-      // if (quoteProposals.length === 0) return true;
+      // Case 1: No orders exist for this enquiryNumber + subCategory combination
+      if (ordersForProduct.length === 0) {
+        return true;
+      }
 
-      // const hasSellerQuoteProposal = quoteProposals.some(
-      //   (quoteProposal) =>
-      //     quoteProposal.sellerId.toString() === sellerId.toString()
-      // );
-      return quoteProposals;
+      // Case 2: Check if current seller has an order for this product
+      const sellerHasOrder = ordersForProduct.some(
+        (order) => order.sellerId.toString() === sellerId.toString()
+      );
 
-      // return hasSellerQuoteProposal;
+      // Case 3: Other sellers have orders but current seller doesn't
+      const otherSellersHaveOrders = ordersForProduct.some(
+        (order) => order.sellerId.toString() !== sellerId.toString()
+      );
+
+      return sellerHasOrder;
     });
 
     return res.status(200).json({

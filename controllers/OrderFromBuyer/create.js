@@ -134,6 +134,7 @@ async function create(req, res) {
         sellerId: cartEntry.sellerId,
         cartImage: cartEntry.cartImage || null,
         subcategoryName: cartEntry.subcategoryName || "",
+        subCategoryId: cartEntry.subCategoryId || "",
         hsnSacc: cartEntry.hsnSacc || "",
         listingRate: cartEntry.listingRate || 0,
         edprowiseMargin: cartEntry.edprowiseMargin || 0,

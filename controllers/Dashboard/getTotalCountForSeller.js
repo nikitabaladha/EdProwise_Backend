@@ -2,7 +2,7 @@ import SellerProfile from "../../models/SellerProfile.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
-import QuoteProposal from "../../models/QuoteProposal.js";
+import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 
 async function getTotalCountForSeller(req, res) {
   try {
@@ -15,8 +15,10 @@ async function getTotalCountForSeller(req, res) {
       });
     }
 
-    // Fetch seller profile
-    const sellerProfile = await SellerProfile.findOne({ sellerId: id }).lean();
+    // Fetch the seller's profile to get the dealing products
+    const sellerProfile = await SellerProfile.findOne({ sellerId: id })
+      .populate("dealingProducts.categoryId")
+      .populate("dealingProducts.subCategoryIds");
 
     if (!sellerProfile) {
       return res.status(404).json({
@@ -25,57 +27,89 @@ async function getTotalCountForSeller(req, res) {
       });
     }
 
-    // Extract category and subcategory IDs
-    const categoryIds = sellerProfile.dealingProducts.map(
-      (product) => product.categoryId
+    // Extract the dealing products and subcategory IDs
+    const dealingProducts = sellerProfile.dealingProducts;
+    const sellerSubCategoryIds = dealingProducts.flatMap((product) =>
+      product.subCategoryIds.map((id) => id.toString())
     );
-    const subCategoryIds = sellerProfile.dealingProducts.flatMap(
+
+    // Create arrays for categoryIds and subCategoryIds
+    const categoryIds = dealingProducts.map((product) => product.categoryId);
+    const subCategoryIds = dealingProducts.flatMap(
       (product) => product.subCategoryIds
     );
 
-    // Find matching products
-    const matchingProducts = await Product.find({
+    // Find all products that match the seller's dealing products
+    const products = await Product.find({
       $or: [
         { categoryId: { $in: categoryIds } },
         { subCategoryId: { $in: subCategoryIds } },
       ],
-    }).select("enquiryNumber");
+    })
+      .select("enquiryNumber subCategoryId")
+      .lean();
 
-    // Extract unique enquiry numbers
-    const enquiryNumbers = [
-      ...new Set(matchingProducts.map((p) => p.enquiryNumber)),
-    ];
+    // Get unique enquiry numbers
+    const enquiryNumbers = [...new Set(products.map((p) => p.enquiryNumber))];
 
-    // Fetch all quote requests for these enquiry numbers
-    const quoteRequests = await QuoteRequest.find({
+    // Fetch all relevant orders from buyers
+    const orderFromBuyers = await OrderFromBuyer.find({
       enquiryNumber: { $in: enquiryNumbers },
-    });
+    })
+      .select("enquiryNumber subCategoryId sellerId")
+      .lean();
 
-    // Fetch all quoteProposals records for these enquiry numbers
-    const quoteProposals = await QuoteProposal.find({
-      enquiryNumber: { $in: enquiryNumbers },
-    });
-
-    // Create a map of quoteProposal by enquiry number
-    const quoteProposalMap = quoteProposals.reduce((acc, quoteProposal) => {
-      if (!acc[quoteProposal.enquiryNumber]) {
-        acc[quoteProposal.enquiryNumber] = [];
+    // Create a map of orders by enquiry number and subcategory
+    const orderFromBuyerMap = orderFromBuyers.reduce((acc, order) => {
+      const key = `${order.enquiryNumber}-${order.subCategoryId.toString()}`;
+      if (!acc[key]) {
+        acc[key] = [];
       }
-      acc[quoteProposal.enquiryNumber].push(quoteProposal);
+      acc[key].push(order);
       return acc;
     }, {});
 
-    // Filter quote requests based on order conditions
-    const filteredQuoteRequests = quoteRequests.filter((quoteRequest) => {
-      const quoteProposals = quoteProposalMap[quoteRequest.enquiryNumber] || [];
+    // Count products based on the three scenarios
+    let case1Count = 0; // No orders exist
+    let case2Count = 0; // Current seller has order
+    let case3Count = 0; // Other sellers have orders but current seller doesn't
 
-      // Case 1: No orders exist for this enquiry number
-      if (quoteProposals.length === 0) return true;
+    // Create a map to track counted enquiry numbers (to avoid double counting)
+    const countedEnquiries = new Set();
 
-      // Case 2: Check if any order exists for this enquiry number and sellerId
-      return quoteProposals.some(
-        (quoteProposal) => quoteProposal.sellerId.toString() === id.toString()
+    products.forEach((product) => {
+      const productKey = `${product.enquiryNumber}-${product.subCategoryId}`;
+      const ordersForProduct = orderFromBuyerMap[productKey] || [];
+
+      // Skip if we've already counted this enquiry
+      if (countedEnquiries.has(product.enquiryNumber)) {
+        return;
+      }
+
+      // Case 1: No orders exist for this enquiryNumber + subCategory combination
+      if (ordersForProduct.length === 0) {
+        case1Count++;
+        countedEnquiries.add(product.enquiryNumber);
+        return;
+      }
+
+      // Case 2: Check if current seller has an order for this product
+      const sellerHasOrder = ordersForProduct.some(
+        (order) => order.sellerId.toString() === id
       );
+
+      // Case 3: Other sellers have orders but current seller doesn't
+      const otherSellersHaveOrders = ordersForProduct.some(
+        (order) => order.sellerId.toString() !== id
+      );
+
+      if (sellerHasOrder) {
+        case2Count++;
+        countedEnquiries.add(product.enquiryNumber);
+      } else if (otherSellersHaveOrders) {
+        case3Count++;
+        countedEnquiries.add(product.enquiryNumber);
+      }
     });
 
     // Count subcategories
@@ -89,12 +123,20 @@ async function getTotalCountForSeller(req, res) {
       sellerId: id,
     });
 
+    // Total quote requests is the sum of case1 and case2 (visible to seller)
+    const totalQuoteRequest = case1Count + case2Count;
+
     return res.status(200).json({
       message: "Data fetched successfully",
       data: {
         totalSubcategory: subCategoryCount,
         totalOrder: orderCount,
-        totalQuoteRequest: filteredQuoteRequests.length, // Updated count
+        totalQuoteRequest,
+        breakdown: {
+          case1Count, // No orders exist
+          case2Count, // Current seller has order
+          case3Count, // Other sellers have orders but current seller doesn't
+        },
       },
       hasError: false,
     });

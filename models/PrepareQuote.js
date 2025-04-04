@@ -21,9 +21,13 @@ const PrepareQuoteSchema = new mongoose.Schema(
     prepareQuoteImage: {
       type: String,
     },
-
     subcategoryName: {
       type: String,
+      required: true,
+    },
+    subCategoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
       required: true,
     },
     hsnSacc: {

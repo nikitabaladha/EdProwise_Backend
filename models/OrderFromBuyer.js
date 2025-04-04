@@ -35,6 +35,12 @@ const OrderFromBuyerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    subCategoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      required: true,
+    },
     hsnSacc: {
       type: String,
       required: true,

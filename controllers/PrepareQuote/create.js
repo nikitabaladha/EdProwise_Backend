@@ -260,6 +260,7 @@ async function create(req, res) {
         enquiryNumber,
         prepareQuoteImage,
         subcategoryName: product.subcategoryName,
+        subCategoryId: product.subCategoryId,
         hsnSacc: product.hsnSacc,
         listingRate,
         edprowiseMargin,

@@ -61,11 +61,6 @@ async function getByEnquiryNumberForSeller(req, res) {
       })
       .exec();
 
-    //
-    // const products = await Product.find(queryConditions)
-    //   .populate("categoryId", "categoryName")
-    //   .populate("subCategoryId", "subCategoryName");
-
     // Fetch quote requests associated with the seller
     const quoteRequests = await QuoteRequest.find();
 
