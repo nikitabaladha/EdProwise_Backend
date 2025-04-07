@@ -1,5 +1,6 @@
 import User from "../../models/User.js";
 import saltFunction from "../../validators/saltFunction.js";
+import School from "../../models/School.js";
 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
@@ -86,13 +87,13 @@ async function sendPasswordUpdateEmail(
 
 async function changeSchoolAdminPassword(req, res) {
   try {
-    const userId = req.user?.id;
+    const schoolId = req.user?.schoolId;
 
-    if (!userId) {
+    if (!schoolId) {
       return res.status(401).json({
         hasError: true,
         message:
-          "Access denied: You do not have permission to change the seller password.",
+          "Access denied: You do not have permission to request a quote.",
       });
     }
 
@@ -105,18 +106,13 @@ async function changeSchoolAdminPassword(req, res) {
       });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({ schoolId, role: "School" });
 
     if (!user) {
       return res
         .status(404)
         .json({ hasError: true, message: "User not found." });
     }
-
-    const schoolId = user.schoolId;
-    const school = await School.findOne({ schoolId });
-    const schoolEmail = school.schoolEmail;
-    const schoolName = school.schoolName;
 
     const isPasswordValid = saltFunction.validatePassword(
       currentPassword,
@@ -131,12 +127,15 @@ async function changeSchoolAdminPassword(req, res) {
     }
 
     const { hashedPassword, salt } = saltFunction.hashPassword(newPassword);
-
     user.password = hashedPassword;
     user.salt = salt;
     await user.save();
 
-    console.log("User new password is ", newPassword);
+    const school = await School.findOne({ schoolId });
+    const schoolEmail = school?.schoolEmail;
+    const schoolName = school?.schoolName;
+
+    console.log(`Password changed for school: ${schoolName} (${schoolEmail})`);
 
     await sendPasswordUpdateEmail(schoolName, schoolEmail, {
       userName: user.userId,

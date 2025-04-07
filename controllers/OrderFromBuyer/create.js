@@ -8,22 +8,22 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 
 function generateOrderNumber() {
   const prefix = "ORD";
-  const timestamp = Date.now();
-  const randomSuffix = Math.floor(Math.random() * 10000);
-  return `${prefix}${timestamp}${randomSuffix}`;
+  const randomSuffix = Math.floor(Math.random() * 100000000);
+  const formattedSuffix = String(randomSuffix).padStart(8, "0");
+  return `${prefix}${formattedSuffix}`;
 }
 
 function generateInvoiceNumberForEdprowise() {
   const prefix = "EINV";
-  const randomSuffix = Math.floor(Math.random() * 1000000);
-  const formattedSuffix = String(randomSuffix).padStart(6, "0");
+  const randomSuffix = Math.floor(Math.random() * 100000000);
+  const formattedSuffix = String(randomSuffix).padStart(8, "0");
   return `${prefix}${formattedSuffix}`;
 }
 
 function generateInvoiceNumberForSchool() {
   const prefix = "SINV";
-  const randomSuffix = Math.floor(Math.random() * 1000000);
-  const formattedSuffix = String(randomSuffix).padStart(6, "0");
+  const randomSuffix = Math.floor(Math.random() * 100000000);
+  const formattedSuffix = String(randomSuffix).padStart(8, "0");
   return `${prefix}${formattedSuffix}`;
 }
 

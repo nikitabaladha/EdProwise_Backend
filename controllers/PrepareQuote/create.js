@@ -17,9 +17,9 @@ function extractState(locationString) {
 
 function generateQuoteNumber() {
   const prefix = "QUOTE";
-  const timestamp = Date.now();
-  const randomSuffix = Math.floor(Math.random() * 10000);
-  return `${prefix}${timestamp}${randomSuffix}`;
+  const randomSuffix = Math.floor(Math.random() * 100000000);
+  const formattedSuffix = String(randomSuffix).padStart(8, "0");
+  return `${prefix}${formattedSuffix}`;
 }
 
 async function create(req, res) {
