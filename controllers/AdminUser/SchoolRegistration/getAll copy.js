@@ -2,9 +2,7 @@ import SchoolRegistration from "../../../models/School.js";
 
 async function getAllSchools(req, res) {
   try {
-    const schools = await SchoolRegistration.find({
-      status: { $in: ["Pending", "Completed"] },
-    })
+    const schools = await SchoolRegistration.find()
       .sort({ createdAt: -1 })
       .lean();
 

@@ -161,6 +161,7 @@ async function create(req, res) {
         message: "Seller not found.",
       });
     }
+
     const newSellerProfile = new SellerProfile({
       randomId: seller.randomId,
       sellerId,
@@ -191,6 +192,7 @@ async function create(req, res) {
       ceoName,
       turnover,
       dealingProducts,
+      status: "Completed",
     });
 
     const SellerDetails = await Seller.findById(sellerId);

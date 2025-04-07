@@ -89,7 +89,6 @@
 
 // export default router;
 
-
 import express from "express";
 const router = express.Router();
 import roleBasedMiddleware from "../../middleware/index.js";
@@ -154,10 +153,15 @@ router.get(
 
 router.get("/seller-profile-get-all", roleBasedMiddleware("Admin"), getAll);
 
-router.delete(
-  "/seller-profile/:id",
+// router.delete(
+//   "/seller-profile/:id",
+//   roleBasedMiddleware("Admin"),
+//   deleteBySellerId
+// );
+
+router.put(
+  "/seller-profile-delete/:id",
   roleBasedMiddleware("Admin"),
   deleteBySellerId
 );
-
 export default router;

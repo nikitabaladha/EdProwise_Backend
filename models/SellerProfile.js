@@ -144,6 +144,11 @@ const SellerProfileSchema = new mongoose.Schema(
         "",
       ],
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed", "Deleted"],
+      default: "Pending",
+    },
     dealingProducts: [
       {
         categoryId: {

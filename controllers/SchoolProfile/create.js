@@ -172,6 +172,7 @@ async function create(req, res) {
       profileImage: profileImagePath,
       affiliationCertificate: affiliationCertificatePath,
       panFile: panFilePath,
+      status: "Completed",
     });
 
     await newSchoolRegistration.save();

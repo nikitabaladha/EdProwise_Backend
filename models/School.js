@@ -80,6 +80,11 @@ const SchoolSchema = new mongoose.Schema(
         "University",
       ],
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed", "Deleted"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,

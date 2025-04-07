@@ -1,9 +1,10 @@
 import SellerProfile from "../../models/SellerProfile.js";
-import Seller from "../../models/Seller.js";
 
 async function getAll(req, res) {
   try {
-    const sellerProfiles = await SellerProfile.find()
+    const sellerProfiles = await SellerProfile.find({
+      status: { $in: ["Pending", "Completed"] },
+    })
       .sort({ createdAt: -1 })
       .populate("sellerId");
 
@@ -34,10 +35,10 @@ async function getAll(req, res) {
       ceoName: profile.ceoName,
       turnover: profile.turnover,
       dealingProducts: profile.dealingProducts,
-      panFile:profile.panFile,
-      cinFile:profile.cinFile,
-      gstFile:profile.gstFile,
-      tanFile:profile.tanFile
+      panFile: profile.panFile,
+      cinFile: profile.cinFile,
+      gstFile: profile.gstFile,
+      tanFile: profile.tanFile,
     }));
 
     return res.status(200).json({

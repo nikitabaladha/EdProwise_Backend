@@ -1,38 +1,42 @@
-import SchoolRegistration from "../../../models/School.js";
 import User from "../../../models/User.js";
+import School from "../../../models/School.js";
 
 async function deleteById(req, res) {
   try {
-    const { id } = req.params;
+    const { schoolId } = req.params;
 
-    if (!id) {
+    if (!schoolId) {
       return res.status(400).json({
         hasError: true,
         message: "School ID is required.",
       });
     }
 
-    const existingSchool = await SchoolRegistration.findById(id);
+    // Update all users with this schoolId to status "Deleted"
+    const userResult = await User.updateMany(
+      { schoolId: schoolId },
+      { $set: { status: "Deleted" } }
+    );
 
-    if (!existingSchool) {
-      return res.status(404).json({
-        hasError: true,
-        message: "School not found with the provided ID.",
-      });
-    }
-
-    await User.deleteMany({ schoolId: id });
-
-    await SchoolRegistration.findByIdAndDelete(id);
+    // Also mark the school as deleted
+    const schoolResult = await School.findOneAndUpdate(
+      { schoolId: schoolId },
+      { $set: { status: "Deleted" } },
+      { new: true }
+    );
 
     return res.status(200).json({
-      message: "School deleted successfully!",
+      message: "School and associated users marked as Deleted successfully!",
       hasError: false,
+      data: {
+        users: userResult,
+        school: schoolResult,
+      },
     });
   } catch (error) {
-    console.error("Error deleting School Registration:", error);
+    console.error("Error deleting School:", error);
     return res.status(500).json({
-      message: "Failed to delete School Registration.",
+      message: "Failed to delete School.",
       error: error.message,
     });
   }

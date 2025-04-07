@@ -200,13 +200,13 @@ async function createByAdmin(req, res) {
       turnover,
       dealingProducts,
       randomId: userId,
+      status: "Completed",
     });
 
     await newSellerProfile.save();
 
     await sendSellerRegistrationEmail(companyName, emailId, {
       userId,
-
       password,
     });
 

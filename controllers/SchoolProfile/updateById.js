@@ -102,6 +102,7 @@ async function updateById(req, res) {
 
     const updatedSchool = await SchoolRegistration.findOneAndUpdate(
       { schoolId },
+      { status: "Completed" },
       { $set: updatedData },
       { new: true }
     );
