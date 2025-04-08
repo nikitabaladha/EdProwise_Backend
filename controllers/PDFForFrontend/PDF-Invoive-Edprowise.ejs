@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice Receipt</title>
+  </head>
+  <body>
+    <div class="m-2" style="color: black">
+      <div
+        style="
+          width: max-content;
+          height: max-content;
+          padding: 50px;
+          font-family: Arial, sans-serif;
+          font-size: 15px;
+          line-height: 1.5;
+        "
+      >
+        <table style="border: 1px solid black; width: 100%">
+          <table
+            style="width: 100%; margin-bottom: 20px; border-collapse: collapse"
+          >
+            <tbody>
+              <tr>
+                <td style="width: 33%">
+                  <div class="mt-3">
+                    <img
+                      src="/assets/website-images/EdProwise New Logo-1.png"
+                      alt="EdProwise Logo"
+                      style="width: 200px; height: auto"
+                    />
+                  </div>
+                </td>
+                <td
+                  style="
+                    width: 33%;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 20px;
+                    border: none;
+                  "
+                >
+                  Tax Invoice
+                </td>
+
+                <td
+                  style="
+                    width: 33%;
+                    text-align: right;
+                    font-weight: bold;
+                    font-size: 15px;
+                    border: none;
+                  "
+                >
+                  (Original for Recipient)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+              margin: 0;
+              padding: 0;
+            "
+          >
+            <thead>
+              <tr>
+                <th
+                  style="
+                    border-left: none;
+                    border-top: 1px solid black;
+                    border-right: 1px solid black;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                    width: 60%;
+                  "
+                  colspan="2"
+                >
+                  <strong>Supplier</strong>
+                </th>
+                <th
+                  style="
+                    border-top: 1px solid black;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                    width: 40%;
+                    font-weight: normal;
+                  "
+                >
+                  GSTIN : <%= sellerGstin %>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  style="
+                    border-top: none;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                  colspan="2"
+                >
+                  Name : <%= sellerCompanyName %>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    border-left: 1px solid black;
+                    border-top: none;
+                    border-bottom: none;
+                  "
+                >
+                  PAN : <%= sellerPanNumber %>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="border: none; padding: 8px; text-align: left"
+                  colspan="2"
+                >
+                  Address : <%= sellerAddress %>
+                </td>
+
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    border-left: 1px solid black;
+                    border-top: none;
+                    border-bottom: none;
+                  "
+                >
+                  Contact No.: <%= sellerContactNumber %>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                    border: none;
+                  "
+                >
+                  City: <%= sellerCityStateCountry?.split(',')[0] %>
+                </td>
+                <td
+                  style="
+                    border-right: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                  "
+                >
+                  State: <%= sellerCityStateCountry?.split(',')[1] %>
+                </td>
+                <td
+                  style="
+                    border-right: none;
+                    border-top: none;
+                    padding: 8px;
+                    text-align: left;
+                    border-bottom: 1px solid black;
+                  "
+                >
+                  Email ID : <%= sellerEmailId %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+              margin: 0;
+              padding: 0;
+            "
+          >
+            <thead>
+              <tr>
+                <th
+                  style="
+                    border-left: none;
+                    border-top: 1px solid black;
+                    border-right: 1px solid black;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                    width: 60%;
+                  "
+                  colspan="2"
+                >
+                  <strong>Consignee</strong>
+                </th>
+                <th
+                  style="
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                    width: 40%;
+                    font-weight: normal;
+                  "
+                >
+                  Invoice No. : <%= invoiceForEdprowise %>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  style="
+                    border-top: none;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                  colspan="2"
+                >
+                  Name: <%= edprowiseCompanyName %>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    border-left: 1px solid black;
+                    border-top: none;
+                    border-bottom: none;
+                  "
+                >
+                  Invoice Date : <%= formatDate(invoiceDate) %>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="border: none; padding: 8px; text-align: left"
+                  colspan="2"
+                >
+                  Address : <%= edprowiseAddress %>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    border-left: 1px solid black;
+                    border-top: none;
+                    border-bottom: none;
+                  "
+                >
+                  Payment Terms : <%= paymentTerms %>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                    border: none;
+                  "
+                >
+                  City : <%= edprowiseCityStateCountry?.split(",")[0] %>
+                </td>
+                <td
+                  style="
+                    border-right: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                  "
+                >
+                  State: <%= edprowiseCityStateCountry?.split(",")[1] %>
+                </td>
+                <td
+                  style="
+                    border-right: none;
+                    border-top: none;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                >
+                  Advance Amount Received :
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                    border: none;
+                  "
+                >
+                  Contact No : <%= edprowiseContactNo %>
+                </td>
+                <td
+                  style="
+                    border-right: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                  "
+                >
+                  Email ID : <%= edprowiseEmailId %>
+                </td>
+                <td
+                  style="
+                    border-right: none;
+                    border-top: none;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                >
+                  GSTIN : <%= edprowiseGstin %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+              margin: 0;
+              padding: 0;
+            "
+          >
+            <thead>
+              <tr>
+                <th
+                  style="
+                    border-left: none;
+                    border-top: none;
+                    border-right: 1px solid black;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                    width: 60%;
+                  "
+                  colspan="2"
+                >
+                  Buyer
+                </th>
+                <td style="padding: 8px; width: 20%">
+                  PAN : <%= edprowisePan %>
+                </td>
+                <td style="border: none; padding: 8px; width: 20%"></td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  style="
+                    border-top: none;
+                    border-bottom: none;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                  colspan="2"
+                >
+                  Name: <%= edprowiseCompanyName %>
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    border-left: 1px solid black;
+                    border-top: none;
+                    border-bottom: none;
+                  "
+                >
+                  All Amounts are in INR
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    border-right: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                  colspan="2"
+                >
+                  Address : <%= edprowiseAddress %>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    width: 30%;
+                    border: none;
+                  "
+                >
+                  City : <%= edprowiseCityStateCountry?.split(",")[0] %>
+                </td>
+                <td
+                  style="
+                    border-right: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                  "
+                >
+                  State : <%= edprowiseCityStateCountry?.split(",")[1] %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* calculations */}
+          <table
+            style="width: 100%; border-collapse: collapse; text-align: center"
+          >
+            <thead>
+              <tr>
+                <th
+                  style="width: 5%; border-top: 1px solid black; padding: 8px"
+                >
+                  Sr.
+                </th>
+                <th style="width: 45%; border: 1px solid black; padding: 8px">
+                  Sub Category Name
+                </th>
+                <th style="width: 10%; border: 1px solid black; padding: 8px">
+                  Qty
+                </th>
+                <th style="width: 10%; border: 1px solid black; padding: 8px">
+                  Rate
+                </th>
+                <th style="width: 10%; border: 1px solid black; padding: 8px">
+                  Taxable Value
+                </th>
+                <th style="width: 10%; border: 1px solid black; padding: 8px">
+                  GST Amount
+                </th>
+                <th
+                  style="width: 10%; border-top: 1px solid black; padding: 8px"
+                >
+                  Total Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% prepareQuoteData?.forEach((item, index) => { %>
+              <tr>
+                <td
+                  style="width: 5%; border-top: 1px solid black; padding: 8px"
+                >
+                  <%= index + 1 %>
+                </td>
+                <td style="width: 45%; border: 1px solid black; padding: 8px">
+                  <%= item.subcategoryName %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= item.quantity %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= item.finalRateForEdprowise %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.taxableValueForEdprowise) %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.gstAmountForEdprowise) %>
+                </td>
+                <td
+                  style="width: 10%; border-top: 1px solid black; padding: 8px"
+                >
+                  <%= formatCost(item.totalAmountForEdprowise) %>
+                </td>
+              </tr>
+              <% }) %>
+              <tr>
+                <td
+                  style="
+                    text-align: right;
+                    font-weight: bold;
+                    border-top: 1px solid black;
+                    border-bottom: 1px solid black;
+                    padding: 8px;
+                  "
+                ></td>
+                <td
+                  style="
+                    text-align: center;
+                    font-weight: bold;
+                    border: 1px solid black;
+                    padding: 8px;
+                  "
+                >
+                  Total
+                </td>
+                <td style="border: 1px solid black; padding: 8px">
+                  <%= totalQuantity %>
+                </td>
+                <td style="border: 1px solid black; padding: 8px"></td>
+                <td style="border: 1px solid black; padding: 8px">
+                  <%= formatCost(totalTaxableValueForEdprowise) %>
+                </td>
+                <td style="border: 1px solid black; padding: 8px">
+                  <%= formatCost(totalTaxAmountForEdprowise) %>
+                </td>
+                <td
+                  style="
+                    border-top: 1px solid black;
+                    border-bottom: 1px solid black;
+                    padding: 8px;
+                  "
+                >
+                  <%= formatCost(totalAmountForEdprowise) %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table style="border-bottom: none; width: 100%; text-align: left">
+            <div class="row p-2">
+              <h5>
+                <strong>
+                  Amount In Words : <%= convertToWords(totalAmountForEdprowise)
+                  %>
+                </strong>
+              </h5>
+            </div>
+          </table>
+
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+              text-align: center;
+            "
+          >
+            <thead>
+              <tr>
+                <th style="border: none; padding: 8px" colspan="2"></th>
+                <th
+                  style="
+                    width: 20%;
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: center;
+                  "
+                  colspan="2"
+                >
+                  CGST
+                </th>
+                <th
+                  style="
+                    width: 20%;
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: center;
+                  "
+                  colspan="2"
+                >
+                  SGST
+                </th>
+                <th
+                  style="
+                    width: 20%;
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: center;
+                  "
+                  colspan="2"
+                >
+                  IGST
+                </th>
+                <th style="width: 5%; border: none; padding: 8px"></th>
+              </tr>
+              <tr>
+                <th style="border-top: 1px solid black; padding: 8px">
+                  HSN/SAAC
+                </th>
+                <th style="border: 1px solid black; padding: 8px">
+                  Taxable Value
+                </th>
+                <th style="border: 1px solid black; padding: 8px">Rate</th>
+                <th style="border: 1px solid black; padding: 8px">Amount</th>
+                <th style="border: 1px solid black; padding: 8px">Rate</th>
+                <th style="border: 1px solid black; padding: 8px">Amount</th>
+                <th style="border: 1px solid black; padding: 8px">Rate</th>
+                <th style="border: 1px solid black; padding: 8px">Amount</th>
+                <th
+                  style="
+                    border-top: 1px solid black;
+                    border-bottom: 1px solid black;
+                    padding: 8px;
+                  "
+                >
+                  Total Tax Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% prepareQuoteData?.forEach((item, index) => { %>
+              <tr>
+                <td
+                  style="width: 30%; border-top: 1px solid black; padding: 8px"
+                >
+                  <%= item.hsnSacc %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.taxableValueForEdprowise) %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= item.cgstRateForEdprowise %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.cgstAmountForEdprowise) %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= item.sgstRateForEdprowise %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.sgstAmountForEdprowise) %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= item.igstRateForEdprowise %>
+                </td>
+                <td style="width: 10%; border: 1px solid black; padding: 8px">
+                  <%= formatCost(item.igstAmountForEdprowise) %>
+                </td>
+              </tr>
+              <% }) %>
+              <tr>
+                <td
+                  style="
+                    border-top: 1px solid black;
+                    border-bottom: 1px solid black;
+                    padding: 8px;
+                    width: 10%;
+                    font-weight: bold;
+                  "
+                >
+                  Total
+                </td>
+                <td style="border: 1px solid black; padding: 8px; width: 10%">
+                  <%= formatCost(totalTaxableValueForEdprowise) %>
+                </td>
+                <td
+                  style="border: 1px solid black; padding: 8px; width: 10%"
+                ></td>
+                <td style="border: 1px solid black; padding: 8px; width: 10%">
+                  <%= formatCost(totalCgstAmountForEdprowise) %>
+                </td>
+                <td
+                  style="border: 1px solid black; padding: 8px; width: 10%"
+                ></td>
+                <td style="border: 1px solid black; padding: 8px; width: 10%">
+                  <%= formatCost(totalSgstAmountForEdprowise) %>
+                </td>
+                <td
+                  style="border: 1px solid black; padding: 8px; width: 10%"
+                ></td>
+                <td style="border: 1px solid black; padding: 8px; width: 10%">
+                  <%= formatCost(totalIgstAmountForEdprowise) %>
+                </td>
+                <td
+                  style="
+                    border-top: 1px solid black;
+                    border-bottom: 1px solid black;
+                    padding: 8px;
+                    width: 5%;
+                  "
+                >
+                  <%= formatCost(totalTaxAmountForEdprowise) %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- 1 -->
+          <table style="width: 100%; margin-bottom: 60px">
+            <div style="height: 120px" class="row p-2">
+              <div style="margin-bottom: 90px">
+                <h5 class="text-end">
+                  <strong>For EdProwise Tech Pvt. Ltd</strong>
+                </h5>
+              </div>
+              <div>
+                <h5 class="text-end">
+                  <strong>Authorised Signatory</strong>
+                </h5>
+              </div>
+            </div>
+          </table>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

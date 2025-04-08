@@ -1,5 +1,7 @@
 import loginSignupRoutes from "./login-signup.js";
 
+import PDFRoutes from "./PDFForFrontend/QuoteProposal.js";
+
 import DashboardRoutes from "./DashboardRoutes/TotalCounts.js";
 
 import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
@@ -48,6 +50,8 @@ import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUp
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
 export default (app) => {
+  // PDF Routes
+  app.use("/api", PDFRoutes);
   // ==================Email Routes =========================
 
   app.use("/api", SMTPEmailSettings);
