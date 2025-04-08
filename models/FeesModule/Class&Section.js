@@ -12,6 +12,7 @@ const MasterDefineClassSchema = new mongoose.Schema(
       unique: true,
     },
     numberOfSEctions: {},
+    SectionName: {},
   },
   { timestamps: true }
 );

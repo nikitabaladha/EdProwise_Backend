@@ -2,10 +2,6 @@ import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
-  createMasterDefineClassAndSection,
-  getAllMasterDefineClassAndSection,
-  updateMasterDefineClassAndSection,
-  deleteMasterDefineClassAndSection,
   createMasterDefineShift,
   getAllMasterDefineShift,
   updateMasterDefineShift,
@@ -13,27 +9,6 @@ import {
 } from "../../controllers/FeesModule/AdminSetting/index.js";
 
 const router = express.Router();
-
-router.post(
-  "/master-define-class",
-  roleBasedMiddleware("Admin"),
-  createMasterDefineClassAndSection
-);
-router.get(
-  "/master-define-class",
-  roleBasedMiddleware("Admin", "School"),
-  getAllMasterDefineClassAndSection
-);
-router.put(
-  "/master-define-class/:id",
-  roleBasedMiddleware("Admin"),
-  updateMasterDefineClassAndSection
-);
-router.delete(
-  "/master-define-class/:id",
-  roleBasedMiddleware("Admin"),
-  deleteMasterDefineClassAndSection
-);
 
 router.post(
   "/master-define-shift",
