@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quote/Proposal</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: Arial, sans-serif;
+      }
+      td,
+      th {
+        border: 1px solid black;
+        padding: 6px;
+        font-size: 14px;
+        vertical-align: top;
+      }
+      .header-table td {
+        border: none;
+      }
+      .no-border {
+        border: none;
+      }
+      .center {
+        text-align: center;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .right {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="header-table">
+      <tr>
+        <td style="width: 50%">
+          <img src="<%= LOGO_IMAGE %>" alt="logo" style="height: 40px" />
+        </td>
+        <td class="center"><h3>Tax Invoice</h3></td>
+        <td class="end"><h3>(Original for Recipient )</h3></td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td style="width: 50%">
+          <table
+            style="width: 100%; border-collapse: collapse"
+            class="header-table"
+          >
+            <tr>
+              <td class="bold">Supplier</td>
+            </tr>
+            <tr>
+              <td>Name : <%= profileData.sellerCompanyName %></td>
+            </tr>
+            <tr>
+              <td>Address : <%= profileData.sellerAddress %></td>
+            </tr>
+            <tr>
+              <td style="width: 50%">
+                City : <%= profileData.sellerCityStateCountry?.split(",")[0] %>
+              </td>
+              <td style="width: 50%">
+                State : <%= profileData.sellerCityStateCountry?.split(",")[1] %>
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td style="width: 50%">
+          <table
+            style="width: 100%; border-collapse: collapse"
+            class="header-table"
+          >
+            <tr>
+              <td>GSTIN : <%= profileData.sellerGstin %></td>
+            </tr>
+            <tr>
+              <td>PAN : <%= profileData.sellerPanNumber %></td>
+            </tr>
+            <tr>
+              <td>Contact No. : <%= profileData.sellerContactNumber %></td>
+            </tr>
+            <tr>
+              <td>Email ID : <%= profileData.sellerEmailId%></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td style="width: 50%">
+          <table
+            style="width: 100%; border-collapse: collapse"
+            class="header-table"
+          >
+            <tr>
+              <td class="bold">Consignee</td>
+            </tr>
+            <tr>
+              <td>Name : <%= profileData.edprowiseCompanyName %></td>
+            </tr>
+            <tr>
+              <td>Address : <%= profileData.edprowiseAddress %></td>
+            </tr>
+            <tr style="width: 100%">
+              <td style="width: 50%">
+                City : <%= profileData.edprowiseCityStateCountry?.split(",")[0]
+                %>
+              </td>
+              <td style="width: 50%">
+                State : <%= profileData.edprowiseCityStateCountry?.split(",")[1]
+                %>
+              </td>
+            </tr>
+            <tr style="width: 100%">
+              <td style="width: 50%">
+                Contact No. : <%= profileData.edprowiseContactNo %>
+              </td>
+              <td style="width: 50%">
+                Email Id : <%= profileData.edprowiseEmailId %>
+              </td>
+            </tr>
+            <tr>
+              <td class="bold">Buyer</td>
+            </tr>
+            <tr>
+              <td>Name : <%= profileData.edprowiseCompanyName %></td>
+            </tr>
+            <tr>
+              <td>Address : <%= profileData.edprowiseAddress %></td>
+            </tr>
+            <tr style="width: 100%">
+              <td style="width: 50%">
+                City : <%= profileData.edprowiseCityStateCountry?.split(",")[0]
+                %>
+              </td>
+              <td style="width: 50%">
+                State : <%= profileData.edprowiseCityStateCountry?.split(",")[1]
+                %>
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td style="width: 50%">
+          <table
+            style="width: 100%; border-collapse: collapse"
+            class="header-table"
+          >
+            <tr>
+              <td>Invoice No. : <%= profileData.invoiceForEdprowise %></td>
+            </tr>
+            <tr>
+              <td>Invoice Date : <%= formatDate(profileData.invoiceDate) %></td>
+            </tr>
+
+            <tr>
+              <td>Payment Terms : <%= profileData.paymentTerms %></td>
+            </tr>
+            <tr>
+              <td>Advance Amount Received :</td>
+            </tr>
+            <tr>
+              <td>GSTIN : <%= profileData.edprowiseGstin %></td>
+            </tr>
+            <tr>
+              <td>PAN : <%= profileData.edprowisePan%></td>
+            </tr>
+            <tr>
+              <td colspan="2">All Amounts are in INR</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <thead>
+        <tr class="bold center">
+          <td>Sr</td>
+          <td>Sub Category Name</td>
+          <td>Qty</td>
+          <td>Rate</td>
+          <td>Taxable Value</td>
+          <td>GST Amount</td>
+          <td>Total Amount</td>
+        </tr>
+      </thead>
+      <tbody>
+        <% prepareQuoteData.forEach((item, index) => { %>
+        <tr class="center">
+          <td><%= index + 1 %></td>
+          <td><%= item.subcategoryName %></td>
+          <td><%= item.quantity %></td>
+          <td><%= item.finalRateForEdprowise %></td>
+          <td><%=formatCost( item.taxableValueForEdprowise) %></td>
+          <td><%= formatCost(item.gstAmountForEdprowise) %></td>
+          <td><%= formatCost(item.totalAmountForEdprowise) %></td>
+        </tr>
+        <% }); %>
+
+        <tr class="center bold">
+          <td colspan="2">Total</td>
+          <td><%= quoteProposalData.totalQuantity %></td>
+          <td></td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxableValueForEdprowise) %>
+          </td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxAmountForEdprowise) %>
+          </td>
+          <td><%= formatCost(quoteProposalData.totalAmountForEdprowise) %></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      <strong
+        >Amount In Words : <%=
+        convertToWords(quoteProposalData.totalAmountForEdprowise) %></strong
+      >
+    </p>
+
+    <table>
+      <thead>
+        <tr class="bold center">
+          <td rowspan="2">HSN/SAAC</td>
+          <td rowspan="2">Taxable Value</td>
+          <td colspan="2">CGST</td>
+          <td colspan="2">SGST</td>
+          <td colspan="2">IGST</td>
+          <td rowspan="2">Total Tax Amount</td>
+        </tr>
+        <tr class="bold center">
+          <td>Rate</td>
+          <td>Amount</td>
+          <td>Rate</td>
+          <td>Amount</td>
+          <td>Rate</td>
+          <td>Amount</td>
+        </tr>
+      </thead>
+      <tbody class="center">
+        <% prepareQuoteData?.forEach((item, index) => { %>
+        <tr>
+          <td><%= item.hsnSacc %></td>
+          <td><%=formatCost( item.taxableValueForEdprowise )%></td>
+          <td><%= item.cgstRateForEdprowise %></td>
+          <td><%=formatCost( item.cgstAmountForEdprowise )%></td>
+          <td><%= item.sgstRateForEdprowise %></td>
+          <td><%= formatCost(item.sgstAmountForEdprowise) %></td>
+          <td><%= item.igstRateForEdprowise %></td>
+          <td><%= formatCost(item.igstAmountForEdprowise) %></td>
+          <td></td>
+        </tr>
+        <% }) %>
+        <tr class="bold">
+          <td>Total</td>
+          <td>
+            <%=formatCost( quoteProposalData.totalTaxableValueForEdprowise) %>
+          </td>
+          <td></td>
+          <td>
+            <%=formatCost( quoteProposalData.totalCgstAmountForEdprowise) %>
+          </td>
+          <td></td>
+          <td>
+            <%=formatCost( quoteProposalData.totalSgstAmountForEdprowise )%>
+          </td>
+          <td></td>
+          <td>
+            <%= formatCost(quoteProposalData.totalIgstAmountForEdprowise )%>
+          </td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxAmountForEdprowise) %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <br /><br />
+    <div class="right bold">For EdProwise Tech Pvt. Ltd</div>
+    <div class="right bold" style="margin-top: 50px">Authorised Signatory</div>
+  </body>
+</html>

@@ -1,25 +1,30 @@
-// EdProwise_Backend\routes\PDFForFrontend\QuoteProposal.js
-
 import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
-  PdfRequirements,
-  finalForPDF,
+  quotePDFRequirements,
+  invoiceForEdprowisePDFRequirements,
+  invoiceForBuyerPDFRequirements,
 } from "../../controllers/PDFForFrontend/index.js";
 
 const router = express.Router();
 
-// router.get(
-//   "/generate-pdf",
-//   roleBasedMiddleware("Admin", "School", "Seller"),
-//   PdfRequirements
-// );
+router.get(
+  "/generate-quote-pdf",
+  roleBasedMiddleware("Admin", "School", "Seller"),
+  quotePDFRequirements
+);
 
 router.get(
-  "/generate-pdf",
+  "/generate-edprowise-invoice-pdf",
+  roleBasedMiddleware("Admin", "Seller"),
+  invoiceForEdprowisePDFRequirements
+);
+
+router.get(
+  "/generate-buyer-invoice-pdf",
   roleBasedMiddleware("Admin", "School", "Seller"),
-  finalForPDF
+  invoiceForBuyerPDFRequirements
 );
 
 export default router;

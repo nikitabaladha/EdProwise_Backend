@@ -1,6 +1,9 @@
-// EdProwise_Backend\controllers\PDFForFrontend\index.js
+import quotePDFRequirements from "./quotePDFRequirements.js";
+import invoiceForEdprowisePDFRequirements from "./invoiceForEdprowisePDFRequirements.js";
+import invoiceForBuyerPDFRequirements from "./invoiceForBuyerPDFRequirements.js";
 
-import PdfRequirements from "./PdfRequirements.js";
-import finalForPDF from "./finalForPDF.js";
-
-export { PdfRequirements, finalForPDF };
+export {
+  quotePDFRequirements,
+  invoiceForEdprowisePDFRequirements,
+  invoiceForBuyerPDFRequirements,
+};
