@@ -29,8 +29,6 @@ async function generatePDF(htmlFilePath, dynamicData = {}, outputPath) {
   const template = fs.readFileSync(htmlFilePath, "utf8");
   const htmlContent = ejs.render(template, dynamicData);
 
-  fs.writeFileSync(path.join(__dirname, "temp.html"), htmlContent);
-
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
