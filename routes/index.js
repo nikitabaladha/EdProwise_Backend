@@ -40,13 +40,18 @@ import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
 import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
-// new Added Umesh
 import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
 import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
 import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js"
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js"
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js"
 
+
+// new Added Umesh
+import AdminRegistrationTemplate from "./EmailTemplatesRoutes/AdminRegistrationTemplate.js"
+import UserIdUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/UserIdUpdateEmailTemplateRoutes.js"
+import SchoolRequestForQuoteTemplateRoutes from "./EmailTemplatesRoutes/SchoolRequestForQuoteTemplateRoutes.js"
+import QuoteProposalSendToSchoolEmailRoutes from "./EmailTemplatesRoutes/QuoteProposalSendToSchoolEmailRoutes.js"
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", schoolRoutes);
@@ -86,11 +91,15 @@ export default (app) => {
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
-
-  // new umesh for email
   app.use("/api", SMTPEmailSettings);
   app.use("/api", SignUPTemplatesRoutes);
   app.use("/api", SellerEmailTemplateRoutes);
   app.use("/api", PasswordUpdateEmailTemplateRoutes);
   app.use("/api", ForgotPasswordRoutes);
+
+  // new umesh for email
+  app.use("/api", AdminRegistrationTemplate);
+  app.use("/api", UserIdUpdateEmailTemplateRoutes);
+  app.use("/api", SchoolRequestForQuoteTemplateRoutes);
+  app.use("/api", QuoteProposalSendToSchoolEmailRoutes);
 };

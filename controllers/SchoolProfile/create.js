@@ -201,9 +201,9 @@ async function create(req, res) {
 
     
     await newSchoolRegistration.save();
-       
-    
-    await sendSchoolRegistrationEmail(schoolName, schoolEmail,{ userId: schoolId});
+    const schoolDetails = await User.findOne({ schoolId });
+    const userId = schoolDetails.userId 
+    await sendSchoolRegistrationEmail(schoolName, schoolEmail,{ userId });
 
     await User.findOneAndUpdate(
       { schoolId, role: "School" },

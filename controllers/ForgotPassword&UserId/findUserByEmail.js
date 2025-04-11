@@ -11,38 +11,36 @@ function generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-
-async function sendVerificationCode(req, res) {
-    const { userId } = req.body;
-    console.log("User ID received:", userId);
+async function findUserByEmail(req, res) {
+    const { email } = req.body;
+    console.log("Email  received:", email);
     
     try {
-        let user = await Seller.findOne({ userId });
-        let userEmail = null;
-        
+        let user = await SellerProfile.findOne({emailId: email});
+        let userId = null;
+        let userEmail = email; 
         if (user) {
-            const sellerDetails = await SellerProfile.findOne({ sellerId: user._id }); 
-            
+            const sellerDetails = await Seller.findOne({ _id: user.sellerId });  
             if (sellerDetails) {
-                userEmail = sellerDetails.emailId;
-                console.log("Seller Email:", userEmail);
+                userId = sellerDetails.userId;
             }
         } else {
-            user = await User.findOne({ userId });  
+            user = await School.findOne({ schoolEmail: email });  
 
             if (user) {
-                console.log("School User Found:", user);
-                const schoolDetails = await School.findOne({ schoolId: user.schoolId }); 
+                
+                const schoolDetails = await User.findOne({ schoolId: user.schoolId, role: "School"  });  
+                console.log("School Details:",schoolDetails);
                 
                 if (schoolDetails) {
-                    userEmail = schoolDetails.schoolEmail;
-                    console.log("School Email:", userEmail);
+                    userId = schoolDetails.userId;
+                    
                 }
             }
         }
-        console.log("user Details:", user, "Email :", userEmail);
+        console.log("user Details:", user, "User Id is :", userId);
         
-        if (!user || !userEmail) {
+        if (!user || !userId) {
             return res.status(404).json({ hasError: true, message: "User not found or email missing." });
         }
 
@@ -71,7 +69,7 @@ async function sendVerificationCode(req, res) {
         // Email content
         const emailContent = `
             <p>Hello ${user.userId || "User"},</p>
-            <p>Your password reset verification code is: <strong>${verificationCode}</strong></p>
+            <p>Your userId reset verification code is: <strong>${verificationCode}</strong></p>
             <p>This code is valid for 1 minutes.</p>
             <p>If you did not request this, please ignore this email.</p>
         `;
@@ -80,7 +78,7 @@ async function sendVerificationCode(req, res) {
         await transporter.sendMail({
             from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
             to: userEmail, 
-            subject: "Password Reset Verification Code",
+            subject: "UserId Reset Verification Code",
             html: emailContent,
         });
 
@@ -92,7 +90,7 @@ async function sendVerificationCode(req, res) {
             { upsert: true, new: true }
         );
 
-        return res.json({ hasError: false, message: "Verification code sent to registered email.", email:userEmail });
+        return res.json({ hasError: false, message: "Verification code sent to registered email.", userId:userId });
 
 
 
@@ -102,4 +100,4 @@ async function sendVerificationCode(req, res) {
     }
 }
 
-export default sendVerificationCode;
+export default findUserByEmail;
