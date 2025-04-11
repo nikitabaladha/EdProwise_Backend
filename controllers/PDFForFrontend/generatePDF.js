@@ -29,7 +29,10 @@ async function generatePDF(htmlFilePath, dynamicData = {}, outputPath) {
   const template = fs.readFileSync(htmlFilePath, "utf8");
   const htmlContent = ejs.render(template, dynamicData);
 
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: "new", // or `true` for older Puppeteer versions
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   const page = await browser.newPage();
 
   await page.setContent(htmlContent, { waitUntil: "networkidle0" });
