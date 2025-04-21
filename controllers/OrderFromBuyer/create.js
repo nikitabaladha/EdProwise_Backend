@@ -4,7 +4,18 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import Cart from "../../models/Cart.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
-import SubmitQuote from "../../models/SubmitQuote.js";
+
+import nodemailer from "nodemailer";
+import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+import School from "../../models/School.js";
+import SellerProfile from "../../models/SellerProfile.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function generateOrderNumber() {
   const prefix = "ORD";
@@ -25,6 +36,618 @@ function generateInvoiceNumberForSchool() {
   const randomSuffix = Math.floor(Math.random() * 100000000);
   const formattedSuffix = String(randomSuffix).padStart(8, "0");
   return `${prefix}${formattedSuffix}`;
+}
+
+async function sendSchoolRequestQuoteEmail(
+  schoolName,
+  schoolEmail,
+  orderDetails
+) {
+  let hasError = false;
+  let message = "";
+
+  try {
+    // 1. SMTP settings
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) {
+      console.error("SMTP settings not found");
+      return false;
+    }
+
+    // 3. Nodemailer setup
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    const { orderNumber, products } = orderDetails;
+    const enquiryNumber =
+      products.length > 0 ? products[0].enquiryNumber : "N/A";
+
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+
+    if (!fs.existsSync(logoImagePath)) {
+      console.error("Logo not found at:", logoImagePath);
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const viewQuoteUrl = `${frontendUrl.replace(
+      /\/+$/,
+      ""
+    )}/school-dashboard/procurement-services/track-order-history`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+
+    const quoteDetailsHtml = `
+    <h3 style="font-size: 17px;">Order Details</h3>
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th >S.No</th>
+          <th >Sub Category</th>
+          <th >Quantity</th>
+          <th >Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${products
+          .map(
+            (product, index) => `
+          <tr>
+            <td style="text-align: center;">${index + 1}</td>
+            <td style="text-align: center;">${product.subcategoryName}</td>
+            <td style="text-align: center;">${product.quantity}</td>
+            <td style="text-align: center;">${product.finalRate}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+
+    // 8. Send email
+    const mailOptions = {
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: schoolEmail,
+      subject: `Order Place Successfully For #${enquiryNumber}`,
+      html: `
+              <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style type="text/css">
+                        /* Base Styles */
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333333;    
+                        }
+
+                       .outer-div{
+                          width:100%;
+                          border: 1px solid transparent;
+                          background-color: #f1f1f1;
+                        }
+
+                        /* Email Container */
+                        .email-container {
+                            max-width: 600px;
+                            margin: 30px auto;
+                            background: #ffffff;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+                        
+                        /* Header Section */
+                        .header {
+                            background: #c2e7ff;
+                            padding: 20px 20px;
+                            text-align: center;
+                            color: #333333;
+                            box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+                        }
+        
+                        .logo {
+                            width: 250px;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                            -ms-interpolation-mode: bicubic;
+                        }
+                        
+                        .welcome-heading {
+                            font-size: 24px;
+                            font-weight: 600;
+                            margin: 0;
+                            color: black;
+                        }
+                        
+                        /* Content Section */
+                        .content {
+                            padding: 30px;
+                        }
+                        .heading{
+                        color: #000000;
+                        font-size: 17px;
+                        }
+                        .message {
+                            font-size: 16px;
+                            color: #4a5568;
+                        }
+                        
+                        /* User Details Box */
+                        .center-text {
+                          text-align: center;
+                        }
+
+                        .detail-item {
+                            margin-bottom: 12px;
+                            display: flex;
+                        }
+                        
+                        .detail-value {
+                            color: #4a5568;
+                        }
+                        
+                        /* Action Button */
+                        .action-button {
+                            display: inline-block;
+                            background: #04d3d4;
+                            color: white !important;
+                            text-decoration: none;
+                            padding: 12px 30px;
+                            border-radius: 4px;
+                            font-weight: 600;
+                            margin: 5px 0 20px ;
+                            text-align: center;
+                        }
+                        
+                        /* Footer */
+                        .footer {
+                            text-align: center;
+                            padding: 20px;
+                            background: #a9fffd;
+                            font-size: 14px;
+                            color: #718096;
+                        }
+                        
+                        .signature {
+                            margin-top: 25px;
+                            padding-top: 25px;
+                            border-top: 1px solid #e2e8f0;
+                        }
+                        .contact-text{
+                          color: #0000FF;
+                        }    
+                        
+                        /* Responsive */
+                        @media only screen and (max-width: 600px) {
+                            .email-container {
+                                border-radius: 0;
+                            }
+                            .logo {
+                                width: 200px;
+                            }
+                            .content {
+                                padding: 20px;
+                            }
+                            
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="outer-div">
+                    <div class="email-container">
+                        <!-- Header with Logo -->
+                        <div class="header">
+                            <div class="logo-container">
+
+                           <img src="cid:edprowiselogo@company" 
+                         alt="EdProwise Logo" 
+                         class="logo"
+                         style="width:250px;height:auto;display:block;">
+                            </div>
+                             
+                        </div>
+                        
+                        <!-- Main Content -->
+                        <div class="content">
+                            <p class="message">Dear ${schoolName},</p>
+                            
+
+                            <p class="message">This Email confirm that your order, has been placed and is being processed.</p>
+                            
+                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
+                            <h3 class="heading">Order Number : ${orderNumber}</h3>
+
+                            <!-- Quote Details Box -->
+                            ${quoteDetailsHtml}
+
+                
+                            <!-- Action Button -->
+                            <p class="message">Please click below button for view quote proposal </p>
+                            <div style="text-align: center;">
+                                <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
+                            </div>
+                            
+                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            
+                            <!-- Signature -->
+                            <div class="signature">
+                                <p>Best regards,</p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="footer">
+                            <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                  </div>  
+                </body>
+                </html>
+            `,
+      attachments: attachments,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log("Request quote email sent successfully");
+    return { hasError: false, message: "Email sent successfully." };
+  } catch (error) {
+    console.error("Error sending quote request email:", error);
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
+  }
+}
+
+async function sendEmailsToSellers(
+  sellerName,
+  sellerEmail,
+  schoolName,
+  orderDetails
+) {
+  try {
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) {
+      return { hasError: true, message: "SMTP settings not found" };
+    }
+
+    console.log("Setting up email transporter...");
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+
+    if (!fs.existsSync(logoImagePath)) {
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const sellerDashboardUrl = `${frontendUrl.replace(
+      /\/+$/,
+      ""
+    )}/seller-dashboard/procurement-services/track-order-history`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+
+    const {
+      orderNumber,
+      products,
+      deliveryAddress,
+      deliveryLocation,
+      deliveryLandMark,
+      deliveryPincode,
+      expectedDeliveryDate,
+    } = orderDetails;
+
+    const enquiryNumber =
+      products.length > 0 ? products[0].enquiryNumber : "N/A";
+
+    const productHtml = products
+      .map(
+        (product, index) => `
+      <tr>
+        <td style="text-align: center;">${index + 1}</td>
+        <td style="text-align: center;">${product.subcategoryName}</td>
+        <td style="text-align: center;">${product.quantity}</td>
+        <td style="text-align: center;">₹${product.finalRate}</td>
+        <td style="text-align: center;">₹${product.totalAmount}</td>
+      </tr>
+    `
+      )
+      .join("");
+
+    const deliveryDetails = `
+      <h3 style="font-size: 17px;">Delivery Information</h3>
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <tr><th>Address</th><td>${deliveryAddress || "-"}</td></tr>
+        <tr><th>Location</th><td>${deliveryLocation || "-"}</td></tr>
+        <tr><th>Landmark</th><td>${deliveryLandMark || "-"}</td></tr>
+        <tr><th>Pincode</th><td>${deliveryPincode || "-"}</td></tr>
+        <tr><th>Expected Delivery Date</th><td>${
+          expectedDeliveryDate || "-"
+        }</td></tr>
+      </table>
+    `;
+
+    const orderDetailsTable = `
+      <h3 style="font-size: 17px;">Ordered Products</h3>
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Sub Category</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>${productHtml}</tbody>
+      </table>
+      ${deliveryDetails}
+    `;
+
+    const mailOptions = {
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: sellerEmail,
+      subject: `Order Received for Enquiry #${enquiryNumber}`,
+      html: `
+              <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style type="text/css">
+                        /* Base Styles */
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333333;    
+                        }
+
+                       .outer-div{
+                          width:100%;
+                          border: 1px solid transparent;
+                          background-color: #f1f1f1;
+                        }
+
+                        /* Email Container */
+                        .email-container {
+                            max-width: 600px;
+                            margin: 30px auto;
+                            background: #ffffff;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+                        
+                        /* Header Section */
+                        .header {
+                            background: #c2e7ff;
+                            padding: 20px 20px;
+                            text-align: center;
+                            color: #333333;
+                            box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+                        }
+        
+                        .logo {
+                            width: 250px;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                            -ms-interpolation-mode: bicubic;
+                        }
+                        
+                        .welcome-heading {
+                            font-size: 24px;
+                            font-weight: 600;
+                            margin: 0;
+                            color: black;
+                        }
+                        
+                        /* Content Section */
+                        .content {
+                            padding: 30px;
+                        }
+                        .heading{
+                        color: #000000;
+                        font-size: 17px;
+                        }
+                        .message {
+                            font-size: 16px;
+                            color: #4a5568;
+                        }
+                        
+                        /* User Details Box */
+                        .center-text {
+                          text-align: center;
+                        }
+
+                        .detail-item {
+                            margin-bottom: 12px;
+                            display: flex;
+                        }
+                        
+                        .detail-value {
+                            color: #4a5568;
+                        }
+                        
+                        /* Action Button */
+                        .action-button {
+                            display: inline-block;
+                            background: #04d3d4;
+                            color: white !important;
+                            text-decoration: none;
+                            padding: 12px 30px;
+                            border-radius: 4px;
+                            font-weight: 600;
+                            margin: 5px 0 20px ;
+                            text-align: center;
+                        }
+                        
+                        /* Footer */
+                        .footer {
+                            text-align: center;
+                            padding: 20px;
+                            background: #a9fffd;
+                            font-size: 14px;
+                            color: #718096;
+                        }
+                        
+                        .signature {
+                            margin-top: 25px;
+                            padding-top: 25px;
+                            border-top: 1px solid #e2e8f0;
+                        }
+                        .contact-text{
+                          color: #0000FF;
+                        }    
+                        
+                        /* Responsive */
+                        @media only screen and (max-width: 600px) {
+                            .email-container {
+                                border-radius: 0;
+                            }
+                            .logo {
+                                width: 200px;
+                            }
+                            .content {
+                                padding: 20px;
+                            }
+                            
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="outer-div">
+                    <div class="email-container">
+                        <!-- Header with Logo -->
+                        <div class="header">
+                            <div class="logo-container">
+
+                           <img src="cid:edprowiselogo@company" 
+                         alt="EdProwise Logo" 
+                         class="logo"
+                         style="width:250px;height:auto;display:block;">
+                            </div>
+                             
+                        </div>
+                        
+                        <!-- Main Content -->
+                        <div class="content">
+                            <p class="message">Dear ${sellerName},</p>
+                            
+
+                            <p class="message">We are pleased to inform you that ${schoolName} has responded to your quote proposal with order. Below are the key details of their order</p>
+                            
+                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
+                            <h3 class="heading">Order Number : ${orderNumber}</h3>
+
+                            <!-- Quote Details Box -->
+                            ${orderDetailsTable}
+
+                            <!-- Action Button -->
+                            <p class="message">Please click below button for view order details </p>
+                            <div style="text-align: center;">
+                                <a href="${sellerDashboardUrl}" class="action-button">View order</a>
+                            </div>
+                            
+                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            
+                            <!-- Signature -->
+                            <div class="signature">
+                                <p>Best regards,</p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="footer">
+                            <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                  </div>  
+                </body>
+                </html>
+            `,
+      attachments: attachments,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return { hasError: false, message: "Email sent successfully to seller." };
+  } catch (error) {
+    console.error("Error sending email to seller:", error);
+    return { hasError: true, message: "Failed to send email to seller." };
+  }
 }
 
 async function create(req, res) {
@@ -91,6 +714,8 @@ async function create(req, res) {
     );
 
     const sellerOrderNumbers = new Map();
+    //  const orderNumber = generateOrderNumber();
+
     const orderFromBuyerEntries = [];
     const orderDetailsFromSellerEntries = new Map();
 
@@ -248,6 +873,58 @@ async function create(req, res) {
         schoolId: schoolId,
       }).session(session);
     }
+
+    const schoolDetail = await School.findOne({ schoolId });
+
+    const schoolEmail = schoolDetail.schoolEmail;
+
+    const schoolName = schoolDetail.schoolName;
+
+    const sellerId = orderFromBuyerEntries[0].sellerId;
+
+    console.log("seller id:", sellerId);
+
+    const sellerDetails = await SellerProfile.findOne({ sellerId });
+
+    const sellerName = sellerDetails.companyName;
+
+    const sellerEmail = sellerDetails.emailId;
+
+    // Send email to school
+
+    await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
+      orderNumber,
+
+      products: orderFromBuyerEntries,
+    });
+
+    // Send emails to sellers
+
+    // for (const [sellerId, sellerInfo] of sellerEmailsToSend.entries()) {
+
+    await sendEmailsToSellers(
+      sellerName,
+
+      sellerEmail,
+
+      schoolName,
+
+      {
+        orderNumber,
+
+        products: orderFromBuyerEntries,
+
+        deliveryAddress,
+
+        deliveryLocation,
+
+        deliveryLandMark,
+
+        deliveryPincode,
+
+        expectedDeliveryDate,
+      }
+    );
 
     await session.commitTransaction();
     session.endSession();

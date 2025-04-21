@@ -13,7 +13,7 @@ async function generatePDF(htmlFilePath, dynamicData = {}, outputPath) {
     __dirname,
     "Images",
     "edprowiseLogoImages",
-    "EdProwise New Logo-1.png"
+    "EdProwiseNewLogo.png"
   );
 
   if (!LogoImage) {

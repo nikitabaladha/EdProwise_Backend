@@ -12,6 +12,8 @@ import EdprowiseProfile from "../../models/EdprowiseProfile.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import GeneratePDF from "./generatePDF.js";
 
+
+
 async function quotePDFRequirements(req, res) {
   try {
     const { sellerId, enquiryNumber, schoolId } = req.query;
