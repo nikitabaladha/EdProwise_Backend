@@ -9,6 +9,15 @@ import SubCategory from "../../models/SubCategory.js";
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
 import SchoolRequestForQuoteEmailTemplate from "../../models/EmailTeamplates/SchoolRequestForQuoteEmailTemplate.js";
+import SellerProfile from "../../models/SellerProfile.js";
+import NewQuoteRequestReceiveEmailTemplate from "../../models/EmailTeamplates/NewQuoteRequestReceiveEmailTemplate.js";
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function generateEnquiryNumber() {
   const prefix = "ENQ";
@@ -29,13 +38,6 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
       return false;
     }
 
-    // 2. Email template
-    const emailTemplate = await SchoolRequestForQuoteEmailTemplate.findOne();
-    if (!emailTemplate) {
-      console.error("Email template not found");
-      return false;
-    }
-
     // 3. Nodemailer setup
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
@@ -50,15 +52,36 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
       }
     });
 
+    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
+
+
+    if (!fs.existsSync(logoImagePath)) {
+      console.error('Logo not found at:', logoImagePath);
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [{
+      filename: 'logo.png',
+      path: logoImagePath,
+      cid: 'edprowiselogo@company', // Unique CID
+      contentDisposition: 'inline',
+      headers: {
+        'Content-ID': '<edprowiselogo@company>'
+      }
+    }];
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const viewQuoteUrl = `${frontendUrl.replace(/\/+$/, '')}/school-dashboard/procurement-services/track-quote`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+
 
     const { enquiryNumber, products, quoteRequest } = usersWithCredentials;
 
-
-    
     const quoteDetailsHtml = `
-      <h3>Enquiry No: ${enquiryNumber}</h3>
-
-      <h3>Quote Request Details</h3>
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
@@ -73,12 +96,12 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
         <tbody>
           ${products.map((product, index) => `
             <tr>
-              <td>${index + 1}</td>
-              <td>${product.categoryName}</td>
-              <td>${product.subCategoryName}</td>
-              <td>${product.description || '-'}</td>
-              <td>${product.unit}</td>
-              <td>${product.quantity}</td>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.categoryName}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.description || '-'}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -87,32 +110,209 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
 
     // 6. Create deliveryDetailsHtml
     const deliveryDetailsHtml = `
-      <h3>Delivery Information</h3>
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-        <tr><th>Address</th><td>${quoteRequest.deliveryAddress || '-'}</td></tr>
-        <tr><th>Location</th><td>${quoteRequest.deliveryLocation || '-'}</td></tr>
-        <tr><th>Landmark</th><td>${quoteRequest.deliveryLandMark || '-'}</td></tr>
-        <tr><th>Pincode</th><td>${quoteRequest.deliveryPincode || '-'}</td></tr>
-        <tr><th>Expected Delivery Date</th><td>${quoteRequest.expectedDeliveryDate || '-'}</td></tr>
-        
+        <tr><th>Address</th>  <td>${quoteRequest.deliveryAddress || '-'}</td>  </tr>
+        <tr><th>Location</th> <td>${quoteRequest.deliveryLocation || '-'}</td> </tr>
+        <tr><th>Landmark</th> <td>${quoteRequest.deliveryLandMark || '-'}</td> </tr>
+        <tr><th>Pincode</th>  <td>${quoteRequest.deliveryPincode || '-'}</td>  </tr>
+        <tr><th>Expected Delivery Date</th><td>${quoteRequest.expectedDeliveryDate || '-'}</td></tr>        
       </table>
     `;
 
-    // 7. Build final email body
-    const emailContent = emailTemplate.content
-      .replace(/{schoolName}/g, schoolName)
-      .replace(/{mailForm}/g, smtpSettings.mailFromName)
-      .replace(/{quoteDetails}/g, quoteDetailsHtml)
-      .replace(/{deliveryDetails}/g, deliveryDetailsHtml)
-      .replace(/{app_url}/g, smtpSettings.mailHost);
-
     // 8. Send email
-    await transporter.sendMail({
+    const mailOptions ={
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: emailTemplate.subject,
-      html: emailContent,
-    });
+      subject: "Request For Quote Done" ,
+      html: `
+              <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style type="text/css">
+                        /* Base Styles */
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333333;    
+                        }
+
+                       .outer-div{
+                          width:100%;
+                          border: 1px solid transparent;
+                          background-color: #f1f1f1;
+                        }
+
+                        /* Email Container */
+                        .email-container {
+                            max-width: 600px;
+                            margin: 30px auto;
+                            background: #ffffff;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+                        
+                        /* Header Section */
+                        .header {
+                            background: #c2e7ff;
+                            padding: 20px 20px;
+                            text-align: center;
+                            color: #333333;
+                            box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+                        }
+        
+                        .logo {
+                            width: 250px;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                            -ms-interpolation-mode: bicubic;
+                        }
+                        
+                        .welcome-heading {
+                            font-size: 24px;
+                            font-weight: 600;
+                            margin: 0;
+                            color: black;
+                        }
+                        
+                        /* Content Section */
+                        .content {
+                            padding: 30px;
+                        }
+                        .heading{
+                        color: #000000;
+                        font-size: 17px;
+                        }
+                        .message {
+                            font-size: 16px;
+                            color: #4a5568;
+                        }
+                        
+                        /* User Details Box */
+                        .center-text {
+                          text-align: center;
+                        }
+
+                        .detail-item {
+                            margin-bottom: 12px;
+                            display: flex;
+                        }
+                        
+                        .detail-value {
+                            color: #4a5568;
+                        }
+                        
+                        /* Action Button */
+                        .action-button {
+                            display: inline-block;
+                            background: #04d3d4;
+                            color: white !important;
+                            text-decoration: none;
+                            padding: 12px 30px;
+                            border-radius: 4px;
+                            font-weight: 600;
+                            margin: 5px 0 20px ;
+                            text-align: center;
+                        }
+                        
+                        /* Footer */
+                        .footer {
+                            text-align: center;
+                            padding: 20px;
+                            background: #a9fffd;
+                            font-size: 14px;
+                            color: #718096;
+                        }
+                        
+                        .signature {
+                            margin-top: 25px;
+                            padding-top: 25px;
+                            border-top: 1px solid #e2e8f0;
+                        }
+                        .contact-text{
+                          color: #0000FF;
+                        }    
+                        
+                        /* Responsive */
+                        @media only screen and (max-width: 600px) {
+                            .email-container {
+                                border-radius: 0;
+                            }
+                            .logo {
+                                width: 200px;
+                            }
+                            .content {
+                                padding: 20px;
+                            }
+                            
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="outer-div">
+                    <div class="email-container">
+                        <!-- Header with Logo -->
+                        <div class="header">
+                            <div class="logo-container">
+
+                           <img src="cid:edprowiselogo@company" 
+                         alt="EdProwise Logo" 
+                         class="logo"
+                         style="width:250px;height:auto;display:block;">
+                            </div>
+                             
+                        </div>
+                        
+                        <!-- Main Content -->
+                        <div class="content">
+                            <p class="message">Dear ${schoolName},</p>
+                            
+
+                            <p class="message">Your request has been received and we are processing it now. </p>
+                            <p class="message">Your quote requested details are as follow : </p>
+
+                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
+
+                            <!-- Quote Details Box -->
+                            ${quoteDetailsHtml}
+
+                            <h4>Delivery Information</h4>
+                            ${deliveryDetailsHtml}
+
+                            <!-- Action Button -->
+                            <p class="message">Please click below button for view requested quote </p>
+                            <div style="text-align: center;">
+                                <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
+                            </div>
+                            
+                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <!-- Signature -->
+                            <div class="signature">
+                                <p>Best regards,</p>
+                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="footer">
+                            <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                  </div>  
+                </body>
+                </html>
+            `,
+            attachments: attachments 
+    };
+    
+    await transporter.sendMail(mailOptions);
+
+
 
     console.log("Request quote email sent successfully");
     return { hasError: false, message: "Email sent successfully." };
@@ -123,6 +323,356 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
   }
 }
 
+
+async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryNumber }) {
+  try {
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) {
+      return { hasError: true, message: "SMTP settings not found" };
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: false,
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: { rejectUnauthorized: false }
+    });
+
+    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
+
+
+    if (!fs.existsSync(logoImagePath)) {
+      console.error('Logo not found at:', logoImagePath);
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [{
+      filename: 'logo.png',
+      path: logoImagePath,
+      cid: 'edprowiselogo@company', // Unique CID
+      contentDisposition: 'inline',
+      headers: {
+        'Content-ID': '<edprowiselogo@company>'
+      }
+    }];
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const viewQuoteUrl = `${frontendUrl.replace(/\/+$/, '')}/seller-dashboard/procurement-services/track-quote`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+
+
+    const sellerMap = new Map();
+    let totalMatchedSellers = 0;
+
+    for (const product of enrichedProducts) {
+      
+      // Corrected query to match dealingProducts structure
+      const matchedSellers = await SellerProfile.find({
+        'dealingProducts.categoryId': product.categoryId,
+        'dealingProducts.subCategoryIds': product.subCategoryId
+      });
+
+      console.log(`Found ${matchedSellers.length} sellers for this product`);
+      totalMatchedSellers += matchedSellers.length;
+
+      for (const seller of matchedSellers) {
+        
+        const id = seller._id.toString();
+        if (!sellerMap.has(id)) {
+          sellerMap.set(id, { seller, products: [product] });
+        } else {
+          sellerMap.get(id).products.push(product);
+        }
+      }
+    }
+
+    // Rest of the function remains the same...
+    if (sellerMap.size === 0) {
+      return { hasError: true, message: "No matching sellers found for any products" };
+    }
+
+    let emailsSent = 0;
+    for (const [id, { seller, products }] of sellerMap.entries()) {
+      try {
+
+        
+        const productHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Category</th>
+            <th>Sub Category</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products.map((product, index) => `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.categoryName}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.description || '-'}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+        
+
+        const deliveryDetailsHtml = `
+          <h3>Delivery Information</h3>
+          <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+              <tr>
+                <th style="width: 30%;">Address</th>
+                <td >${newQuoteRequest.deliveryAddress || '-'}</td>
+              </tr>
+              <tr>
+                <th>Location</th>
+                <td>${newQuoteRequest.deliveryLocation || '-'}</td>
+              </tr>
+              <tr>
+                <th>Landmark</th>
+                <td>${newQuoteRequest.deliveryLandMark || '-'}</td>
+              </tr>
+              <tr>
+                <th>Pincode</th>
+                <td>${newQuoteRequest.deliveryPincode || '-'}</td>
+              </tr>
+              <tr>
+                <th>Expected Delivery Date</th>
+                <td>${newQuoteRequest.expectedDeliveryDate || '-'}</td>
+              </tr>
+            </table>
+          `;
+
+
+        // 8. Send email
+    const mailOptions ={
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: seller.emailId,
+      subject: "New Quote Request" ,
+      html: `
+              <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style type="text/css">
+                        /* Base Styles */
+                        body, html {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333333;    
+                        }
+
+                       .outer-div{
+                          width:100%;
+                          border: 1px solid transparent;
+                          background-color: #f1f1f1;
+                        }
+
+                        /* Email Container */
+                        .email-container {
+                            max-width: 600px;
+                            margin: 30px auto;
+                            background: #ffffff;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+                        
+                        /* Header Section */
+                        .header {
+                            background: #c2e7ff;
+                            padding: 20px 20px;
+                            text-align: center;
+                            color: #333333;
+                            box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+                        }
+        
+                        .logo {
+                            width: 250px;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                            -ms-interpolation-mode: bicubic;
+                        }
+                        
+                        .welcome-heading {
+                            font-size: 24px;
+                            font-weight: 600;
+                            margin: 0;
+                            color: black;
+                        }
+                        
+                        /* Content Section */
+                        .content {
+                            padding: 30px;
+                        }
+                        .heading{
+                        color: #000000;
+                        font-size: 17px;
+                        }
+                        .message {
+                            font-size: 16px;
+                            color: #4a5568;
+                        }
+                        
+                        /* User Details Box */
+                        .center-text {
+                          text-align: center;
+                        }
+
+                        .detail-item {
+                            margin-bottom: 12px;
+                            display: flex;
+                        }
+                        
+                        .detail-value {
+                            color: #4a5568;
+                        }
+                        
+                        /* Action Button */
+                        .action-button {
+                            display: inline-block;
+                            background: #04d3d4;
+                            color: white !important;
+                            text-decoration: none;
+                            padding: 12px 30px;
+                            border-radius: 4px;
+                            font-weight: 600;
+                            margin: 5px 0 20px ;
+                            text-align: center;
+                        }
+                        
+                        /* Footer */
+                        .footer {
+                            text-align: center;
+                            padding: 20px;
+                            background: #a9fffd;
+                            font-size: 14px;
+                            color: #718096;
+                        }
+                        
+                        .signature {
+                            margin-top: 25px;
+                            padding-top: 25px;
+                            border-top: 1px solid #e2e8f0;
+                        }
+                        .contact-text{
+                          color: #0000FF;
+                        }    
+                        
+                        /* Responsive */
+                        @media only screen and (max-width: 600px) {
+                            .email-container {
+                                border-radius: 0;
+                            }
+                            .logo {
+                                width: 200px;
+                            }
+                            .content {
+                                padding: 20px;
+                            }
+                            
+                        }
+                    </style>
+                </head>
+                <body>
+                <div class="outer-div">
+                    <div class="email-container">
+                        <!-- Header with Logo -->
+                        <div class="header">
+                            <div class="logo-container">
+
+                           <img src="cid:edprowiselogo@company" 
+                         alt="EdProwise Logo" 
+                         class="logo"
+                         style="width:250px;height:auto;display:block;">
+                            </div>
+                             
+                        </div>
+                        
+                        <!-- Main Content -->
+                        <div class="content">
+                            <p class="message">Dear Seller,</p>
+                            
+
+                            <p class="message">New quote request has been received, pls processing it now. </p>
+                            <p class="message">Quote requested details are as follow : </p>
+
+                            <h3>Enquiry Number : ${enquiryNumber}</h3>
+
+                            <!-- Quote Details Box -->
+                            ${productHtml}
+
+                            
+                            ${deliveryDetailsHtml}
+
+                            <!-- Action Button -->
+                            <p class="message">Please click below button for view quote </p>
+                            <div style="text-align: center;">
+                                <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
+                            </div>
+                            
+                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <!-- Signature -->
+                            <div class="signature">
+                                <p>Best regards,</p>
+                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="footer">
+                            <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                  </div>  
+                </body>
+                </html>
+            `,
+            attachments: attachments 
+    };
+    
+    await transporter.sendMail(mailOptions);
+        emailsSent++;
+      } catch (emailError) {
+        console.error(`Failed to send email to ${seller.emailId}:`, emailError);
+      }
+    }
+
+    console.log(`Emails sent to ${emailsSent}/${sellerMap.size} sellers.`);
+    return {
+      hasError: false,
+      message: `Emails sent to ${emailsSent} sellers.`,
+      stats: {
+        totalProducts: enrichedProducts.length,
+        totalMatchedSellers,
+        emailsSent
+      }
+    };
+
+  } catch (error) {
+    console.error("Error in sendEmailsToSellers:", error);
+    return { hasError: true, message: "Failed to send seller emails." };
+  }
+}
 
 async function create(req, res) {
   const session = await mongoose.startSession();
@@ -237,20 +787,20 @@ async function create(req, res) {
     });
 
     await newQuoteRequest.save({ session });
-    
+
     // add umesh
-    const schoolDetail = await School.findOne({schoolId})
-    console.log("School details: ",schoolDetail);
-    
+    const schoolDetail = await School.findOne({ schoolId })
+    console.log("School details: ", schoolDetail);
+
     const schoolEmail = schoolDetail.schoolEmail;
     const schoolName = schoolDetail.schoolName;
     console.log("school Name:", schoolName);
-    
+
     const enrichedProducts = await Promise.all(
       createdEntries.map(async (product) => {
         const category = await Category.findById(product.categoryId).lean();
         const subCategory = await SubCategory.findById(product.subCategoryId).lean();
-
+        6
         return {
           ...product.toObject(),
           categoryName: category?.categoryName || "Unknown Category",
@@ -261,12 +811,15 @@ async function create(req, res) {
 
     await session.commitTransaction();
     session.endSession();
-    
+
     await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
       enquiryNumber,
       products: enrichedProducts,
       quoteRequest: newQuoteRequest,
     });
+
+    await sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryNumber });
+
     return res.status(201).json({
       hasError: false,
       message: "Quotes and Quote Proposal created successfully.",

@@ -23,7 +23,7 @@ const SellerSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Completed"],
+      enum: ["Pending", "Completed", "Deleted"],
       default: "Pending",
     },
     randomId: {

@@ -52,6 +52,8 @@ import AdminRegistrationTemplate from "./EmailTemplatesRoutes/AdminRegistrationT
 import UserIdUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/UserIdUpdateEmailTemplateRoutes.js"
 import SchoolRequestForQuoteTemplateRoutes from "./EmailTemplatesRoutes/SchoolRequestForQuoteTemplateRoutes.js"
 import QuoteProposalSendToSchoolEmailRoutes from "./EmailTemplatesRoutes/QuoteProposalSendToSchoolEmailRoutes.js"
+import NewQuoteReceiveSellerTemplateRoutes from "./EmailTemplatesRoutes/NewQuoteReceiveSellerTemplateRoutes.js"
+import OrderPlaceAndReceiveTemplates from "./EmailTemplatesRoutes/OrderPlaceAndReceiveTemplates.js"
 export default (app) => {
   app.use("/api", loginSignupRoutes);
   app.use("/api", schoolRoutes);
@@ -102,4 +104,6 @@ export default (app) => {
   app.use("/api", UserIdUpdateEmailTemplateRoutes);
   app.use("/api", SchoolRequestForQuoteTemplateRoutes);
   app.use("/api", QuoteProposalSendToSchoolEmailRoutes);
+  app.use("/api", NewQuoteReceiveSellerTemplateRoutes);
+  app.use("/api", OrderPlaceAndReceiveTemplates)
 };
