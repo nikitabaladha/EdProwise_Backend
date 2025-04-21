@@ -8,7 +8,6 @@ async function get(req, res) {
   const { query } = req.query;
 
   try {
-    // Initialize results array
     const results = [];
 
     // 1. Search QuoteRequests
@@ -37,123 +36,182 @@ async function get(req, res) {
       });
     }
 
-    // 2. Search Schools
+    // 3. Search Schools
     const schoolConditions = [
-      { schoolId: query },
-      { schoolName: query },
-      { schoolEmail: query },
-      { schoolMobileNo: query },
+      { schoolName: query, status: { $in: ["Pending", "Completed"] } },
+      { schoolId: query, status: { $in: ["Pending", "Completed"] } },
+      { schoolEmail: query, status: { $in: ["Pending", "Completed"] } },
+      { schoolMobileNo: query, status: { $in: ["Pending", "Completed"] } },
     ];
 
-    const schoolMatch = await School.findOne({ $or: schoolConditions });
-    if (schoolMatch) {
-      if (schoolMatch.schoolId === query) {
-        results.push({
-          type: "school",
-          id: schoolMatch._id,
-          text: schoolMatch.schoolId,
-          exactMatchForSchoolId: true,
-        });
-      }
-      if (schoolMatch.schoolName === query) {
+    const schoolNameMatches = await School.find({
+      schoolName: query,
+      status: { $in: ["Pending", "Completed"] },
+    });
+
+    if (schoolNameMatches.length > 0) {
+      if (schoolNameMatches.length === 1) {
+        const schoolMatch = schoolNameMatches[0];
         results.push({
           type: "school",
           id: schoolMatch._id,
           text: schoolMatch.schoolName,
           exactMatchForSchoolName: true,
+          isSingleMatch: true,
+          schoolId: schoolMatch.schoolId,
         });
-      }
-      if (schoolMatch.schoolEmail === query) {
+      } else {
         results.push({
           type: "school",
-          id: schoolMatch._id,
-          text: schoolMatch.schoolEmail,
-          exactMatchForSchoolEmail: true,
+          text: query,
+          exactMatchForSchoolName: true,
+          isSingleMatch: false,
+          matchCount: schoolNameMatches.length,
         });
       }
-      if (schoolMatch.schoolMobileNo === query) {
-        results.push({
-          type: "school",
-          id: schoolMatch._id,
-          text: schoolMatch.schoolMobileNo,
-          exactMatchForSchoolMobileNumber: true,
-        });
+    } else {
+      const schoolMatch = await School.findOne({ $or: schoolConditions });
+      if (schoolMatch) {
+        if (schoolMatch.schoolId === query) {
+          results.push({
+            type: "school",
+            id: schoolMatch._id,
+            text: schoolMatch.schoolId,
+            exactMatchForSchoolId: true,
+            isSingleMatch: true,
+          });
+        }
+        if (schoolMatch.schoolEmail === query) {
+          results.push({
+            type: "school",
+            id: schoolMatch._id,
+            schoolId: schoolMatch.schoolId,
+            text: schoolMatch.schoolEmail,
+            exactMatchForSchoolEmail: true,
+            isSingleMatch: true,
+          });
+        }
+        if (schoolMatch.schoolMobileNo === query) {
+          results.push({
+            type: "school",
+            id: schoolMatch._id,
+            schoolId: schoolMatch.schoolId,
+            text: schoolMatch.schoolMobileNo,
+            exactMatchForSchoolMobileNumber: true,
+            isSingleMatch: true,
+          });
+        }
+        if (schoolMatch.schoolName === query) {
+          results.push({
+            type: "school",
+            id: schoolMatch._id,
+            schoolId: schoolMatch.schoolId,
+            text: schoolMatch.schoolName,
+            exactMatchForSchoolName: true,
+            isSingleMatch: true,
+          });
+        }
       }
     }
 
-    // 3. Search Sellers - Fixed sellerId comparison
+    // 4. Search Sellers - Modified to exclude deleted profiles
     let sellerIdMatch = null;
 
-    // Check if query is a valid ObjectId before searching
     if (mongoose.Types.ObjectId.isValid(query)) {
       sellerIdMatch = await SellerProfile.findOne({
         sellerId: new mongoose.Types.ObjectId(query),
+        status: { $in: ["Pending", "Completed"] },
       });
     }
 
     const sellerConditions = [
-      { companyName: query },
-      { emailId: query },
-      { contactNo: query },
-      { randomId: query },
+      { companyName: query, status: { $in: ["Pending", "Completed"] } },
+      { emailId: query, status: { $in: ["Pending", "Completed"] } },
+      { contactNo: query, status: { $in: ["Pending", "Completed"] } },
+      { randomId: query, status: { $in: ["Pending", "Completed"] } },
     ];
 
-    // Only add sellerId condition if it's a valid ObjectId
     if (mongoose.Types.ObjectId.isValid(query)) {
-      sellerConditions.push({ sellerId: new mongoose.Types.ObjectId(query) });
+      sellerConditions.push({
+        sellerId: new mongoose.Types.ObjectId(query),
+        status: { $in: ["Pending", "Completed"] },
+      });
     }
 
-    const sellerMatches = await SellerProfile.find({ $or: sellerConditions });
+    // Search for company name matches (only active profiles)
+    const companyNameMatches = await SellerProfile.find({
+      companyName: query,
+      status: { $in: ["Pending", "Completed"] },
+    }).populate("sellerId");
 
-    // Process seller matches
-    for (const seller of sellerMatches) {
-      if (seller.sellerId && seller.sellerId.toString() === query) {
+    if (companyNameMatches.length > 0) {
+      if (companyNameMatches.length === 1) {
+        const seller = companyNameMatches[0];
         results.push({
           type: "seller",
           id: seller._id,
-          text: seller.sellerId.toString(),
-          exactMatchForsellerId: true,
-        });
-      }
-      if (seller.companyName === query) {
-        results.push({
-          type: "seller",
-          id: seller._id,
-          sellerId: seller.sellerId,
           text: seller.companyName,
           exactMatchForCompanyName: true,
+          isSingleMatch: true,
+          sellerId: seller.sellerId?._id,
         });
-      }
-      if (seller.emailId === query) {
+      } else {
         results.push({
           type: "seller",
-          id: seller._id,
-          sellerId: seller.sellerId,
-          text: seller.emailId,
-          exactMatchForSellerEmail: true,
+          text: query,
+          exactMatchForCompanyName: true,
+          isSingleMatch: false,
+          matchCount: companyNameMatches.length,
         });
       }
-      if (seller.contactNo === query) {
-        results.push({
-          type: "seller",
-          id: seller._id,
-          sellerId: seller.sellerId,
-          text: seller.contactNo,
-          exactMatchForSellerMobileNumber: true,
-        });
-      }
-      if (seller.randomId === query) {
-        results.push({
-          type: "seller",
-          id: seller._id,
-          sellerId: seller.sellerId,
-          text: seller.randomId,
-          exactMatchForSellerRandomId: true,
-        });
+    } else {
+      // Search other seller conditions (only active profiles)
+      const sellerMatches = await SellerProfile.find({ $or: sellerConditions });
+
+      for (const seller of sellerMatches) {
+        if (seller.sellerId && seller.sellerId.toString() === query) {
+          results.push({
+            type: "seller",
+            id: seller._id,
+            text: seller.sellerId.toString(),
+            exactMatchForsellerId: true,
+            isSingleMatch: true,
+            sellerId: seller.sellerId,
+          });
+        }
+        if (seller.emailId === query) {
+          results.push({
+            type: "seller",
+            id: seller._id,
+            sellerId: seller.sellerId,
+            text: seller.emailId,
+            exactMatchForSellerEmail: true,
+            isSingleMatch: true,
+          });
+        }
+        if (seller.contactNo === query) {
+          results.push({
+            type: "seller",
+            id: seller._id,
+            sellerId: seller.sellerId,
+            text: seller.contactNo,
+            exactMatchForSellerMobileNumber: true,
+            isSingleMatch: true,
+          });
+        }
+        if (seller.randomId === query) {
+          results.push({
+            type: "seller",
+            id: seller._id,
+            sellerId: seller.sellerId,
+            text: seller.randomId,
+            exactMatchForSellerRandomId: true,
+            isSingleMatch: true,
+          });
+        }
       }
     }
 
-    // Return results
     if (results.length > 0) {
       return res.json({ success: true, data: results });
     }

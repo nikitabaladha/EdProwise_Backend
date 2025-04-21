@@ -2,9 +2,16 @@ import SellerProfile from "../../models/SellerProfile.js";
 
 async function getAll(req, res) {
   try {
-    const sellerProfiles = await SellerProfile.find({
-      status: { $in: ["Pending", "Completed"] },
-    })
+    const { companyName } = req.query;
+
+    // Build the query object
+    const query = { status: { $in: ["Pending", "Completed"] } };
+
+    if (companyName) {
+      query.companyName = { $regex: new RegExp(companyName, "i") };
+    }
+
+    const sellerProfiles = await SellerProfile.find(query)
       .sort({ createdAt: -1 })
       .populate("sellerId");
 

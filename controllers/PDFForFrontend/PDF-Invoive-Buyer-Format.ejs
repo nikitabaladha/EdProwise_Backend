@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Quote/Proposal</title>
+    <title>Buyer/Invoice</title>
     <style>
       table {
         border-collapse: collapse;
@@ -61,7 +61,7 @@
               <td>Address : <%= profileData.edprowiseAddress %></td>
             </tr>
             <tr>
-              <td style="width: 50%">
+              <td>
                 City : <%= profileData.edprowiseCityStateCountry %> <%=
                 profileData.edprowisePincode%>
               </td>
@@ -101,12 +101,14 @@
               <td class="bold">Consignee</td>
             </tr>
             <tr>
-              <td>Name : <%= profileData.buyerName %></td>
+              <td colspan="2">Name : <%= profileData.buyerName %></td>
             </tr>
             <tr>
-              <td>Address : <%= profileData.schoolDeliveryAddress %></td>
+              <td colspan="2">
+                Address : <%= profileData.schoolDeliveryAddress %>
+              </td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 City : <%= profileData.schoolDeliveryLocation?.split(",")[0] %>
               </td>
@@ -114,7 +116,7 @@
                 State : <%= profileData.schoolDeliveryLocation?.split(",")[1] %>
               </td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 Contact No. : <%= profileData.schoolContactNumber %>
               </td>
@@ -126,12 +128,14 @@
               <td class="bold">Buyer</td>
             </tr>
             <tr>
-              <td>Name : <%= profileData.buyerName %></td>
+              <td colspan="2">Name : <%= profileData.buyerName %></td>
             </tr>
             <tr>
-              <td>Address : <%= profileData.schoolDeliveryAddress %></td>
+              <td colspan="2">
+                Address : <%= profileData.schoolDeliveryAddress %>
+              </td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 City : <%= profileData.schoolDeliveryLocation?.split(",")[0] %>
               </td>

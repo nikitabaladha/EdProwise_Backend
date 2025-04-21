@@ -30,7 +30,7 @@ async function generatePDF(htmlFilePath, dynamicData = {}, outputPath) {
   const htmlContent = ejs.render(template, dynamicData);
 
   const browser = await puppeteer.launch({
-    headless: "new", // or `true` for older Puppeteer versions
+    headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Quote/Proposal</title>
+    <title>Edprowise/Invoice</title>
     <style>
       table {
         border-collapse: collapse;
@@ -55,10 +55,10 @@
               <td class="bold">Supplier</td>
             </tr>
             <tr>
-              <td>Name : <%= profileData.sellerCompanyName %></td>
+              <td colspan="2">Name : <%= profileData.sellerCompanyName %></td>
             </tr>
             <tr>
-              <td>Address : <%= profileData.sellerAddress %></td>
+              <td colspan="2">Address : <%= profileData.sellerAddress %></td>
             </tr>
             <tr>
               <td style="width: 50%">
@@ -103,12 +103,14 @@
               <td class="bold">Consignee</td>
             </tr>
             <tr>
-              <td>Name : <%= profileData.edprowiseCompanyName %></td>
+              <td colspan="2">
+                Name : <%= profileData.edprowiseCompanyName %>
+              </td>
             </tr>
             <tr>
-              <td>Address : <%= profileData.edprowiseAddress %></td>
+              <td colspan="2">Address : <%= profileData.edprowiseAddress %></td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 City : <%= profileData.edprowiseCityStateCountry?.split(",")[0]
                 %>
@@ -118,7 +120,7 @@
                 %>
               </td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 Contact No. : <%= profileData.edprowiseContactNo %>
               </td>
@@ -130,12 +132,14 @@
               <td class="bold">Buyer</td>
             </tr>
             <tr>
-              <td>Name : <%= profileData.edprowiseCompanyName %></td>
+              <td colspan="2">
+                Name : <%= profileData.edprowiseCompanyName %>
+              </td>
             </tr>
             <tr>
-              <td>Address : <%= profileData.edprowiseAddress %></td>
+              <td colspan="2">Address : <%= profileData.edprowiseAddress %></td>
             </tr>
-            <tr style="width: 100%">
+            <tr>
               <td style="width: 50%">
                 City : <%= profileData.edprowiseCityStateCountry?.split(",")[0]
                 %>
