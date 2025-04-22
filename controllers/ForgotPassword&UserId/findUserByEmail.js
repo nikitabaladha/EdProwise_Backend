@@ -5,92 +5,101 @@ import SellerProfile from "../../models/SellerProfile.js";
 import School from "../../models/School.js";
 import User from "../../models/User.js";
 import Seller from "../../models/Seller.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function generateVerificationCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 async function findUserByEmail(req, res) {
-    const { email } = req.body;
-    try {
-        let user = await SellerProfile.findOne({ emailId: email });
-        let userId = null;
-        let userEmail = email;
-        if (user) {
-            const sellerDetails = await Seller.findOne({ _id: user.sellerId });
-            if (sellerDetails) {
-                userId = sellerDetails.userId;
-            }
-        } else {
-            user = await School.findOne({ schoolEmail: email });
+  const { email } = req.body;
+  try {
+    let user = await SellerProfile.findOne({ emailId: email });
+    let userId = null;
+    let userEmail = email;
+    if (user) {
+      const sellerDetails = await Seller.findOne({ _id: user.sellerId });
+      if (sellerDetails) {
+        userId = sellerDetails.userId;
+      }
+    } else {
+      user = await School.findOne({ schoolEmail: email });
 
-            if (user) {
-                const schoolDetails = await User.findOne({ schoolId: user.schoolId, role: "School" });
-                console.log("School Details:", schoolDetails);
-
-                if (schoolDetails) {
-                    userId = schoolDetails.userId;
-                }
-            }
-        }
-        
-        if (!user || !userId) {
-            return res.status(404).json({ hasError: true, message: "User not found or email missing." });
-        }
-
-        // Generate a new verification code
-        const verificationCode = generateVerificationCode();
-
-        const smtpSettings = await SMTPEmailSetting.findOne();
-        if (!smtpSettings) throw new Error("SMTP settings not found");
-
-        // Create transporter
-        const transporter = nodemailer.createTransport({
-            host: smtpSettings.mailHost,
-            port: smtpSettings.mailPort,
-            secure: false,
-            auth: {
-                user: smtpSettings.mailUsername,
-                pass: smtpSettings.mailPassword,
-            },
-            tls: { rejectUnauthorized: false }
+      if (user) {
+        const schoolDetails = await User.findOne({
+          schoolId: user.schoolId,
+          role: "School",
         });
+        console.log("School Details:", schoolDetails);
 
-        const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-        if (!fs.existsSync(logoImagePath)) {
-            return { hasError: true, message: "Logo file not found" };
+        if (schoolDetails) {
+          userId = schoolDetails.userId;
         }
+      }
+    }
 
-        // Read logo as base64 for fallback
-        const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
-        const base64Src = `data:image/png;base64,${logoBase64}`;
+    if (!user || !userId) {
+      return res
+        .status(404)
+        .json({ hasError: true, message: "User not found or email missing." });
+    }
 
-        const attachments = [{
-            filename: 'logo.png',
-            path: logoImagePath,
-            cid: 'edprowiselogo@company', // Unique CID
-            contentDisposition: 'inline',
-            headers: {
-                'Content-ID': '<edprowiselogo@company>'
-            }
-        }];
+    // Generate a new verification code
+    const verificationCode = generateVerificationCode();
 
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
-       
-        const mailOptions ={
-            from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
-            to: userEmail,
-            subject: "UserId Reset Verification Code",
-            html: `
+    const smtpSettings = await SMTPEmailSetting.findOne();
+    if (!smtpSettings) throw new Error("SMTP settings not found");
+
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      host: smtpSettings.mailHost,
+      port: smtpSettings.mailPort,
+      secure: smtpSettings.mailEncryption === "SSL",
+      auth: {
+        user: smtpSettings.mailUsername,
+        pass: smtpSettings.mailPassword,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+    if (!fs.existsSync(logoImagePath)) {
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+
+    const mailOptions = {
+      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+      to: userEmail,
+      subject: "UserId Reset Verification Code",
+      html: `
                     <!DOCTYPE html>
                       <html>
                       <head>
@@ -107,7 +116,7 @@ async function findUserByEmail(req, res) {
                               }
                                   
                              .outer-div{
-                                width:100%;
+                               
                                 border: 1px solid transparent;
                                 background-color: #f1f1f1;
                               }
@@ -200,6 +209,7 @@ async function findUserByEmail(req, res) {
                               @media only screen and (max-width: 600px) {
                                   .email-container {
                                       border-radius: 0;
+                                      margin: 0px auto;
                                   }
                                   .logo {
                                       width: 200px;
@@ -247,7 +257,9 @@ async function findUserByEmail(req, res) {
                                   <!-- Signature -->
                                   <div class="signature">
                                       <p>Best regards,</p>
-                                      <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                      <p><strong>${
+                                        smtpSettings.mailFromName
+                                      } Team</strong></p>
                                   </div>
                               </div>
                               
@@ -260,27 +272,30 @@ async function findUserByEmail(req, res) {
                       </body>
                       </html>
                   `,
-                  attachments: attachments 
-          };
-            
-           await transporter.sendMail(mailOptions);
-      
-        console.log(`Verification email sent successfully to ${userEmail}.`);
+      attachments: attachments,
+    };
 
-        await VerificationCode.findOneAndUpdate(
-            { userId },
-            { code: verificationCode, expiresAt: new Date(Date.now() + 1 * 60000) },
-            { upsert: true, new: true }
-        );
+    await transporter.sendMail(mailOptions);
 
-        return res.json({ hasError: false, message: "Verification code sent to registered email.", userId: userId });
+    console.log(`Verification email sent successfully to ${userEmail}.`);
 
+    await VerificationCode.findOneAndUpdate(
+      { userId },
+      { code: verificationCode, expiresAt: new Date(Date.now() + 1 * 60000) },
+      { upsert: true, new: true }
+    );
 
-
-    } catch (error) {
-        console.error("Error sending verification email:", error);
-        return res.status(500).json({ hasError: true, message: "Failed to send verification code." });
-    }
+    return res.json({
+      hasError: false,
+      message: "Verification code sent to registered email.",
+      userId: userId,
+    });
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    return res
+      .status(500)
+      .json({ hasError: true, message: "Failed to send verification code." });
+  }
 }
 
 export default findUserByEmail;

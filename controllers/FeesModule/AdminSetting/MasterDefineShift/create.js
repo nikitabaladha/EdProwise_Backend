@@ -24,6 +24,7 @@ async function create(req, res) {
     const startDate = new Date(`1970-01-01T${startTime}:00Z`);
     const endDate = new Date(`1970-01-01T${endTime}:00Z`);
 
+
     const masterDefineShift = new MasterDefineShift({
       schoolId,
       masterDefineShiftName,

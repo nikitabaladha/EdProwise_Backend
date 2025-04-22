@@ -28,7 +28,7 @@ const sendMarketingEmail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,

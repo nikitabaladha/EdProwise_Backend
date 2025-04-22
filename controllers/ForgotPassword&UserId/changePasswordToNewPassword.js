@@ -5,24 +5,29 @@ import School from "../../models/School.js";
 import User from "../../models/User.js";
 import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials, role) => {
+const sendPasswordUpdateEmail = async (
+  companyName,
+  email,
+  usersWithCredentials,
+  role
+) => {
   try {
     const smtpSettings = await SMTPEmailSetting.findOne();
-    if (!smtpSettings) return { hasError: true, message: "SMTP settings not found." };
+    if (!smtpSettings)
+      return { hasError: true, message: "SMTP settings not found." };
 
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -32,33 +37,38 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
       },
     });
 
-    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
     if (!fs.existsSync(logoImagePath)) {
       return { hasError: true, message: "Logo file not found" };
     }
 
     // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    const attachments = [{
-      filename: 'logo.png',
-      path: logoImagePath,
-      cid: 'edprowiselogo@company', // Unique CID
-      contentDisposition: 'inline',
-      headers: {
-        'Content-ID': '<edprowiselogo@company>'
-      }
-    }];
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
 
     const frontendUrl = process.env.FRONTEND_URL;
-    const loginUrl = `${frontendUrl.replace(/\/+$/, '')}/login`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+    const loginUrl = `${frontendUrl.replace(/\/+$/, "")}/login`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: email,
-      subject: "UserId Reset Verification Code",
+      subject: "Password Changed",
       html: `
           <!DOCTYPE html>
 <html>
@@ -76,7 +86,6 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         }
             
        .outer-div{
-          width:100%;
           border: 1px solid transparent;
           background-color: #f1f1f1;
         }
@@ -193,8 +202,12 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
                 <tbody>
                   <tr>
                     <td class="center-text">${role}</td>
-                    <td class="center-text">${usersWithCredentials.userName}</td>
-                    <td class="center-text">${usersWithCredentials.password}</td>
+                    <td class="center-text">${
+                      usersWithCredentials.userName
+                    }</td>
+                    <td class="center-text">${
+                      usersWithCredentials.password
+                    }</td>
                   </tr>
                 </tbody>
               </table>
@@ -226,7 +239,7 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
 </html>
 
                       `,
-      attachments: attachments
+      attachments: attachments,
     };
 
     await transporter.sendMail(mailOptions);
@@ -281,7 +294,9 @@ const resetUserOrSellerPassword = async (req, res) => {
       seller.salt = salt;
       await seller.save();
 
-      const sellerProfile = await SellerProfile.findOne({ sellerId: seller._id });
+      const sellerProfile = await SellerProfile.findOne({
+        sellerId: seller._id,
+      });
       if (sellerProfile) {
         await sendPasswordUpdateEmail(
           sellerProfile.companyName,

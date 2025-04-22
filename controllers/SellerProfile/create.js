@@ -25,7 +25,7 @@ async function sendSellerRegistrationEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -99,8 +99,7 @@ async function sendSellerRegistrationEmail(
                             color: #333333;    
                         }
 
-                       .outer-div{
-                          width:100%;
+                       .outer-div{  
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -198,6 +197,7 @@ async function sendSellerRegistrationEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;

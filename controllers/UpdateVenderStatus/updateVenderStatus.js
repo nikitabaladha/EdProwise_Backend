@@ -36,7 +36,7 @@ async function sendSchoolRequestQuoteEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -84,13 +84,83 @@ async function sendSchoolRequestQuoteEmail(
       usersWithCredentials;
 
     // 5. Proposal details as HTML - Detailed quote information
+    // const proposalDetailsHtml = `
+    //   <h3 style="font-size: 17px;">Quote Request Details:</h3>
+    //   <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;" class="table-show">
+    //     <thead>
+    //       <tr>
+    //         <th>S.No</th>
+    //         <th>Category</th>
+    //         <th>Quantity</th>
+    //         <th>Listing Rate</th>
+    //         <th>Discount (%)</th>
+    //         <th>Final Rate</th>
+    //         <th>Total Amount</th>
+    //       </tr>
+    //     </thead>
+    //     <tbody>
+    //       ${quoteDetails
+    //         .map(
+    //           (item, index) => `
+    //         <tr>
+    //           <td style="text-align: center;">${index + 1}</td>
+    //           <td style="text-align: center;">${item.subcategoryName}</td>
+    //           <td style="text-align: center;">${item.quantity}</td>
+    //           <td style="text-align: center;">${
+    //             item.finalRateBeforeDiscount
+    //           }</td>
+    //           <td style="text-align: center;">${item.discount}</td>
+    //           <td style="text-align: center;">${item.finalRate}</td>
+    //           <td style="text-align: center;">${item.totalAmount}</td>
+    //         </tr>
+    //       `
+    //         )
+    //         .join("")}
+    //     </tbody>
+    //   </table>
+    //   <br/>
+    //   <h3 style="font-size: 17px;">Additional Information from Seller</h3>
+    //   <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+    //       ${products
+    //         .map(
+    //           (product, index) => `
+    //         <tr>
+    //           <th>Description</th>
+    //           <td>${product.description || "-"}</td>
+    //         </tr>
+    //         <tr>
+    //           <th>Quoted Amount</th>
+    //           <td>${product.quotedAmount || "-"}</td>
+    //         </tr>
+    //         <tr>
+    //           <th>Payment Terms</th>
+    //           <td >${product.paymentTerms || "-"}</td>
+    //         </tr>
+    //         <tr>
+    //           <th>Advance Required (Rs)</th>
+    //           <td >${product.advanceRequiredAmount || "-"}</td>
+    //         </tr>
+    //         <tr>
+    //           <th>Expected Delivery Date</th>
+    //           <td>${product.expectedDeliveryDateBySeller || "-"}</td>
+    //         </tr>
+    //         <tr>
+    //           <th>Remarks</th>
+    //           <td>${product.remarksFromSupplier || "-"}</td>
+    //         </tr>
+    //       `
+    //         )
+    //         .join("")}
+    //   </table>
+    // `;
+
     const proposalDetailsHtml = `
       <h3 style="font-size: 17px;">Quote Request Details:</h3>
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;" class="table-show">
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Sub Category</th>
+            <th>Category</th>
             <th>Quantity</th>
             <th>Listing Rate</th>
             <th>Discount (%)</th>
@@ -118,7 +188,61 @@ async function sendSchoolRequestQuoteEmail(
             .join("")}
         </tbody>
       </table>
-      <br/>
+      
+    `;
+
+    const proposalDetailsHtmlForMobile = `
+      
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;" class="table-flex">
+      
+          ${quoteDetails
+            .map(
+              (item, index) => `
+            <tr>
+              <th>S.No</th>
+              <td style="text-align: center;">${index + 1}</td>
+            </tr>
+            
+            <tr>
+            <th>Category</th>
+            <td style="text-align: center;">${item.subcategoryName}</td>
+            </tr>
+
+            <tr>
+            <th>Quantity</th>
+            <td style="text-align: center;">${item.quantity}</td>
+            </tr>
+
+            <tr>
+            <th>Listing Rate</th>
+            <td style="text-align: center;">${item.finalRateBeforeDiscount}</td>
+            </tr>
+
+            <tr>
+            <th>Discount (%)</th>
+            <td style="text-align: center;">${item.discount}</td>
+            </tr>
+
+            <tr>
+            <th>Final Rate</th>
+            <td style="text-align: center;">${item.finalRate}</td>
+            </tr>
+
+            <tr>
+            <th>Total Amount</th>
+             <td style="text-align: center;">${item.totalAmount}</td>
+            </tr>  
+            <tr>
+            </tr>   
+          `
+            )
+            .join("")}
+        
+      </table>
+      
+    `;
+
+    const proposalDetailsInfo = `
       <h3 style="font-size: 17px;">Additional Information from Seller</h3>
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
           ${products
@@ -168,6 +292,16 @@ async function sendSchoolRequestQuoteEmail(
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style type="text/css">
                         /* Base Styles */
+
+                        .table-show {
+                        display : block;
+                        }
+
+                        
+                      .table-flex {
+                      display : none;
+                    }
+
                         body, html {
                             margin: 0;
                             padding: 0;
@@ -177,7 +311,7 @@ async function sendSchoolRequestQuoteEmail(
                         }
 
                        .outer-div{
-                          width:100%;
+                         
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -278,6 +412,8 @@ async function sendSchoolRequestQuoteEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
+
                             }
                             .logo {
                                 width: 200px;
@@ -285,6 +421,15 @@ async function sendSchoolRequestQuoteEmail(
                             .content {
                                 padding: 20px;
                             }
+
+                            .table-show {
+                             display : none;
+                            }
+
+                            .table-flex {
+                             display : flex;
+                            }
+
                             
                         }
                     </style>
@@ -315,6 +460,8 @@ async function sendSchoolRequestQuoteEmail(
 
                             <!-- Quote Details Box -->
                             ${proposalDetailsHtml}
+                            ${proposalDetailsHtmlForMobile}
+                            ${proposalDetailsInfo}
 
                 
                             <!-- Action Button -->

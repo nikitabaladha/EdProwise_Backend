@@ -59,7 +59,7 @@ async function sendSchoolRequestQuoteEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -112,7 +112,7 @@ async function sendSchoolRequestQuoteEmail(
       <thead>
         <tr>
           <th >S.No</th>
-          <th >Sub Category</th>
+          <th >Category</th>
           <th >Quantity</th>
           <th >Rate</th>
         </tr>
@@ -156,7 +156,7 @@ async function sendSchoolRequestQuoteEmail(
                         }
 
                        .outer-div{
-                          width:100%;
+                         
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -257,6 +257,7 @@ async function sendSchoolRequestQuoteEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
@@ -355,7 +356,7 @@ async function sendEmailsToSellers(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -441,7 +442,7 @@ async function sendEmailsToSellers(
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Sub Category</th>
+            <th>Category</th>
             <th>Quantity</th>
             <th>Rate</th>
             <th>Total Amount</th>
@@ -473,7 +474,7 @@ async function sendEmailsToSellers(
                         }
 
                        .outer-div{
-                          width:100%;
+                        
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -574,6 +575,7 @@ async function sendEmailsToSellers(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;

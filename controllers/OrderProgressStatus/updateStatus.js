@@ -35,7 +35,7 @@ async function sendSchooldeliverdEmail({
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -55,15 +55,15 @@ async function sendSchooldeliverdEmail({
       return { hasError: true, message: "Logo file not found" };
     }
 
-    const pdfPath = path.join(
-      __dirname,
-      "../../Documents/SchoolPanFile/classsimple.pdf"
-    );
+    // const pdfPath = path.join(
+    //   __dirname,
+    //   "../../Documents/SchoolPanFile/classsimple.pdf"
+    // );
 
-    if (!fs.existsSync(pdfPath)) {
-      console.error("PDF file not found at:", pdfPath);
-      return { hasError: true, message: "PDF file not found" };
-    }
+    // if (!fs.existsSync(pdfPath)) {
+    //   console.error("PDF file not found at:", pdfPath);
+    //   return { hasError: true, message: "PDF file not found" };
+    // }
     // Read logo as base64 for fallback
     const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
@@ -78,12 +78,12 @@ async function sendSchooldeliverdEmail({
           "Content-ID": "<edprowiselogo@company>",
         },
       },
-      {
-        filename: "Invoice.pdf",
-        path: pdfPath,
-        contentType: "application/pdf",
-        contentDisposition: "attachment",
-      },
+      // {
+      //   filename: "Invoice.pdf",
+      //   path: pdfPath,
+      //   contentType: "application/pdf",
+      //   contentDisposition: "attachment",
+      // },
     ];
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -100,7 +100,7 @@ async function sendSchooldeliverdEmail({
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Sub Category</th>
+            <th>Category</th>
             <th>Quantity</th>
             <th>Rate</th>
             <th>Total</th>
@@ -167,7 +167,6 @@ async function sendSchooldeliverdEmail({
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -268,6 +267,8 @@ async function sendSchooldeliverdEmail({
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
+
                             }
                             .logo {
                                 width: 200px;
@@ -369,7 +370,7 @@ async function sendEmailsToSellers({
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -387,15 +388,15 @@ async function sendEmailsToSellers({
       return { hasError: true, message: "Logo file not found" };
     }
 
-    const pdfPath = path.join(
-      __dirname,
-      "../../Documents/SchoolPanFile/classsimple.pdf"
-    );
+    // const pdfPath = path.join(
+    //   __dirname,
+    //   "../../Documents/SchoolPanFile/classsimple.pdf"
+    // );
 
-    if (!fs.existsSync(pdfPath)) {
-      console.error("PDF file not found at:", pdfPath);
-      return { hasError: true, message: "PDF file not found" };
-    }
+    // if (!fs.existsSync(pdfPath)) {
+    //   console.error("PDF file not found at:", pdfPath);
+    //   return { hasError: true, message: "PDF file not found" };
+    // }
 
     // Read logo as base64 for fallback
     const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
@@ -421,12 +422,12 @@ async function sendEmailsToSellers({
           "Content-ID": "<edprowiselogo@company>",
         },
       },
-      {
-        filename: "Invoice.pdf",
-        path: pdfPath,
-        contentType: "application/pdf",
-        contentDisposition: "attachment",
-      },
+      // {
+      //   filename: "Invoice.pdf",
+      //   path: pdfPath,
+      //   contentType: "application/pdf",
+      //   contentDisposition: "attachment",
+      // },
     ];
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -441,7 +442,7 @@ async function sendEmailsToSellers({
       <thead>
         <tr>
           <th>S.No</th>
-          <th>Sub Category</th>
+          <th>Category</th>
           <th>Quantity</th>
           <th>Rate</th>
           <th>Total</th>
@@ -515,7 +516,7 @@ async function sendEmailsToSellers({
                         }
 
                        .outer-div{
-                          width:100%;
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -616,6 +617,8 @@ async function sendEmailsToSellers({
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
+
                             }
                             .logo {
                                 width: 200px;

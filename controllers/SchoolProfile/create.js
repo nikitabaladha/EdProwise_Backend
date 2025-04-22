@@ -29,7 +29,7 @@ async function sendSchoolRegistrationEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -138,7 +138,6 @@ async function sendSchoolRegistrationEmail(
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -236,6 +235,7 @@ async function sendSchoolRegistrationEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;

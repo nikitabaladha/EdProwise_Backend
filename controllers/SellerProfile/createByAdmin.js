@@ -44,7 +44,7 @@ async function sendSellerRegistrationEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -86,7 +86,7 @@ async function sendSellerRegistrationEmail(
     const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const credentialsHtml = `
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 50%;">
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
         <tbody>
           <tr>
@@ -119,7 +119,6 @@ async function sendSellerRegistrationEmail(
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -217,6 +216,7 @@ async function sendSellerRegistrationEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;

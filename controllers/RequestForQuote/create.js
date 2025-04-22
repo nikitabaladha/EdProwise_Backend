@@ -26,13 +26,6 @@ function generateEnquiryNumber() {
   return `${prefix}${formattedSuffix}`;
 }
 
-// function generateEnquiryNumber() {
-//   const prefix = "ENQ";
-//   const timestamp = Date.now();
-//   const randomSuffix = Math.floor(Math.random() * 10000);
-//   return `${prefix}${timestamp}${randomSuffix}`;
-// }
-
 async function sendSchoolRequestQuoteEmail(
   schoolName,
   schoolEmail,
@@ -53,7 +46,7 @@ async function sendSchoolRequestQuoteEmail(
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -104,8 +97,6 @@ async function sendSchoolRequestQuoteEmail(
           <tr>
             <th>S.No</th>
             <th>Category</th>
-            <th>Sub Category</th>
-            <th>Description</th>
             <th>Unit</th>
             <th>Quantity</th>
           </tr>
@@ -116,9 +107,7 @@ async function sendSchoolRequestQuoteEmail(
               (product, index) => `
             <tr>
               <td style="text-align: center;">${index + 1}</td>
-              <td style="text-align: center;">${product.categoryName}</td>
               <td style="text-align: center;">${product.subCategoryName}</td>
-              <td style="text-align: center;">${product.description || "-"}</td>
               <td style="text-align: center;">${product.unit}</td>
               <td style="text-align: center;">${product.quantity}</td>
             </tr>
@@ -172,7 +161,7 @@ async function sendSchoolRequestQuoteEmail(
                         }
 
                        .outer-div{
-                          width:100%;
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -273,6 +262,7 @@ async function sendSchoolRequestQuoteEmail(
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
@@ -370,7 +360,7 @@ async function sendEmailsToSellers({
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -446,13 +436,12 @@ async function sendEmailsToSellers({
     for (const [id, { seller, products }] of sellerMap.entries()) {
       try {
         const productHtml = `
+        
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Category</th>
-            <th>Sub Category</th>
-            <th>Description</th>
+            <th>Category</th>       
             <th>Unit</th>
             <th>Quantity</th>
           </tr>
@@ -463,9 +452,7 @@ async function sendEmailsToSellers({
               (product, index) => `
             <tr>
               <td style="text-align: center;">${index + 1}</td>
-              <td style="text-align: center;">${product.categoryName}</td>
               <td style="text-align: center;">${product.subCategoryName}</td>
-              <td style="text-align: center;">${product.description || "-"}</td>
               <td style="text-align: center;">${product.unit}</td>
               <td style="text-align: center;">${product.quantity}</td>
             </tr>
@@ -474,7 +461,8 @@ async function sendEmailsToSellers({
             .join("")}
         </tbody>
       </table>
-    `;
+      
+      `;
 
         const deliveryDetailsHtml = `
           <h3>Delivery Information</h3>
@@ -524,7 +512,7 @@ async function sendEmailsToSellers({
                         }
 
                        .outer-div{
-                          width:100%;
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -625,6 +613,7 @@ async function sendEmailsToSellers({
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
