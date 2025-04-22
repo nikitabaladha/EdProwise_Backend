@@ -4,6 +4,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import Cart from "../../models/Cart.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
@@ -714,7 +715,7 @@ async function create(req, res) {
     );
 
     const sellerOrderNumbers = new Map();
-    //  const orderNumber = generateOrderNumber();
+    const orderNumber = generateOrderNumber();
 
     const orderFromBuyerEntries = [];
     const orderDetailsFromSellerEntries = new Map();
@@ -749,6 +750,7 @@ async function create(req, res) {
           generateOrderNumber()
         );
       }
+
       const orderNumber = sellerOrderNumbers.get(cartEntry.sellerId.toString());
 
       orderFromBuyerEntries.push({
