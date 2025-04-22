@@ -1,0 +1,196 @@
+import mongoose from "mongoose";
+
+const roundToTwo = (num) => {
+  const isArgString = typeof num === "string";
+  if (isArgString) num = Number(num);
+
+  return Math.round(num);
+};
+const QuoteProposalSchema = new mongoose.Schema(
+  {
+    quoteNumber: { type: String, required: true, unique: true },
+    sellerId: {
+      type: String,
+      required: true,
+      ref: "Seller",
+    },
+    enquiryNumber: {
+      type: String,
+      required: true,
+      ref: "QuoteRequest",
+    },
+    totalQuantity: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRateBeforeDiscount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalAmountBeforeGstAndDiscount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalDiscountAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+
+    totalAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxableValue: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalCgstAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalSgstAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalIgstAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxAmount: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRate: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRateForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalFinalRateBeforeDiscountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxableValueForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalCgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalSgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalIgstAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalTaxAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    totalAmountForEdprowise: {
+      type: Number,
+      required: true,
+      set: roundToTwo,
+    },
+    finalPayableAmountWithTDS: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    finalPayableAmountWithTDSForEdprowise: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    tDSAmount: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    tdsValue: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    tdsValueForEdprowise: {
+      type: Number,
+      default: 0,
+      set: roundToTwo,
+    },
+    buyerStatus: {
+      type: String,
+      enum: [
+        "Quote Requested",
+        "Quote Received",
+        "Order Placed",
+        "Work In Progress",
+        "Ready For Transit",
+        "In-Transit",
+        "Delivered",
+      ],
+      required: true,
+    },
+    supplierStatus: {
+      type: String,
+      enum: [
+        "Quote Requested",
+        "Quote Submitted",
+        "Quote Rejected",
+        "Order Received",
+        "Work In Progress",
+        "Ready For Transit",
+        "In-Transit",
+        "Delivered",
+      ],
+      required: true,
+    },
+    edprowiseStatus: {
+      type: String,
+      enum: [
+        "Quote Requested",
+        "Quote Received",
+        "Order Placed",
+        "Work In Progress",
+        "Ready For Transit",
+        "In-Transit",
+        "Delivered",
+      ],
+    },
+    orderStatus: {
+      type: String,
+      enum: ["Open", "Close", "Pending"],
+      default: "Pending",
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+QuoteProposalSchema.index({ sellerId: 1, enquiryNumber: 1 }, { unique: true });
+
+export default mongoose.model("QuoteProposal", QuoteProposalSchema);

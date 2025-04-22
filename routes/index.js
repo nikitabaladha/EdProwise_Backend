@@ -1,0 +1,105 @@
+import loginSignupRoutes from "./login-signup.js";
+
+import DashboardRoutes from "./DashboardRoutes/TotalCounts.js";
+
+import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
+import schoolProfileRoutes from "./SchoolRoutes/school-profile.js";
+
+import userRoutes from "./AdminRoutes/user.js";
+import schoolUserRoutes from "./SchoolRoutes/school-user.js";
+import SellerRoutes from "./SellerRoutes/seller-profile.js";
+import SellerUserRoutes from "./SellerRoutes/seller-user.js";
+import subscriptionRoutes from "./AdminRoutes/subscriptionRoutes.js";
+import EdprowiseProfileRoutes from "./AdminRoutes/edprowiseProfile.js";
+import AdminUserRoutes from "./AdminRoutes/admin.js";
+import NewAdminRoutes from "./AdminRoutes/NewAdmin.js";
+
+// ======================Procurement Services==================
+import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
+import EdprowiseBankDetailRoutes from "./Procurement/bank-detail.js";
+
+import QuoteRoutes from "./Procurement/quote-request.js";
+import PrepareQuoteRoutes from "./Procurement/prepare-quote-by-seller.js";
+import SubmitQuoteRoutes from "./Procurement/submit-quote-by-seller.js";
+import UpdateVenderStatusRoutes from "./Procurement/update-vender-status.js";
+import CartRoutes from "./Procurement/cart-by-school.js";
+import OrderFromBuyerRoutes from "./Procurement/order-from-buyer.js";
+import QuoteProposalRoutes from "./Procurement/quote-proposal.js";
+import PdfMakingRequiredRoutes from "./Procurement/pdf-requirements.js";
+import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-seller.js";
+import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
+import UpdateTDSRoutes from "./Procurement/update-tds.js";
+
+import GlobalSearchRoutes from "./Procurement/global-search.js";
+
+// ====================Fees Module===================
+
+import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
+import FormRoutes from "./FeesModule/Form.js";
+import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js"
+
+// Umesh Routes
+import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
+import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
+
+// ==================Email Routes =========================
+import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js";
+import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js";
+import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js";
+import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
+import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
+
+export default (app) => {
+  // ==================Email Routes =========================
+
+  app.use("/api", SMTPEmailSettings);
+  app.use("/api", SignUPTemplatesRoutes);
+  app.use("/api", SellerEmailTemplateRoutes);
+  app.use("/api", PasswordUpdateEmailTemplateRoutes);
+  app.use("/api", ForgotPasswordRoutes);
+
+  // ===================Login/Signup ==================
+  app.use("/api", loginSignupRoutes);
+
+  // ====================School/Seller/Edprowise Routes==========
+  app.use("/api", schoolRoutes);
+  app.use("/api", SellerRoutes);
+  app.use("/api", schoolUserRoutes);
+  app.use("/api", SellerUserRoutes);
+  app.use("/api", userRoutes);
+  app.use("/api", subscriptionRoutes);
+  app.use("/api", schoolProfileRoutes);
+  app.use("/api", EdprowiseProfileRoutes);
+  app.use("/api", AdminUserRoutes);
+  app.use("/api", NewAdminRoutes);
+
+  //=====================Procurement Routes===============
+  app.use("/api", MainCategoryCategorySubCategoryRoutes);
+  app.use("/api", EdprowiseBankDetailRoutes);
+
+  app.use("/api", QuoteRoutes);
+  app.use("/api", PrepareQuoteRoutes);
+  app.use("/api", SubmitQuoteRoutes);
+  app.use("/api", UpdateVenderStatusRoutes);
+  app.use("/api", CartRoutes);
+  app.use("/api", OrderFromBuyerRoutes);
+  app.use("/api", QuoteProposalRoutes);
+  app.use("/api", PdfMakingRequiredRoutes);
+  app.use("/api", OrderDetailsFromSellerRoutes);
+  app.use("/api", OrderProgressStatusRoutes);
+  app.use("/api", UpdateTDSRoutes);
+  app.use("/api", DashboardRoutes);
+
+  //=====================Globar search for dashboard routes===============
+  app.use("/api", GlobalSearchRoutes);
+
+  // ================Fees Module====================
+  app.use("/api", AdminSettingRoutes);
+  app.use("/api", FormRoutes)
+  app.use("/api",FeesReceiptsRoutes)
+
+  // Umesh Routes
+
+  app.use("/api", RequestForDemoRoutes);
+  app.use("/api", ContactUsFormRoutes);
+};
