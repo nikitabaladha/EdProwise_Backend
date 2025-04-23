@@ -36,11 +36,13 @@
   <body>
     <table class="header-table">
       <tr>
-        <td style="width: 50%">
+        <!-- <td style="width: 50%">
           <img src="<%= LOGO_IMAGE %>" alt="logo" style="height: 40px" />
+        </td> -->
+        <td style="text-align: right; width: 57.5%"><h3>Tax Invoice</h3></td>
+        <td style="text-align: right; width: 42.5%">
+          <h3>(Original for Recipient )</h3>
         </td>
-        <td class="center"><h3>Tax Invoice</h3></td>
-        <td class="end"><h3>(Original for Recipient )</h3></td>
       </tr>
     </table>
 
@@ -225,8 +227,9 @@
 
     <p>
       <strong
-        >Amount In Words : <%=
-        convertToWords(quoteProposalData.totalAmountForEdprowise) %></strong
+        >Amount Chargable (in words) : INR <%=
+        convertToWords(quoteProposalData.totalAmountForEdprowise) %>
+        Only</strong
       >
     </p>
 
@@ -286,6 +289,14 @@
         </tr>
       </tbody>
     </table>
+
+    <p>
+      <strong
+        >Tax Amount (in words ) : INR <%=
+        convertToWords(quoteProposalData.totalTaxAmountForEdprowise) %>
+        Only</strong
+      >
+    </p>
 
     <br /><br />
     <div class="right bold">For EdProwise Tech Pvt. Ltd</div>

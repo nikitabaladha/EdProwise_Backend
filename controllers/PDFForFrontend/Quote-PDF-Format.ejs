@@ -218,8 +218,8 @@
 
     <p>
       <strong
-        >Amount In Words : <%= convertToWords(quoteProposalData.totalAmount)
-        %></strong
+        >Amount Chargeable ( in words) : INR <%=
+        convertToWords(quoteProposalData.totalAmount) %> Only</strong
       >
     </p>
 
@@ -269,6 +269,13 @@
         </tr>
       </tbody>
     </table>
+
+    <p>
+      <strong
+        >Tax Amount (in words ) : INR <%=
+        convertToWords(quoteProposalData.totalTaxAmount) %> Only</strong
+      >
+    </p>
 
     <br /><br />
     <div class="right bold">For EdProwise Tech Pvt. Ltd</div>

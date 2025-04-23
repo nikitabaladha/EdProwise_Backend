@@ -38,14 +38,11 @@ const ProductSchema = new mongoose.Schema(
     unit: {
       type: String,
       enum: [
-        "Piece",
         "Monthly",
         "Yearly",
         "Quarterly",
-        "Kg",
         "Gram",
         "Project",
-        "Sq. feet",
         "BAG - BAGS",
         "BAL - BALE",
         "BDL - BUNDLES",

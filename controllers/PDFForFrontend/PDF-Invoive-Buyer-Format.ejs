@@ -36,11 +36,13 @@
   <body>
     <table class="header-table">
       <tr>
-        <td style="width: 50%">
+        <td style="text-align: left">
           <img src="<%= LOGO_IMAGE %>" alt="logo" style="height: 40px" />
         </td>
-        <td class="center"><h3>Tax Invoice</h3></td>
-        <td class="end"><h3>(Original for Recipient )</h3></td>
+        <td style="text-align: center"><h3>Tax Invoice</h3></td>
+        <td style="text-align: right">
+          <h3>(Original for Recipient )</h3>
+        </td>
       </tr>
     </table>
 
@@ -105,7 +107,7 @@
             </tr>
             <tr>
               <td colspan="2">
-                Address : <%= profileData.schoolDeliveryAddress %>
+                Address :<span> <%= profileData.schoolDeliveryAddress %></span>
               </td>
             </tr>
             <tr>
@@ -161,7 +163,10 @@
               <td>Payment Terms : <%= profileData.paymentTerms %></td>
             </tr>
             <tr>
-              <td>Advance Amount Received :</td>
+              <td>
+                Advance Amount Received : <%= profileData.advanceRequiredAmount
+                %>
+              </td>
             </tr>
             <tr>
               <td>GSTIN :</td>
@@ -215,8 +220,8 @@
 
     <p>
       <strong
-        >Amount In Words : <%= convertToWords(quoteProposalData.totalAmount)
-        %></strong
+        >Amount Chargeable (in words ) : INR <%=
+        convertToWords(quoteProposalData.totalAmount) %> Only</strong
       >
     </p>
 
@@ -266,6 +271,13 @@
         </tr>
       </tbody>
     </table>
+
+    <p>
+      <strong
+        >Tax Amount (in words ) : INR <%=
+        convertToWords(quoteProposalData.totalTaxAmount) %> Only</strong
+      >
+    </p>
 
     <br /><br />
     <div class="right bold">For EdProwise Tech Pvt. Ltd</div>

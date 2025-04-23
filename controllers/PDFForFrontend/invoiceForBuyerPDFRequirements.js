@@ -41,7 +41,7 @@ async function invoiceForBuyerPDFRequirements(req, res) {
       ),
       QuoteProposal.findOne({ enquiryNumber, sellerId }).lean(),
       SubmitQuote.findOne({ enquiryNumber, sellerId }).select(
-        "paymentTerms advanceRequiredAmount expectedDeliveryDateBySeller"
+        "paymentTerms advanceRequiredAmount expectedDeliveryDateBySeller advanceRequiredAmount"
       ),
       SellerProfile.findOne({ sellerId }).select(
         "companyName address landmark cityStateCountry gstin pan contactNo emailId"
