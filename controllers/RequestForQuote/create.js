@@ -645,7 +645,7 @@ async function sendEmailsToSellers({
                             <p class="message">Dear Seller,</p>
                             
 
-                            <p class="message">New quote request has been received, pls processing it now. </p>
+                            <p class="message">New quote request has been received, pls submit now.. Hurry Up !!! </p>
                             <p class="message">Quote requested details are as follow : </p>
 
                             <h3>Enquiry Number : ${enquiryNumber}</h3>
