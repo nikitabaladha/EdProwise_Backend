@@ -81,9 +81,9 @@ async function updateById(req, res) {
       schoolLocation: schoolLocation || existingSchool.schoolLocation,
       affiliationUpto: affiliationUpto || existingSchool.affiliationUpto,
       panNo: panNo || existingSchool.panNo,
-      profileImage,
       affiliationCertificate,
       panFile,
+      profileImage,
       panNo: panNo || existingSchool.panNo,
       landMark: landMark || existingSchool.landMark,
       schoolPincode: schoolPincode || existingSchool.schoolPincode,
@@ -102,8 +102,10 @@ async function updateById(req, res) {
 
     const updatedSchool = await SchoolRegistration.findOneAndUpdate(
       { schoolId },
-      { status: "Completed" },
-      { $set: updatedData },
+      {
+        $set: updatedData,
+        status: "Completed",
+      },
       { new: true }
     );
 
