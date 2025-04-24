@@ -303,6 +303,27 @@
 
     <br /><br />
     <div class="right bold">For EdProwise Tech Pvt. Ltd</div>
-    <div class="right bold" style="margin-top: 50px">Authorised Signatory</div>
+    <div
+      class="right bold"
+      style="
+        margin-top: 50px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      "
+    >
+      <div>Authorised Signatory</div>
+      <% if (profileData.signature) { %>
+      <div style="margin-top: 20px">
+        <img
+          src="<%= profileData.signature %>"
+          alt="Company Signature"
+          style="width: 300ps; height: 40px; display: block"
+        />
+      </div>
+      <% } else { %>
+      <div style="margin-top: 20px">_________________________</div>
+      <% } %>
+    </div>
   </body>
 </html>

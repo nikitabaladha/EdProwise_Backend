@@ -44,7 +44,7 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         "paymentTerms advanceRequiredAmount expectedDeliveryDateBySeller advanceRequiredAmount"
       ),
       SellerProfile.findOne({ sellerId }).select(
-        "companyName address landmark cityStateCountry gstin pan contactNo emailId"
+        "companyName address landmark cityStateCountry gstin pan contactNo emailId signature"
       ),
       EdprowiseProfile.findOne().select(
         "companyName companyType gstin pan tan cin address cityStateCountry landmark pincode contactNo alternateContactNo emailId"
@@ -166,6 +166,24 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
       return words.trim();
     };
 
+    const signaturePath = path.join(
+      __dirname,
+      "Images",
+      "SellerSignature",
+      // Remove any existing path segments from the signature filename
+      path.basename(sellerProfile.signature)
+    );
+
+    let signatureDataURI = "";
+
+    if (sellerProfile.signature) {
+      const signatureBuffer = fs.readFileSync(signaturePath);
+      const signatureType = path.extname(signaturePath).replace(".", "");
+      signatureDataURI = `data:image/${signatureType};base64,${signatureBuffer.toString(
+        "base64"
+      )}`;
+    }
+
     const dynamicData = {
       prepareQuoteData: prepareQuotesWithStatus,
       quoteProposalData: quoteProposal,
@@ -195,6 +213,7 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         expectedDeliveryDate: submitQuote?.expectedDeliveryDateBySeller || null,
         // Seller
         sellerCompanyName: sellerProfile.companyName,
+        signature: signatureDataURI,
         sellerAddress: `${sellerProfile.address || ""}${
           sellerProfile.landmark ? `, ${sellerProfile.landmark}` : ""
         }`,
