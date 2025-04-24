@@ -326,10 +326,23 @@ async function create(req, res) {
         ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
         : "/Images/DummyImages/Dummy_Profile.png";
 
+    const signatureImagePath = "/Images/SellerSignature";
+    const signature =
+      req.files && req.files.signature && req.files.signature[0]
+        ? `${signatureImagePath}/${req.files.signature[0].filename}`
+        : null;
+
     const panFile = req.files && req.files.panFile ? req.files.panFile : null;
     const gstFile = req.files && req.files.gstFile ? req.files.gstFile : null;
     const tanFile = req.files && req.files.tanFile ? req.files.tanFile : null;
     const cinFile = req.files && req.files.cinFile ? req.files.cinFile : null;
+
+    if (!signature || !signature[0]) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Signature is required.",
+      });
+    }
 
     if (!panFile || !panFile[0]) {
       return res.status(400).json({
@@ -337,6 +350,7 @@ async function create(req, res) {
         message: "Seller PAN File is required.",
       });
     }
+
     if (!gstFile || !gstFile[0]) {
       return res.status(400).json({
         hasError: true,
@@ -389,6 +403,7 @@ async function create(req, res) {
       alternateContactNo,
       emailId,
       sellerProfile,
+      signature,
       panFile: panFilePath,
       gstFile: gstFilePath,
       tanFile: tanFilePath,

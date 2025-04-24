@@ -4,6 +4,9 @@ const SellerProfileCreateValidator = Joi.object({
   sellerProfile: Joi.string().optional().trim().messages({
     "string.base": "Seller Profile must be a string.",
   }),
+  signature: Joi.string().optional().trim().messages({
+    "string.base": "Seller Signature must be a string.",
+  }),
   tanFile: Joi.string().optional().trim().messages({
     "string.base": "TAN File must be a string.",
   }),
@@ -245,6 +248,9 @@ const SellerProfileCreateValidator = Joi.object({
 const SellerProfileUpdateValidator = Joi.object({
   sellerProfile: Joi.string().optional().trim().messages({
     "string.base": "Seller Profile must be a string.",
+  }),
+  signature: Joi.string().optional().trim().messages({
+    "string.base": "Seller Signature must be a string.",
   }),
   tanFile: Joi.string().optional().trim().messages({
     "string.base": "TAN File must be a string.",

@@ -80,6 +80,10 @@ const SellerProfileSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    signature: {
+      type: String,
+      required: true,
+    },
     panFile: {
       type: String,
       required: true,

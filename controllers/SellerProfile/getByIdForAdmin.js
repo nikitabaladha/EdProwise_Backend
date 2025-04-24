@@ -53,6 +53,7 @@ async function getByIdForAdmin(req, res) {
       alternateContactNo: sellerProfile.alternateContactNo,
       emailId: sellerProfile.emailId,
       sellerProfile: sellerProfile.sellerProfile,
+      signature: sellerProfile.signature,
       panFile: sellerProfile.panFile,
       gstFile: sellerProfile.gstFile,
       tanFile: sellerProfile.tanFile,

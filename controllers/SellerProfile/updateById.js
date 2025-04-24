@@ -80,6 +80,11 @@ async function update(req, res) {
       ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
       : existingSeller.sellerProfile;
 
+    const signatureImagePath = "/Images/SellerSignature";
+    const signature = req.files?.signature?.[0]?.filename
+      ? `${signatureImagePath}/${req.files.signature[0].filename}`
+      : existingSeller.signature;
+
     const panFile = req.files?.panFile ? req.files.panFile : null;
     const gstFile = req.files?.gstFile ? req.files.gstFile : null;
     const tanFile = req.files?.tanFile ? req.files.tanFile : null;
@@ -138,6 +143,7 @@ async function update(req, res) {
       ceoName: ceoName || existingSeller.ceoName,
       turnover: turnover || existingSeller.turnover,
       sellerProfile,
+      signature,
       panFile: panFilePath,
       gstFile: gstFilePath,
       tanFile: tanFilePath,

@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 
 // Directories for storing files
+const sellerSignatureDir = "./Images/SellerSignature";
 const sellerProfileDir = "./Images/SellerProfile";
 const sellerPanFileDir = "./Documents/SellerPanFile";
 const sellerPanImageDir = "./Images/SellerPanFile";
@@ -22,6 +23,7 @@ const createDirectoryIfNotExist = (dir) => {
 
 // Creating all the directories
 createDirectoryIfNotExist(sellerProfileDir);
+createDirectoryIfNotExist(sellerSignatureDir);
 createDirectoryIfNotExist(sellerPanFileDir);
 createDirectoryIfNotExist(sellerPanImageDir);
 createDirectoryIfNotExist(sellerGstFileDir);
@@ -37,6 +39,8 @@ const sellerProfileUpload = multer({
     destination: (req, file, cb) => {
       if (file.fieldname === "sellerProfile") {
         cb(null, sellerProfileDir);
+      } else if (file.fieldname === "signature") {
+        cb(null, sellerSignatureDir);
       } else if (file.fieldname === "panFile") {
         if (file.mimetype.startsWith("image/")) {
           cb(null, sellerPanImageDir);
@@ -96,43 +100,92 @@ const sellerProfileUpload = multer({
     if (file.fieldname === "sellerProfile") {
       const allowedFileTypes = /jpeg|jpg|png/;
       const mimeType = allowedFileTypes.test(file.mimetype);
-      const extName = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+      const extName = allowedFileTypes.test(
+        path.extname(file.originalname).toLowerCase()
+      );
       if (mimeType && extName) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG, JPG, or PNG files are allowed for Profile Image"));
+        cb(
+          new Error(
+            "Only JPEG, JPG, or PNG files are allowed for Profile Image"
+          )
+        );
+      }
+    } else if (file.fieldname === "signature") {
+      const allowedFileTypes = /jpeg|jpg|png/;
+      const mimeType = allowedFileTypes.test(file.mimetype);
+      const extName = allowedFileTypes.test(
+        path.extname(file.originalname).toLowerCase()
+      );
+      if (mimeType && extName) {
+        cb(null, true);
+      } else {
+        cb(
+          new Error(
+            "Only JPEG, JPG, or PNG files are allowed for Signature Image"
+          )
+        );
       }
     } else if (file.fieldname === "panFile") {
       const allowedImageTypes = /jpeg|jpg|png/;
       const allowedPdfType = /application\/pdf/;
-      if (allowedImageTypes.test(file.mimetype) || allowedPdfType.test(file.mimetype)) {
+      if (
+        allowedImageTypes.test(file.mimetype) ||
+        allowedPdfType.test(file.mimetype)
+      ) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG, JPG, PNG, or PDF files are allowed for PAN file"));
+        cb(
+          new Error(
+            "Only JPEG, JPG, PNG, or PDF files are allowed for PAN file"
+          )
+        );
       }
     } else if (file.fieldname === "gstFile") {
       const allowedImageTypes = /jpeg|jpg|png/;
       const allowedPdfType = /application\/pdf/;
-      if (allowedImageTypes.test(file.mimetype) || allowedPdfType.test(file.mimetype)) {
+      if (
+        allowedImageTypes.test(file.mimetype) ||
+        allowedPdfType.test(file.mimetype)
+      ) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG, JPG, PNG, or PDF files are allowed for GST file"));
+        cb(
+          new Error(
+            "Only JPEG, JPG, PNG, or PDF files are allowed for GST file"
+          )
+        );
       }
     } else if (file.fieldname === "tanFile") {
       const allowedImageTypes = /jpeg|jpg|png/;
       const allowedPdfType = /application\/pdf/;
-      if (allowedImageTypes.test(file.mimetype) || allowedPdfType.test(file.mimetype)) {
+      if (
+        allowedImageTypes.test(file.mimetype) ||
+        allowedPdfType.test(file.mimetype)
+      ) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG, JPG, PNG, or PDF files are allowed for TAN file"));
+        cb(
+          new Error(
+            "Only JPEG, JPG, PNG, or PDF files are allowed for TAN file"
+          )
+        );
       }
     } else if (file.fieldname === "cinFile") {
       const allowedImageTypes = /jpeg|jpg|png/;
       const allowedPdfType = /application\/pdf/;
-      if (allowedImageTypes.test(file.mimetype) || allowedPdfType.test(file.mimetype)) {
+      if (
+        allowedImageTypes.test(file.mimetype) ||
+        allowedPdfType.test(file.mimetype)
+      ) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG, JPG, PNG, or PDF files are allowed for CIN file"));
+        cb(
+          new Error(
+            "Only JPEG, JPG, PNG, or PDF files are allowed for CIN file"
+          )
+        );
       }
     } else {
       cb(new Error("Invalid file fieldname"));

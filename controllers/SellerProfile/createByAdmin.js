@@ -334,6 +334,12 @@ async function createByAdmin(req, res) {
         ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
         : "/Images/DummyImages/Dummy_Profile.png";
 
+    const signatureImagePath = "/Images/SellerSignature";
+    const signature =
+      req.files && req.files.signature && req.files.signature[0]
+        ? `${signatureImagePath}/${req.files.signature[0].filename}`
+        : null;
+
     // Ensure files are present before trying to access them
     const panFile = req.files && req.files.panFile ? req.files.panFile : null;
     const gstFile = req.files && req.files.gstFile ? req.files.gstFile : null;
@@ -395,6 +401,7 @@ async function createByAdmin(req, res) {
       alternateContactNo,
       emailId,
       sellerProfile,
+      signature,
       panFile: panFilePath,
       gstFile: gstFilePath,
       tanFile: tanFilePath,

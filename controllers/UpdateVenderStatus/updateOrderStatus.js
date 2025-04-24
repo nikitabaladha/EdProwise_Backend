@@ -35,15 +35,11 @@ async function updateOrderStatus(req, res) {
       });
     }
 
-    console.log("Existing Quote before update:", existingQuote);
-
     // Update the orderStatus
     existingQuote.orderStatus = orderStatus;
 
     // Save the updated QuoteProposal
     const updatedQuote = await existingQuote.save();
-
-    console.log("Updated Quote:", updatedQuote);
 
     return res.status(200).json({
       hasError: false,

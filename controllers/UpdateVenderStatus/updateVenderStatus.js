@@ -623,11 +623,8 @@ async function updateVenderStatus(req, res) {
 
       await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
         enquiryNumber,
-
         products,
-
         sellerCompanyName,
-
         quoteDetails,
       });
     }
