@@ -341,11 +341,9 @@ async function create(req, res) {
       schoolMobileNo,
       schoolEmail,
       schoolAddress,
+      schoolLocation,
       affiliationUpto,
       panNo,
-      country,
-      state,
-      city,
     } = req.body;
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
@@ -384,10 +382,7 @@ async function create(req, res) {
       schoolMobileNo,
       schoolEmail,
       schoolAddress,
-
-      country,
-      state,
-      city,
+      schoolLocation,
       profileImage: profileImagePath,
       affiliationCertificate: affiliationCertificateFullPath,
       affiliationUpto,

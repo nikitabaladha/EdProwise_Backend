@@ -37,12 +37,21 @@ const SchoolRegistrationCreateValidator = Joi.object({
     "any.required": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School Location must be a string.",
-    "string.empty": "School Location cannot be empty.",
-    "any.required": "School Location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
@@ -108,12 +117,21 @@ const SchoolRegistrationUpdateValidator = Joi.object({
     "any.required": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School Location must be a string.",
-    "string.empty": "School Location cannot be empty.",
-    "any.required": "School Location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
@@ -166,9 +184,20 @@ const SchoolProfileUpdateValidator = Joi.object({
     "string.empty": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School location must be a string.",
-    "string.empty": "School location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
+  }),
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
   }),
 
   landMark: Joi.string().required().messages({
@@ -287,11 +316,21 @@ const SchoolProfileCreateByUserValidator = Joi.object({
     "string.empty": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School location must be a string.",
-    "string.empty": "School location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   landMark: Joi.string().required().messages({
     "string.base": "Landmark must be a string.",
     "string.empty": "Landmark is required.",

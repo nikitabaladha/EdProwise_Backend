@@ -21,7 +21,16 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    schoolLocation: {
+
+    country: {
+      type: String,
+      required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    city: {
       type: String,
       required: true,
     },
