@@ -34,20 +34,20 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
       prepareQuotes,
     ] = await Promise.all([
       SchoolRegistration.findOne({ schoolId }).select(
-        "schoolName schoolEmail schoolMobileNo panNo schoolAddress schoolLocation landMark schoolPincode"
+        "schoolName schoolEmail schoolMobileNo panNo schoolAddress city state country landMark schoolPincode"
       ),
       QuoteRequest.findOne({ schoolId, enquiryNumber }).select(
-        "deliveryAddress deliveryLandMark deliveryLocation createdAt enquiryNumber"
+        "deliveryAddress deliveryLandMark deliveryCity deliveryState deliveryCountr createdAt enquiryNumber"
       ),
       QuoteProposal.findOne({ enquiryNumber, sellerId }).lean(),
       SubmitQuote.findOne({ enquiryNumber, sellerId }).select(
         "paymentTerms advanceRequiredAmount expectedDeliveryDateBySeller advanceRequiredAmount"
       ),
       SellerProfile.findOne({ sellerId }).select(
-        "companyName address landmark cityStateCountry gstin pan contactNo emailId signature"
+        "companyName address landmark city state country gstin pan contactNo emailId signature"
       ),
       EdprowiseProfile.findOne().select(
-        "companyName companyType gstin pan tan cin address cityStateCountry landmark pincode contactNo alternateContactNo emailId"
+        "companyName companyType gstin pan tan cin address city state country landmark pincode contactNo alternateContactNo emailId"
       ),
       OrderDetailsFromSeller.findOne({ schoolId, sellerId }).select(
         "invoiceDate invoiceForSchool invoiceForEdprowise"
@@ -175,8 +175,7 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
     );
 
     let signatureDataURI = "";
-
-    if (sellerProfile.signature) {
+    if (!signatureDataURI) {
       const signatureBuffer = fs.readFileSync(signaturePath);
       const signatureType = path.extname(signaturePath).replace(".", "");
       signatureDataURI = `data:image/${signatureType};base64,${signatureBuffer.toString(
@@ -193,7 +192,9 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         schoolContactNumber: school.schoolMobileNo,
         schoolPanNumber: school.panNo,
         schoolAddress: school.schoolAddress,
-        schoolLocation: school.schoolLocation,
+        schoolCity: school.city,
+        schoolState: school.state,
+        schoolCountry: school.country,
         schoolLandmark: school.landMark,
         schoolPincode: school.schoolPincode,
         schoolEmailId: school.schoolEmail,
@@ -202,7 +203,9 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
             ? `, ${quoteRequest.deliveryLandMark}`
             : ""
         }`,
-        schoolDeliveryLocation: quoteRequest.deliveryLocation,
+        schoolDeliveryCity: quoteRequest.deliveryCity,
+        schoolDeliveryState: quoteRequest.deliveryState,
+        schoolDeliveryCountry: quoteRequest.deliveryCountry,
         quoteRequestedDate: quoteRequest.createdAt,
         enquiryNumber: quoteRequest.enquiryNumber,
         // Quote
@@ -217,7 +220,9 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         sellerAddress: `${sellerProfile.address || ""}${
           sellerProfile.landmark ? `, ${sellerProfile.landmark}` : ""
         }`,
-        sellerCityStateCountry: sellerProfile.cityStateCountry,
+        sellerCity: sellerProfile.city,
+        sellerState: sellerProfile.state,
+        sellerCountry: sellerProfile.country,
         sellerGstin: sellerProfile.gstin,
         sellerPanNumber: sellerProfile.pan,
         sellerContactNumber: sellerProfile.contactNo,
@@ -232,7 +237,11 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         edprowiseAddress: `${edprowiseProfile.address || ""}${
           edprowiseProfile.landmark ? `, ${edprowiseProfile.landmark}` : ""
         }`,
-        edprowiseCityStateCountry: edprowiseProfile.cityStateCountry,
+        edprowiseCity: edprowiseProfile.city,
+        edprowiseState: edprowiseProfile.state,
+
+        edprowiseCountry: edprowiseProfile.country,
+
         edprowisePincode: edprowiseProfile.pincode,
         edprowiseContactNo: edprowiseProfile.contactNo,
         edprowiseAlternateContactNo: edprowiseProfile.alternateContactNo,

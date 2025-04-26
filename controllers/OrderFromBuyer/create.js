@@ -671,7 +671,9 @@ async function create(req, res) {
       enquiryNumber,
       products,
       deliveryAddress,
-      deliveryLocation,
+      deliveryCountry,
+      deliveryState,
+      deliveryCity,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,
@@ -830,8 +832,14 @@ async function create(req, res) {
         {
           $set: {
             deliveryAddress: { $ifNull: [deliveryAddress, "$deliveryAddress"] },
-            deliveryLocation: {
-              $ifNull: [deliveryLocation, "$deliveryLocation"],
+            deliveryCountry: {
+              $ifNull: [deliveryCountry, "$deliveryCountry"],
+            },
+            deliveryState: {
+              $ifNull: [deliveryState, "$deliveryState"],
+            },
+            deliveryCity: {
+              $ifNull: [deliveryCity, "$deliveryCity"],
             },
             deliveryLandMark: {
               $ifNull: [deliveryLandMark, "$deliveryLandMark"],
@@ -920,7 +928,9 @@ async function create(req, res) {
 
         deliveryAddress,
 
-        deliveryLocation,
+        deliveryCountry,
+        deliveryState,
+        deliveryCity,
 
         deliveryLandMark,
 

@@ -26,7 +26,10 @@ async function getAll(req, res) {
       tan: profile.tan,
       cin: profile.cin,
       address: profile.address,
-      cityStateCountry: profile.cityStateCountry,
+
+      city: profile.city,
+      state: profile.state,
+      country: profile.country,
       landmark: profile.landmark,
       pincode: profile.pincode,
       contactNo: profile.contactNo,

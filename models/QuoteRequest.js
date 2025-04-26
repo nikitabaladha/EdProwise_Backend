@@ -11,7 +11,15 @@ const QuoteRequestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    deliveryLocation: {
+    deliveryCity: {
+      type: String,
+      required: true,
+    },
+    deliveryState: {
+      type: String,
+      required: true,
+    },
+    deliveryCountry: {
       type: String,
       required: true,
     },

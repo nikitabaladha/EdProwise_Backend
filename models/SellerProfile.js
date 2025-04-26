@@ -50,10 +50,20 @@ const SellerProfileSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    cityStateCountry: {
+
+    country: {
       type: String,
       required: true,
     },
+    state: {
+      type: String,
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true,
+    },
+
     landmark: {
       type: String,
       required: true,

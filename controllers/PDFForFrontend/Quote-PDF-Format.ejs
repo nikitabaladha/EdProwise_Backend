@@ -62,8 +62,9 @@
             </tr>
             <tr>
               <td colspan="2">
-                <%= profileData.edprowiseCityStateCountry %> <%=
-                profileData.edprowisePincode %>
+                <%= profileData.edprowiseCity %> , <%=
+                profileData.edprowiseState %> , <%= profileData.edprowiseCountry
+                %><%= profileData.edprowisePincode %>
               </td>
             </tr>
           </table>
@@ -109,14 +110,10 @@
               </td>
             </tr>
             <tr>
-              <td>
-                City : <%= profileData.schoolDeliveryLocation?.split(",")[0] %>
-              </td>
+              <td>City : <%= profileData.schoolDeliveryCity%></td>
             </tr>
             <tr>
-              <td>
-                State : <%= profileData.schoolDeliveryLocation?.split(",")[1] %>
-              </td>
+              <td>State : <%= profileData.schoolDeliveryState%></td>
             </tr>
             <tr>
               <td>GSTIN :</td>

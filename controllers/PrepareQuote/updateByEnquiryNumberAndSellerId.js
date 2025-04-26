@@ -6,15 +6,6 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
 
-function extractState(locationString) {
-  if (!locationString) return null;
-  const parts = locationString.split(",");
-  if (parts.length >= 2) {
-    return parts[1].trim();
-  }
-  return null;
-}
-
 async function updateSingleProduct(req, res) {
   try {
     const { sellerId, enquiryNumber, id } = req.query;
@@ -65,9 +56,9 @@ async function updateSingleProduct(req, res) {
     }
 
     // Extract states from location strings
-    const schoolState = extractState(quoteRequest.deliveryLocation);
-    const sellerState = extractState(sellerProfile.cityStateCountry);
-    const edprowiseState = extractState(edprowiseProfile.cityStateCountry);
+    const schoolState = quoteRequest.deliveryState;
+    const sellerState = sellerProfile.state;
+    const edprowiseState = edprowiseProfile.state;
 
     if (!schoolState || !sellerState || !edprowiseState) {
       return res.status(400).json({

@@ -800,7 +800,9 @@ async function create(req, res) {
 
     const {
       deliveryAddress,
-      deliveryLocation,
+      deliveryCity,
+      deliveryState,
+      deliveryCountry,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,
@@ -810,7 +812,9 @@ async function create(req, res) {
       schoolId,
       enquiryNumber,
       deliveryAddress,
-      deliveryLocation,
+      deliveryCity,
+      deliveryState,
+      deliveryCountry,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,

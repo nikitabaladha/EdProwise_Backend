@@ -384,7 +384,6 @@ async function create(req, res) {
       schoolMobileNo,
       schoolEmail,
       schoolAddress,
-
       country,
       state,
       city,
