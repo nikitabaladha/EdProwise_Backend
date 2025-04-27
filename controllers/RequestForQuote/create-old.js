@@ -1,15 +1,16 @@
-import mongoose from "mongoose";
-import OrderFromBuyer from "../../models/OrderFromBuyer.js";
+import Product from "../../models/Product.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
-import Cart from "../../models/Cart.js";
-import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
-import QuoteProposal from "../../models/QuoteProposal.js";
-import SubmitQuote from "../../models/SubmitQuote.js";
+import ProductValidator from "../../validators/Product.js";
+import mongoose from "mongoose";
 
+import School from "../../models/School.js";
+import Category from "../../models/Category.js";
+import SubCategory from "../../models/SubCategory.js";
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
-import School from "../../models/School.js";
+// import SchoolRequestForQuoteEmailTemplate from "../../models/EmailTeamplates/SchoolRequestForQuoteEmailTemplate.js";
 import SellerProfile from "../../models/SellerProfile.js";
+// import NewQuoteRequestReceiveEmailTemplate from "../../models/EmailTeamplates/NewQuoteRequestReceiveEmailTemplate.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -18,60 +19,8 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function generateOrderNumber() {
-  const prefix = "ORD";
-
-  // Get current date
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
-
-  // Determine financial year (April to March)
-  let financialYearStart, financialYearEnd;
-  if (currentMonth >= 4) {
-    // April or later - current year to next year (2024-25)
-    financialYearStart = currentYear;
-    financialYearEnd = currentYear + 1;
-  } else {
-    // January-March - previous year to current year (2023-24)
-    financialYearStart = currentYear - 1;
-    financialYearEnd = currentYear;
-  }
-
-  const financialYear = `${financialYearStart}-${financialYearEnd
-    .toString()
-    .slice(-2)}`;
-
-  // Find the last enquiry number for this financial year
-  const lastEnquiry = await QuoteRequest.findOne({
-    enquiryNumber: new RegExp(`^${prefix}/${financialYear}/`),
-  }).sort({ createdAt: -1 });
-
-  let sequenceNumber;
-  if (lastEnquiry) {
-    // Extract the sequence number from the last enquiry
-    const lastSequence = parseInt(lastEnquiry.enquiryNumber.split("/")[2]);
-    sequenceNumber = lastSequence + 1;
-  } else {
-    // First enquiry of this financial year
-    sequenceNumber = 1;
-  }
-
-  // Format the sequence number with leading zeros
-  const formattedSequence = String(sequenceNumber).padStart(4, "0");
-
-  return `${prefix}/${financialYear}/${formattedSequence}`;
-}
-
-function generateInvoiceNumberForEdprowise() {
-  const prefix = "EINV";
-  const randomSuffix = Math.floor(Math.random() * 100000000);
-  const formattedSuffix = String(randomSuffix).padStart(8, "0");
-  return `${prefix}${formattedSuffix}`;
-}
-
-function generateInvoiceNumberForSchool() {
-  const prefix = "SINV";
+function generateEnquiryNumber() {
+  const prefix = "ENQ";
   const randomSuffix = Math.floor(Math.random() * 100000000);
   const formattedSuffix = String(randomSuffix).padStart(8, "0");
   return `${prefix}${formattedSuffix}`;
@@ -80,7 +29,7 @@ function generateInvoiceNumberForSchool() {
 async function sendSchoolRequestQuoteEmail(
   schoolName,
   schoolEmail,
-  orderDetails
+  usersWithCredentials
 ) {
   let hasError = false;
   let message = "";
@@ -106,10 +55,6 @@ async function sendSchoolRequestQuoteEmail(
         rejectUnauthorized: false,
       },
     });
-
-    const { orderNumber, products } = orderDetails;
-    const enquiryNumber =
-      products.length > 0 ? products[0].enquiryNumber : "N/A";
 
     const logoImagePath = path.join(
       __dirname,
@@ -141,42 +86,64 @@ async function sendSchoolRequestQuoteEmail(
     const viewQuoteUrl = `${frontendUrl.replace(
       /\/+$/,
       ""
-    )}/school-dashboard/procurement-services/track-order-history`;
+    )}/school-dashboard/procurement-services/track-quote`;
     const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
+    const { enquiryNumber, products, quoteRequest } = usersWithCredentials;
+
     const quoteDetailsHtml = `
-    <h3 style="font-size: 17px;">Order Details</h3>
-    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th >S.No</th>
-          <th >Category</th>
-          <th >Quantity</th>
-          <th >Rate</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${products
-          .map(
-            (product, index) => `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
           <tr>
-            <td style="text-align: center;">${index + 1}</td>
-            <td style="text-align: center;">${product.subcategoryName}</td>
-            <td style="text-align: center;">${product.quantity}</td>
-            <td style="text-align: center;">${product.finalRate}</td>
+            <th>S.No</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Quantity</th>
           </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-    </table>
-  `;
+        </thead>
+        <tbody>
+          ${products
+            .map(
+              (product, index) => `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `;
+
+    // 6. Create deliveryDetailsHtml
+    const deliveryDetailsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <tr><th>Address</th>  <td>${
+          quoteRequest.deliveryAddress || "-"
+        }</td>  </tr>
+        <tr><th>Location</th> <td>${
+          quoteRequest.deliveryLocation || "-"
+        }</td> </tr>
+        <tr><th>Landmark</th> <td>${
+          quoteRequest.deliveryLandMark || "-"
+        }</td> </tr>
+        <tr><th>Pincode</th>  <td>${
+          quoteRequest.deliveryPincode || "-"
+        }</td>  </tr>
+        <tr><th>Expected Delivery Date</th><td>${
+          quoteRequest.expectedDeliveryDate || "-"
+        }</td></tr>        
+      </table>
+    `;
 
     // 8. Send email
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: `Order Place Successfully For #${enquiryNumber}`,
+      subject: "Request For Quote Done",
       html: `
               <!DOCTYPE html>
                 <html>
@@ -194,7 +161,7 @@ async function sendSchoolRequestQuoteEmail(
                         }
 
                        .outer-div{
-                         
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -327,23 +294,24 @@ async function sendSchoolRequestQuoteEmail(
                             <p class="message">Dear ${schoolName},</p>
                             
 
-                            <p class="message">This Email confirm that your order, has been placed and is being processed.</p>
-                            
+                            <p class="message">Your request has been received and we are processing it now. </p>
+                            <p class="message">Your quote requested details are as follow : </p>
+
                             <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
-                            <h3 class="heading">Order Number : ${orderNumber}</h3>
 
                             <!-- Quote Details Box -->
                             ${quoteDetailsHtml}
 
-                
+                            <h4>Delivery Information</h4>
+                            ${deliveryDetailsHtml}
+
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view quote proposal </p>
+                            <p class="message">Please click below button for view requested quote </p>
                             <div style="text-align: center;">
                                 <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-                            
+                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -378,19 +346,17 @@ async function sendSchoolRequestQuoteEmail(
   }
 }
 
-async function sendEmailsToSellers(
-  sellerName,
-  sellerEmail,
-  schoolName,
-  orderDetails
-) {
+async function sendEmailsToSellers({
+  enrichedProducts,
+  newQuoteRequest,
+  enquiryNumber,
+}) {
   try {
     const smtpSettings = await SMTPEmailSetting.findOne();
     if (!smtpSettings) {
       return { hasError: true, message: "SMTP settings not found" };
     }
 
-    console.log("Setting up email transporter...");
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
@@ -408,6 +374,7 @@ async function sendEmailsToSellers(
     );
 
     if (!fs.existsSync(logoImagePath)) {
+      console.error("Logo not found at:", logoImagePath);
       return { hasError: true, message: "Logo file not found" };
     }
 
@@ -428,74 +395,107 @@ async function sendEmailsToSellers(
     ];
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const sellerDashboardUrl = `${frontendUrl.replace(
+    const viewQuoteUrl = `${frontendUrl.replace(
       /\/+$/,
       ""
-    )}/seller-dashboard/procurement-services/track-order-history`;
+    )}/seller-dashboard/procurement-services/track-quote`;
     const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
-    const {
-      orderNumber,
-      products,
-      deliveryAddress,
-      deliveryLocation,
-      deliveryLandMark,
-      deliveryPincode,
-      expectedDeliveryDate,
-    } = orderDetails;
+    const sellerMap = new Map();
+    let totalMatchedSellers = 0;
 
-    const enquiryNumber =
-      products.length > 0 ? products[0].enquiryNumber : "N/A";
+    for (const product of enrichedProducts) {
+      // Corrected query to match dealingProducts structure
+      const matchedSellers = await SellerProfile.find({
+        "dealingProducts.categoryId": product.categoryId,
+        "dealingProducts.subCategoryIds": product.subCategoryId,
+      });
 
-    const productHtml = products
-      .map(
-        (product, index) => `
-      <tr>
-        <td style="text-align: center;">${index + 1}</td>
-        <td style="text-align: center;">${product.subcategoryName}</td>
-        <td style="text-align: center;">${product.quantity}</td>
-        <td style="text-align: center;">₹${product.finalRate}</td>
-        <td style="text-align: center;">₹${product.totalAmount}</td>
-      </tr>
-    `
-      )
-      .join("");
+      console.log(`Found ${matchedSellers.length} sellers for this product`);
+      totalMatchedSellers += matchedSellers.length;
 
-    const deliveryDetails = `
-      <h3 style="font-size: 17px;">Delivery Information</h3>
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-        <tr><th>Address</th><td>${deliveryAddress || "-"}</td></tr>
-        <tr><th>Location</th><td>${deliveryLocation || "-"}</td></tr>
-        <tr><th>Landmark</th><td>${deliveryLandMark || "-"}</td></tr>
-        <tr><th>Pincode</th><td>${deliveryPincode || "-"}</td></tr>
-        <tr><th>Expected Delivery Date</th><td>${
-          expectedDeliveryDate || "-"
-        }</td></tr>
-      </table>
-    `;
+      for (const seller of matchedSellers) {
+        const id = seller._id.toString();
+        if (!sellerMap.has(id)) {
+          sellerMap.set(id, { seller, products: [product] });
+        } else {
+          sellerMap.get(id).products.push(product);
+        }
+      }
+    }
 
-    const orderDetailsTable = `
-      <h3 style="font-size: 17px;">Ordered Products</h3>
+    // Rest of the function remains the same...
+    if (sellerMap.size === 0) {
+      return {
+        hasError: true,
+        message: "No matching sellers found for any products",
+      };
+    }
+
+    let emailsSent = 0;
+    for (const [id, { seller, products }] of sellerMap.entries()) {
+      try {
+        const productHtml = `
+        
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Category</th>
+            <th>Category</th>       
+            <th>Unit</th>
             <th>Quantity</th>
-            <th>Rate</th>
-            <th>Total Amount</th>
           </tr>
         </thead>
-        <tbody>${productHtml}</tbody>
+        <tbody>
+          ${products
+            .map(
+              (product, index) => `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
       </table>
-      ${deliveryDetails}
-    `;
+      
+      `;
 
-    const mailOptions = {
-      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
-      to: sellerEmail,
-      subject: `Order Received for Enquiry #${enquiryNumber}`,
-      html: `
+        const deliveryDetailsHtml = `
+          <h3>Delivery Information</h3>
+          <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+              <tr>
+                <th style="width: 30%;">Address</th>
+                <td >${newQuoteRequest.deliveryAddress || "-"}</td>
+              </tr>
+              <tr>
+                <th>Location</th>
+                <td>${newQuoteRequest.deliveryLocation || "-"}</td>
+              </tr>
+              <tr>
+                <th>Landmark</th>
+                <td>${newQuoteRequest.deliveryLandMark || "-"}</td>
+              </tr>
+              <tr>
+                <th>Pincode</th>
+                <td>${newQuoteRequest.deliveryPincode || "-"}</td>
+              </tr>
+              <tr>
+                <th>Expected Delivery Date</th>
+                <td>${newQuoteRequest.expectedDeliveryDate || "-"}</td>
+              </tr>
+            </table>
+          `;
+
+        // 8. Send email
+        const mailOptions = {
+          from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+          to: seller.emailId,
+          subject: "New Quote Request",
+          html: `
               <!DOCTYPE html>
                 <html>
                 <head>
@@ -512,7 +512,7 @@ async function sendEmailsToSellers(
                         }
 
                        .outer-div{
-                        
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -642,25 +642,27 @@ async function sendEmailsToSellers(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear ${sellerName},</p>
+                            <p class="message">Dear Seller,</p>
                             
 
-                            <p class="message">We are pleased to inform you that ${schoolName} has responded to your quote proposal with order. Below are the key details of their order</p>
-                            
-                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
-                            <h3 class="heading">Order Number : ${orderNumber}</h3>
+                            <p class="message">New quote request has been received, pls submit now.. Hurry Up !!! </p>
+                            <p class="message">Quote requested details are as follow : </p>
+
+                            <h3>Enquiry Number : ${enquiryNumber}</h3>
 
                             <!-- Quote Details Box -->
-                            ${orderDetailsTable}
+                            ${productHtml}
+
+                            
+                            ${deliveryDetailsHtml}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view order details </p>
+                            <p class="message">Please click below button for view quote </p>
                             <div style="text-align: center;">
-                                <a href="${sellerDashboardUrl}" class="action-button">View order</a>
+                                <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-                            
+                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -679,329 +681,213 @@ async function sendEmailsToSellers(
                 </body>
                 </html>
             `,
-      attachments: attachments,
+          attachments: attachments,
+        };
+
+        await transporter.sendMail(mailOptions);
+        emailsSent++;
+      } catch (emailError) {
+        console.error(`Failed to send email to ${seller.emailId}:`, emailError);
+      }
+    }
+
+    console.log(`Emails sent to ${emailsSent}/${sellerMap.size} sellers.`);
+    return {
+      hasError: false,
+      message: `Emails sent to ${emailsSent} sellers.`,
+      stats: {
+        totalProducts: enrichedProducts.length,
+        totalMatchedSellers,
+        emailsSent,
+      },
     };
-
-    await transporter.sendMail(mailOptions);
-
-    return { hasError: false, message: "Email sent successfully to seller." };
   } catch (error) {
-    console.error("Error sending email to seller:", error);
-    return { hasError: true, message: "Failed to send email to seller." };
+    console.error("Error in sendEmailsToSellers:", error);
+    return { hasError: true, message: "Failed to send seller emails." };
   }
 }
 
 async function create(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const schoolId = req.user?.schoolId;
+
     if (!schoolId) {
       return res.status(401).json({
         hasError: true,
         message:
-          "Access denied: You do not have permission to request a quote.",
+          "Access denied: You do not have permission to request for a quote.",
       });
     }
 
-    let {
-      enquiryNumber,
-      products,
+    let { products } = req.body;
+
+    if (typeof products === "string") {
+      try {
+        products = JSON.parse(products);
+
+        console.log("Number of products:", products.length);
+      } catch (error) {
+        return res.status(400).json({
+          hasError: true,
+          message: "Invalid products data format.",
+        });
+      }
+    }
+
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({
+        hasError: true,
+        message: "At least one product must be provided.",
+      });
+    }
+
+    const uploadedImages = req.files || [];
+    const createdEntries = [];
+    const enquiryNumber = generateEnquiryNumber();
+
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+
+      const { error } = ProductValidator.createProduct.validate({
+        schoolId,
+        ...product,
+      });
+
+      if (error?.details?.length) {
+        const errorMessages = error.details
+          .map((err) => err.message)
+          .join(", ");
+        return res.status(400).json({ hasError: true, message: errorMessages });
+      }
+
+      const requiredFields = [
+        "categoryId",
+        "subCategoryId",
+        "unit",
+        "quantity",
+      ];
+
+      for (const field of requiredFields) {
+        if (product[field] === undefined || product[field] === null) {
+          return res.status(400).json({
+            hasError: true,
+            message: `Field '${field}' is required`,
+          });
+        }
+      }
+
+      const productImageKey = `products[${i}][productImage]`;
+      const productImage = req.files[productImageKey]
+        ? `/Images/ProductImage/${req.files[productImageKey][0].filename}`
+        : null;
+
+      const newProduct = new Product({
+        schoolId,
+        productImage,
+        categoryId: product.categoryId,
+        subCategoryId: product.subCategoryId,
+        description: product.description || "No description provided",
+        unit: product.unit,
+        quantity: product.quantity,
+        enquiryNumber,
+      });
+
+      const savedEntry = await newProduct.save({ session });
+      createdEntries.push(savedEntry);
+    }
+
+    const {
       deliveryAddress,
-      deliveryCountry,
-      deliveryState,
       deliveryCity,
+      deliveryState,
+      deliveryCountry,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,
-    } = req.body;
+    } = JSON.parse(req.body.data);
 
-    if (!enquiryNumber) {
-      return res
-        .status(400)
-        .json({ hasError: true, message: "Enquiry number is required." });
-    }
-
-    if (!products || !Array.isArray(products) || products.length === 0) {
-      return res
-        .status(400)
-        .json({ hasError: true, message: "At least one product is required." });
-    }
-
-    const selectedCartIds = products.map((p) => p.cartId);
-    if (selectedCartIds.includes(undefined) || selectedCartIds.includes(null)) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Each product must have a valid cartId.",
-      });
-    }
-
-    const carts = await Cart.find({
-      _id: { $in: selectedCartIds },
+    const newQuoteRequest = new QuoteRequest({
+      schoolId,
       enquiryNumber,
+      deliveryAddress,
+      deliveryCity,
+      deliveryState,
+      deliveryCountry,
+      deliveryLandMark,
+      deliveryPincode,
+      expectedDeliveryDate,
+      buyerStatus: "Quote Requested",
+      supplierStatus: "Quote Requested",
+      edprowiseStatus: "Quote Requested",
     });
-    if (carts.length === 0) {
-      return res.status(404).json({
-        hasError: true,
-        message: "No carts found for the given enquiry number.",
-      });
-    }
 
-    const cartMap = new Map(carts.map((cart) => [cart._id.toString(), cart]));
-    const existingOrders = await OrderFromBuyer.find({
-      cartId: { $in: selectedCartIds },
-    }).select("cartId");
-    const existingCartIds = new Set(
-      existingOrders.map((order) => order.cartId.toString())
-    );
-
-    const sellerOrderNumbers = new Map();
-    const orderNumber = await generateOrderNumber();
-
-    const orderFromBuyerEntries = [];
-    const orderDetailsFromSellerEntries = new Map();
-
-    for (const product of products) {
-      const cartEntry = cartMap.get(product.cartId);
-      if (!cartEntry) {
-        return res.status(400).json({
-          hasError: true,
-          message: `Cart with ID ${product.cartId} not found.`,
-        });
-      }
-
-      if (!cartEntry.sellerId) {
-        return res.status(400).json({
-          hasError: true,
-          message: `Cart with ID ${product.cartId} is missing a sellerId.`,
-        });
-      }
-
-      if (existingCartIds.has(product.cartId)) {
-        return res.status(400).json({
-          hasError: true,
-          message: `These Product already present in Order table`,
-        });
-      }
-
-      // Get or generate order number for this seller
-      if (!sellerOrderNumbers.has(cartEntry.sellerId.toString())) {
-        sellerOrderNumbers.set(
-          cartEntry.sellerId.toString(),
-          generateOrderNumber()
-        );
-      }
-
-      const orderNumber = sellerOrderNumbers.get(cartEntry.sellerId.toString());
-
-      orderFromBuyerEntries.push({
-        orderNumber,
-        schoolId,
-        enquiryNumber,
-        cartId: product.cartId,
-        sellerId: cartEntry.sellerId,
-        cartImage: cartEntry.cartImage || null,
-        subcategoryName: cartEntry.subcategoryName || "",
-        subCategoryId: cartEntry.subCategoryId || "",
-        hsnSacc: cartEntry.hsnSacc || "",
-        listingRate: cartEntry.listingRate || 0,
-        edprowiseMargin: cartEntry.edprowiseMargin || 0,
-        quantity: cartEntry.quantity || 0,
-        finalRateBeforeDiscount: cartEntry.finalRateBeforeDiscount || 0,
-        discount: cartEntry.discount || 0,
-        finalRate: cartEntry.finalRate || 0,
-        taxableValue: cartEntry.taxableValue || 0,
-        cgstRate: cartEntry.cgstRate || 0,
-        cgstAmount: cartEntry.cgstAmount || 0,
-        sgstRate: cartEntry.sgstRate || 0,
-        sgstAmount: cartEntry.sgstAmount || 0,
-        igstRate: cartEntry.igstRate || 0,
-        igstAmount: cartEntry.igstAmount || 0,
-        amountBeforeGstAndDiscount: cartEntry.amountBeforeGstAndDiscount || 0,
-        discountAmount: cartEntry.discountAmount || 0,
-        gstAmount: cartEntry.gstAmount || 0,
-        totalAmount: cartEntry.totalAmount || 0,
-      });
-
-      const invoiceForSchool = generateInvoiceNumberForSchool();
-      const invoiceForEdprowise = generateInvoiceNumberForEdprowise();
-
-      const quoteProposal = await QuoteProposal.findOne({
-        sellerId: cartEntry.sellerId,
-        enquiryNumber: enquiryNumber,
-      }).session(session);
-
-      const quoteNumber = quoteProposal ? quoteProposal.quoteNumber : null;
-
-      if (!orderDetailsFromSellerEntries.has(cartEntry.sellerId.toString())) {
-        orderDetailsFromSellerEntries.set(cartEntry.sellerId.toString(), {
-          orderNumber,
-          sellerId: cartEntry.sellerId,
-          schoolId,
-          enquiryNumber,
-          invoiceForSchool,
-          invoiceForEdprowise,
-          quoteNumber,
-        });
-      }
-    }
-
-    if (orderFromBuyerEntries.length === 0) {
-      return res.status(400).json({
-        hasError: true,
-        message: "No valid products to add to Order.",
-      });
-    }
-
-    // Insert OrderFromBuyer entries
-    const savedEntries = await OrderFromBuyer.insertMany(
-      orderFromBuyerEntries,
-      { session }
-    );
-
-    // Insert OrderDetailsFromSeller entries
-    const orderDetailsList = Array.from(orderDetailsFromSellerEntries.values());
-    await OrderDetailsFromSeller.insertMany(orderDetailsList, { session });
-
-    await QuoteRequest.findOneAndUpdate(
-      { schoolId, enquiryNumber },
-      [
-        {
-          $set: {
-            deliveryAddress: { $ifNull: [deliveryAddress, "$deliveryAddress"] },
-            deliveryCountry: {
-              $ifNull: [deliveryCountry, "$deliveryCountry"],
-            },
-            deliveryState: {
-              $ifNull: [deliveryState, "$deliveryState"],
-            },
-            deliveryCity: {
-              $ifNull: [deliveryCity, "$deliveryCity"],
-            },
-            deliveryLandMark: {
-              $ifNull: [deliveryLandMark, "$deliveryLandMark"],
-            },
-            deliveryPincode: { $ifNull: [deliveryPincode, "$deliveryPincode"] },
-            expectedDeliveryDate: {
-              $ifNull: [expectedDeliveryDate, "$expectedDeliveryDate"],
-            },
-          },
-        },
-      ],
-      { session, upsert: true, new: true }
-    );
-
-    for (const entry of orderFromBuyerEntries) {
-      await QuoteProposal.findOneAndUpdate(
-        { sellerId: entry.sellerId, enquiryNumber: enquiryNumber },
-        {
-          supplierStatus: "Order Received",
-          edprowiseStatus: "Order Placed",
-          buyerStatus: "Order Placed",
-        },
-        { new: true }
-      );
-
-      await SubmitQuote.findOneAndUpdate(
-        { sellerId: entry.sellerId, enquiryNumber: enquiryNumber },
-        {
-          venderStatusFromBuyer: "Order Placed",
-        },
-        { new: true }
-      );
-    }
-
-    const sellerIds = Array.from(
-      new Set(orderFromBuyerEntries.map((entry) => entry.sellerId))
-    );
-
-    for (const sellerId of sellerIds) {
-      await Cart.deleteMany({
-        _id: { $in: selectedCartIds },
-        enquiryNumber: enquiryNumber,
-        schoolId: schoolId,
-      }).session(session);
-    }
+    await newQuoteRequest.save({ session });
 
     const schoolDetail = await School.findOne({ schoolId });
+
+    console.log("School details: ", schoolDetail);
 
     const schoolEmail = schoolDetail.schoolEmail;
 
     const schoolName = schoolDetail.schoolName;
 
-    const sellerId = orderFromBuyerEntries[0].sellerId;
+    console.log("school Name:", schoolName);
 
-    console.log("seller id:", sellerId);
+    const enrichedProducts = await Promise.all(
+      createdEntries.map(async (product) => {
+        const category = await Category.findById(product.categoryId).lean();
 
-    const sellerDetails = await SellerProfile.findOne({ sellerId });
+        const subCategory = await SubCategory.findById(
+          product.subCategoryId
+        ).lean();
 
-    const sellerName = sellerDetails.companyName;
+        6;
 
-    const sellerEmail = sellerDetails.emailId;
+        return {
+          ...product.toObject(),
 
-    // Send email to school
+          categoryName: category?.categoryName || "Unknown Category",
 
-    // orderFromBuyerEntries  at time of sending mail i want to send orderNumber which ever is stored in orderFromBuyerEntries.orderNumber
-    await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
-      orderNumber,
-
-      products: orderFromBuyerEntries,
-    });
-
-    // Send emails to sellers
-
-    // for (const [sellerId, sellerInfo] of sellerEmailsToSend.entries()) {
-
-    await sendEmailsToSellers(
-      sellerName,
-
-      sellerEmail,
-
-      schoolName,
-
-      {
-        orderNumber,
-
-        products: orderFromBuyerEntries,
-
-        deliveryAddress,
-
-        deliveryCountry,
-        deliveryState,
-        deliveryCity,
-
-        deliveryLandMark,
-
-        deliveryPincode,
-
-        expectedDeliveryDate,
-      }
+          subCategoryName:
+            subCategory?.subCategoryName || "Unknown SubCategory",
+        };
+      })
     );
 
     await session.commitTransaction();
     session.endSession();
 
+    await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
+      enquiryNumber,
+      products: enrichedProducts,
+      quoteRequest: newQuoteRequest,
+    });
+
+    await sendEmailsToSellers({
+      enrichedProducts,
+      newQuoteRequest,
+      enquiryNumber,
+    });
+
     return res.status(201).json({
       hasError: false,
-      message: "Selected products added to Order successfully.",
-      data: savedEntries,
+      message: "Quotes and Quote Proposal created successfully.",
+      data: {
+        products: createdEntries,
+        quoteRequest: newQuoteRequest,
+      },
     });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error("Error creating OrderFromBuyer:", error);
-
-    if (error.code === 11000) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Duplicate entry: These products are already in the Order.",
-      });
-    }
-
-    return res
-      .status(500)
-      .json({ hasError: true, message: "Internal server error." });
+    console.error("Error creating Product:", error.message);
+    console.error(error.stack);
+    return res.status(500).json({
+      hasError: true,
+      message: "Internal server error.",
+    });
   }
 }
 
