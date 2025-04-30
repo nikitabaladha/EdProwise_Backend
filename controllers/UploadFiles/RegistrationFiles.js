@@ -60,7 +60,7 @@ const upload = multer({
     },
   }),
 
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 3 * 100 * 1024 },
 
   fileFilter: (req, file, cb) => {
     if (file.fieldname === "signatureUrl") {

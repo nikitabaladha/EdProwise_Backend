@@ -381,11 +381,49 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
 
-function generateQuoteNumber() {
+async function generateQuoteNumber() {
   const prefix = "QUOTE";
-  const randomSuffix = Math.floor(Math.random() * 100000000);
-  const formattedSuffix = String(randomSuffix).padStart(8, "0");
-  return `${prefix}${formattedSuffix}`;
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    // April or later - current year to next year (2024-25)
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    // January-March - previous year to current year (2023-24)
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  // Find the last enquiry number for this financial year
+  const lastQuote = await QuoteProposal.findOne({
+    quoteNumber: new RegExp(`^${prefix}/${financialYear}/`),
+  }).sort({ createdAt: -1 });
+
+  let sequenceNumber;
+  if (lastQuote) {
+    // Extract the sequence number from the last enquiry
+    const lastSequence = parseInt(lastQuote.quoteNumber.split("/")[2]);
+    sequenceNumber = lastSequence + 1;
+  } else {
+    // First enquiry of this financial year
+    sequenceNumber = 1;
+  }
+
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
 }
 
 async function create(req, res) {
@@ -662,7 +700,7 @@ async function create(req, res) {
       createdEntries.push(savedEntry);
     }
 
-    const quoteNumber = generateQuoteNumber();
+    const quoteNumber = await generateQuoteNumber();
 
     // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({

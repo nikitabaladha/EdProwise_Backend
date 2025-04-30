@@ -19,7 +19,7 @@ async function getOneByOrderNumber(req, res) {
     // First find the order details by orderNumber
     const orderDetails = await OrderDetailsFromSeller.findOne({ orderNumber })
       .select(
-        "orderNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId"
+        "orderNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId invoiceForSchool invoiceForEdprowise"
       )
       .lean();
 

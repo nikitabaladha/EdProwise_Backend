@@ -2,6 +2,7 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+
 async function getAllByEnquiryNumberAccordingToStatus(req, res) {
   try {
     const schoolId = req.user?.schoolId;
@@ -58,6 +59,7 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
     const statusMap = quoteProposals.reduce((acc, proposal) => {
       acc[proposal.sellerId] = {
         supplierStatus: proposal.supplierStatus,
+        quoteNumber: proposal.quoteNumber,
       };
       return acc;
     }, {});
@@ -68,6 +70,7 @@ async function getAllByEnquiryNumberAccordingToStatus(req, res) {
       buyerStatus: buyerStatus || null,
       supplierStatus: statusMap[quote.sellerId]?.supplierStatus || null,
       edprowiseStatus: edprowiseStatus || null,
+      quoteNumber: statusMap[quote.sellerId]?.quoteNumber || null,
     }));
 
     return res.status(200).json({

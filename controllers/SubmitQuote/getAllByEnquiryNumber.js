@@ -45,9 +45,11 @@ async function getAllByEnquiryNumber(req, res) {
       sellerId: { $in: sellerIds },
     });
 
+    // i want quoteNumber from quoteProposal Table
     const statusMap = quoteProposals.reduce((acc, proposal) => {
       acc[proposal.sellerId] = {
         supplierStatus: proposal.supplierStatus,
+        quoteNumber: proposal.quoteNumber,
       };
       return acc;
     }, {});
@@ -58,6 +60,7 @@ async function getAllByEnquiryNumber(req, res) {
       buyerStatus: buyerStatus || null,
       supplierStatus: statusMap[quote.sellerId]?.supplierStatus || null,
       edprowiseStatus: edprowiseStatus || null,
+      quoteNumber: statusMap[quote.sellerId]?.quoteNumber || null,
     }));
 
     return res.status(200).json({

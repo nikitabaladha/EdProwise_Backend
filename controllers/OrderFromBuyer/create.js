@@ -18,7 +18,7 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function generateOrderNumber() {
+async function generateOrderNumber(sequenceNumber) {
   const prefix = "ORD";
 
   // Get current date
@@ -42,20 +42,33 @@ async function generateOrderNumber() {
     .toString()
     .slice(-2)}`;
 
-  // Find the last enquiry number for this financial year
-  const lastEnquiry = await QuoteRequest.findOne({
-    enquiryNumber: new RegExp(`^${prefix}/${financialYear}/`),
-  }).sort({ createdAt: -1 });
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
 
-  let sequenceNumber;
-  if (lastEnquiry) {
-    // Extract the sequence number from the last enquiry
-    const lastSequence = parseInt(lastEnquiry.enquiryNumber.split("/")[2]);
-    sequenceNumber = lastSequence + 1;
+  return `${prefix}/${financialYear}/${formattedSequence}`;
+}
+
+async function generateInvoiceNumberForEdprowise(sequenceNumber) {
+  const prefix = "EINV";
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
   } else {
-    // First enquiry of this financial year
-    sequenceNumber = 1;
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
   }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
 
   // Format the sequence number with leading zeros
   const formattedSequence = String(sequenceNumber).padStart(4, "0");
@@ -63,18 +76,32 @@ async function generateOrderNumber() {
   return `${prefix}/${financialYear}/${formattedSequence}`;
 }
 
-function generateInvoiceNumberForEdprowise() {
-  const prefix = "EINV";
-  const randomSuffix = Math.floor(Math.random() * 100000000);
-  const formattedSuffix = String(randomSuffix).padStart(8, "0");
-  return `${prefix}${formattedSuffix}`;
-}
-
-function generateInvoiceNumberForSchool() {
+async function generateInvoiceNumberForSchool(sequenceNumber) {
   const prefix = "SINV";
-  const randomSuffix = Math.floor(Math.random() * 100000000);
-  const formattedSuffix = String(randomSuffix).padStart(8, "0");
-  return `${prefix}${formattedSuffix}`;
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
 }
 
 async function sendSchoolRequestQuoteEmail(
@@ -697,6 +724,7 @@ async function create(req, res) {
 
   try {
     const schoolId = req.user?.schoolId;
+
     if (!schoolId) {
       return res.status(401).json({
         hasError: true,
@@ -730,6 +758,7 @@ async function create(req, res) {
     }
 
     const selectedCartIds = products.map((p) => p.cartId);
+
     if (selectedCartIds.includes(undefined) || selectedCartIds.includes(null)) {
       return res.status(400).json({
         hasError: true,
@@ -749,15 +778,86 @@ async function create(req, res) {
     }
 
     const cartMap = new Map(carts.map((cart) => [cart._id.toString(), cart]));
-    const existingOrders = await OrderFromBuyer.find({
-      cartId: { $in: selectedCartIds },
-    }).select("cartId");
-    const existingCartIds = new Set(
-      existingOrders.map((order) => order.cartId.toString())
-    );
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    let financialYearStart, financialYearEnd;
+    if (currentMonth >= 4) {
+      financialYearStart = currentYear;
+      financialYearEnd = currentYear + 1;
+    } else {
+      financialYearStart = currentYear - 1;
+      financialYearEnd = currentYear;
+    }
+    const financialYear = `${financialYearStart}-${financialYearEnd
+      .toString()
+      .slice(-2)}`;
+
+    // Find the last order number to determine the starting sequence
+    const lastOrder = await OrderFromBuyer.findOne({
+      orderNumber: new RegExp(`^ORD/${financialYear}/`),
+    }).sort({ createdAt: -1 });
+
+    let orderSequence;
+    if (lastOrder) {
+      const lastSequence = parseInt(lastOrder.orderNumber.split("/")[2]);
+      orderSequence = lastSequence + 1;
+    } else {
+      orderSequence = 1;
+    }
+
+    // Find the last invoice numbers to determine starting sequences
+    const lastEdprowiseInvoice = await OrderDetailsFromSeller.findOne({
+      invoiceForEdprowise: new RegExp(`^EINV/${financialYear}/`),
+    }).sort({ createdAt: -1 });
+
+    const lastSchoolInvoice = await OrderDetailsFromSeller.findOne({
+      invoiceForSchool: new RegExp(`^SINV/${financialYear}/`),
+    }).sort({ createdAt: -1 });
+
+    let edprowiseSequence = lastEdprowiseInvoice
+      ? parseInt(lastEdprowiseInvoice.invoiceForEdprowise.split("/")[2]) + 1
+      : 1;
+    let schoolSequence = lastSchoolInvoice
+      ? parseInt(lastSchoolInvoice.invoiceForSchool.split("/")[2]) + 1
+      : 1;
+
+    const sellerIds = [
+      ...new Set(
+        products.map((p) => cartMap.get(p.cartId)?.sellerId).filter(Boolean)
+      ),
+    ];
 
     const sellerOrderNumbers = new Map();
-    const orderNumber = await generateOrderNumber();
+    const sellerInvoiceNumbers = new Map();
+
+    // Assign incrementing order numbers to each seller
+    // for (const sellerId of sellerIds) {
+    //   sellerOrderNumbers.set(
+    //     sellerId.toString(),
+    //     await generateOrderNumber(sequenceNumber)
+    //   );
+    //   sequenceNumber++; // Increment for next seller
+    // }
+
+    for (const sellerId of sellerIds) {
+      const orderNumber = await generateOrderNumber(orderSequence++);
+      sellerOrderNumbers.set(sellerId.toString(), orderNumber);
+
+      // Generate unique invoice numbers for this seller
+      const invoiceForEdprowise = await generateInvoiceNumberForEdprowise(
+        edprowiseSequence++
+      );
+      const invoiceForSchool = await generateInvoiceNumberForSchool(
+        schoolSequence++
+      );
+
+      sellerInvoiceNumbers.set(sellerId.toString(), {
+        invoiceForEdprowise,
+        invoiceForSchool,
+      });
+    }
 
     const orderFromBuyerEntries = [];
     const orderDetailsFromSellerEntries = new Map();
@@ -778,22 +878,14 @@ async function create(req, res) {
         });
       }
 
-      if (existingCartIds.has(product.cartId)) {
-        return res.status(400).json({
-          hasError: true,
-          message: `These Product already present in Order table`,
-        });
-      }
+      // const sellerOrderNumber = sellerOrderNumbers.get(
+      //   cartEntry.sellerId.toString()
+      // );
 
-      // Get or generate order number for this seller
-      if (!sellerOrderNumbers.has(cartEntry.sellerId.toString())) {
-        sellerOrderNumbers.set(
-          cartEntry.sellerId.toString(),
-          generateOrderNumber()
-        );
-      }
-
-      const orderNumber = sellerOrderNumbers.get(cartEntry.sellerId.toString());
+      const sellerIdStr = cartEntry.sellerId.toString();
+      const orderNumber = sellerOrderNumbers.get(sellerIdStr);
+      const { invoiceForEdprowise, invoiceForSchool } =
+        sellerInvoiceNumbers.get(sellerIdStr);
 
       orderFromBuyerEntries.push({
         orderNumber,
@@ -824,8 +916,8 @@ async function create(req, res) {
         totalAmount: cartEntry.totalAmount || 0,
       });
 
-      const invoiceForSchool = generateInvoiceNumberForSchool();
-      const invoiceForEdprowise = generateInvoiceNumberForEdprowise();
+      // const invoiceForSchool = await generateInvoiceNumberForSchool();
+      // const invoiceForEdprowise = await generateInvoiceNumberForEdprowise();
 
       const quoteProposal = await QuoteProposal.findOne({
         sellerId: cartEntry.sellerId,
@@ -912,10 +1004,6 @@ async function create(req, res) {
       );
     }
 
-    const sellerIds = Array.from(
-      new Set(orderFromBuyerEntries.map((entry) => entry.sellerId))
-    );
-
     for (const sellerId of sellerIds) {
       await Cart.deleteMany({
         _id: { $in: selectedCartIds },
@@ -925,59 +1013,53 @@ async function create(req, res) {
     }
 
     const schoolDetail = await School.findOne({ schoolId });
-
     const schoolEmail = schoolDetail.schoolEmail;
-
     const schoolName = schoolDetail.schoolName;
 
-    const sellerId = orderFromBuyerEntries[0].sellerId;
-
-    console.log("seller id:", sellerId);
-
-    const sellerDetails = await SellerProfile.findOne({ sellerId });
-
-    const sellerName = sellerDetails.companyName;
-
-    const sellerEmail = sellerDetails.emailId;
-
-    // Send email to school
-
-    // orderFromBuyerEntries  at time of sending mail i want to send orderNumber which ever is stored in orderFromBuyerEntries.orderNumber
+    // Send email to school with all orders
     await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
-      orderNumber,
-
-      products: orderFromBuyerEntries,
+      orders: await Promise.all(
+        Array.from(sellerOrderNumbers.entries()).map(
+          async ([sellerId, orderNumber]) => ({
+            orderNumber,
+            seller: await SellerProfile.findById(sellerId),
+            products: orderFromBuyerEntries.filter(
+              (o) => o.sellerId.toString() === sellerId
+            ),
+          })
+        )
+      ),
     });
 
     // Send emails to sellers
+    for (const [sellerId, orderNumber] of sellerOrderNumbers.entries()) {
+      const sellerDetails = await SellerProfile.findById(sellerId);
 
-    // for (const [sellerId, sellerInfo] of sellerEmailsToSend.entries()) {
-
-    await sendEmailsToSellers(
-      sellerName,
-
-      sellerEmail,
-
-      schoolName,
-
-      {
-        orderNumber,
-
-        products: orderFromBuyerEntries,
-
-        deliveryAddress,
-
-        deliveryCountry,
-        deliveryState,
-        deliveryCity,
-
-        deliveryLandMark,
-
-        deliveryPincode,
-
-        expectedDeliveryDate,
+      if (!sellerDetails) {
+        console.error(`Seller profile not found for ID: ${sellerId}`);
+        continue;
       }
-    );
+      const sellerProducts = orderFromBuyerEntries.filter(
+        (o) => o.sellerId.toString() === sellerId
+      );
+
+      await sendEmailsToSellers(
+        sellerDetails.companyName,
+        sellerDetails.emailId,
+        schoolName,
+        {
+          orderNumber,
+          products: sellerProducts,
+          deliveryAddress,
+          deliveryCountry,
+          deliveryState,
+          deliveryCity,
+          deliveryLandMark,
+          deliveryPincode,
+          expectedDeliveryDate,
+        }
+      );
+    }
 
     await session.commitTransaction();
     session.endSession();

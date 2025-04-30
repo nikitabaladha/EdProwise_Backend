@@ -3,33 +3,24 @@ import path from "path";
 import fs from "fs";
 
 const schoolProfileDir = "./Images/SchoolProfile";
-
 const schoolAffiliationCertificateDir =
   "./Documents/SchoolAffiliationCertificate";
 const schoolAffiliationImageDir = "./Images/SchoolAffiliationCertificate";
-
 const schoolPanFileDir = "./Documents/SchoolPanFile";
 const schoolPanImageDir = "./Images/SchoolPanFile";
 
-if (!fs.existsSync(schoolProfileDir)) {
-  fs.mkdirSync(schoolProfileDir, { recursive: true });
-}
-
-if (!fs.existsSync(schoolAffiliationCertificateDir)) {
-  fs.mkdirSync(schoolAffiliationCertificateDir, { recursive: true });
-}
-
-if (!fs.existsSync(schoolAffiliationImageDir)) {
-  fs.mkdirSync(schoolAffiliationImageDir, { recursive: true });
-}
-
-if (!fs.existsSync(schoolPanFileDir)) {
-  fs.mkdirSync(schoolPanFileDir, { recursive: true });
-}
-
-if (!fs.existsSync(schoolPanImageDir)) {
-  fs.mkdirSync(schoolPanImageDir, { recursive: true });
-}
+// Create directories if they don't exist
+[
+  schoolProfileDir,
+  schoolAffiliationCertificateDir,
+  schoolAffiliationImageDir,
+  schoolPanFileDir,
+  schoolPanImageDir,
+].forEach((dir) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 const schoolFilesUpload = multer({
   storage: multer.diskStorage({
@@ -37,28 +28,17 @@ const schoolFilesUpload = multer({
       if (file.fieldname === "profileImage") {
         cb(null, schoolProfileDir);
       } else if (file.fieldname === "affiliationCertificate") {
-        // Check if the file is an image or a PDF
-        if (file.mimetype.startsWith("image/")) {
-          cb(null, schoolAffiliationImageDir);
-        } else if (file.mimetype === "application/pdf") {
-          cb(null, schoolAffiliationCertificateDir);
-        } else {
-          cb(new Error("Invalid file type for affiliation certificate"));
-        }
+        file.mimetype.startsWith("image/")
+          ? cb(null, schoolAffiliationImageDir)
+          : cb(null, schoolAffiliationCertificateDir);
       } else if (file.fieldname === "panFile") {
-        // Check if the file is an image or a PDF
-        if (file.mimetype.startsWith("image/")) {
-          cb(null, schoolPanImageDir);
-        } else if (file.mimetype === "application/pdf") {
-          cb(null, schoolPanFileDir);
-        } else {
-          cb(new Error("Invalid file type for PAN file"));
-        }
+        file.mimetype.startsWith("image/")
+          ? cb(null, schoolPanImageDir)
+          : cb(null, schoolPanFileDir);
       } else {
         cb(new Error("Invalid file fieldname"));
       }
     },
-
     filename: (req, file, cb) => {
       try {
         const sanitizedFilename = file.originalname
@@ -74,62 +54,114 @@ const schoolFilesUpload = multer({
       }
     },
   }),
-
-  limits: { fileSize: 2 * 1024 * 1024 },
-
   fileFilter: (req, file, cb) => {
     if (file.fieldname === "profileImage") {
       const allowedFileTypes = /jpeg|jpg|png/;
-      const mimeType = allowedFileTypes.test(file.mimetype);
-      const extName = allowedFileTypes.test(
-        path.extname(file.originalname).toLowerCase()
-      );
-
-      if (mimeType && extName) {
+      if (allowedFileTypes.test(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(
-          new Error(
-            "Only JPEG, JPG, or PNG files are allowed for Profile Image"
-          )
-        );
+        cb(new Error("Profile image must be JPEG, JPG, or PNG"));
       }
-    } else if (file.fieldname === "affiliationCertificate") {
-      const allowedImageTypes = /jpeg|jpg|png/;
-      const allowedPdfType = /application\/pdf/;
-
-      if (
-        allowedImageTypes.test(file.mimetype) ||
-        allowedPdfType.test(file.mimetype)
-      ) {
+    } else if (["affiliationCertificate", "panFile"].includes(file.fieldname)) {
+      const allowedTypes = /jpeg|jpg|png|pdf/;
+      if (allowedTypes.test(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(
-          new Error(
-            "Only JPEG, JPG, PNG, or PDF files are allowed for School Affiliation Certificate"
-          )
-        );
-      }
-    } else if (file.fieldname === "panFile") {
-      const allowedImageTypes = /jpeg|jpg|png/;
-      const allowedPdfType = /application\/pdf/;
-
-      if (
-        allowedImageTypes.test(file.mimetype) ||
-        allowedPdfType.test(file.mimetype)
-      ) {
-        cb(null, true);
-      } else {
-        cb(
-          new Error(
-            "Only JPEG, JPG, PNG, or PDF files are allowed for School PAN file"
-          )
-        );
+        cb(new Error(`${file.fieldname} must be JPEG, JPG, PNG, or PDF`));
       }
     } else {
       cb(new Error("Invalid file fieldname"));
     }
   },
-});
+}).fields([
+  { name: "profileImage", maxCount: 1 },
+  { name: "affiliationCertificate", maxCount: 1 },
+  { name: "panFile", maxCount: 1 },
+]);
 
-export default schoolFilesUpload;
+// Custom middleware to handle file size limits
+export default (req, res, next) => {
+  schoolFilesUpload(req, res, (err) => {
+    if (err) {
+      // Handle file size errors with custom messages
+      if (err.code === "LIMIT_FILE_SIZE") {
+        let errorMessage = "";
+
+        // Check which file exceeded the limit
+        if (req.files?.profileImage) {
+          errorMessage = "Profile image must be less than 3 KB";
+        } else if (req.files?.affiliationCertificate) {
+          const file = req.files.affiliationCertificate[0];
+          errorMessage =
+            file.mimetype === "application/pdf"
+              ? "Affiliation certificate PDF must be less than 100 KB"
+              : "Affiliation certificate image must be less than 3 KB";
+        } else if (req.files?.panFile) {
+          const file = req.files.panFile[0];
+          errorMessage =
+            file.mimetype === "application/pdf"
+              ? "PAN file PDF must be less than 100 KB"
+              : "PAN file image must be less than 3 KB";
+        } else {
+          errorMessage = "File size exceeds the limit";
+        }
+
+        return res.status(400).json({
+          hasError: true,
+          message: errorMessage,
+        });
+      }
+
+      // Handle other errors
+      return res.status(400).json({
+        hasError: true,
+        message: err.message,
+      });
+    }
+
+    // Validate file sizes manually since we can't set different limits in multer
+    const files = req.files || {};
+    const sizeErrors = [];
+
+    // Check profile image (always 3KB limit)
+    if (files.profileImage) {
+      const file = files.profileImage[0];
+      if (file.size > 3 * 100 * 1024) {
+        sizeErrors.push("Profile image must be less than 3 KB");
+      }
+    }
+
+    const fieldDisplayNames = {
+      affiliationCertificate: "Affiliation Certificate",
+      panFile: "PAN File",
+    };
+
+    // Check other files (3KB for images, 100KB for PDFs)
+    ["affiliationCertificate", "panFile"].forEach((field) => {
+      if (files[field]) {
+        const file = files[field][0];
+        const isPdf = file.mimetype === "application/pdf";
+
+        const maxSize = isPdf ? 2 * 1024 * 1024 : 3 * 100 * 1024;
+
+        if (file.size > maxSize) {
+          const fileType = isPdf ? "PDF" : "image";
+          const maxSizeMB = isPdf ? "100 KB" : "3 KB";
+          const displayName = fieldDisplayNames[field] || field;
+          sizeErrors.push(
+            `${displayName} ${fileType} must be less than ${maxSizeMB}`
+          );
+        }
+      }
+    });
+
+    if (sizeErrors.length > 0) {
+      return res.status(400).json({
+        hasError: true,
+        message: sizeErrors.join(", "),
+      });
+    }
+
+    next();
+  });
+};

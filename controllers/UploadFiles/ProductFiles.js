@@ -49,8 +49,24 @@ const fields = Array.from({ length: 1000 }, (_, i) => ({
 
 const productImageUpload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 3 * 100 * 1024 },
   fileFilter,
 }).fields(fields);
 
-export default productImageUpload;
+export default (req, res, next) => {
+  productImageUpload(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          hasError: true,
+          message: "Product image must be less than 3 KB",
+        });
+      }
+      return res.status(400).json({
+        hasError: true,
+        message: err.message,
+      });
+    }
+    next();
+  });
+};

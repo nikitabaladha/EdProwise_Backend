@@ -13,18 +13,9 @@ import {
   getQuoteRequest,
 } from "../../controllers/RequestForQuote/index.js";
 
-const uploadFiles = (req, res, next) => {
-  productImageUpload(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ hasError: true, message: err.message });
-    }
-    next();
-  });
-};
-
 router.post(
   "/request-quote",
-  uploadFiles,
+  productImageUpload,
   roleBasedMiddleware("School"),
   create
 );

@@ -29,7 +29,7 @@ const edprowiseProfileUpload = multer({
     },
   }),
 
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 3 * 100 * 1024 },
 
   fileFilter: (req, file, cb) => {
     const allowedFileTypes = /jpeg|jpg|png/;
@@ -48,4 +48,21 @@ const edprowiseProfileUpload = multer({
   },
 });
 
-export default edprowiseProfileUpload;
+// Custom middleware to handle errors with proper messages
+export default (req, res, next) => {
+  edprowiseProfileUpload.single("edprowiseProfile")(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          hasError: true,
+          message: "Edprowise profile must be less than 3 MB",
+        });
+      }
+      return res.status(400).json({
+        hasError: true,
+        message: err.message,
+      });
+    }
+    next();
+  });
+};

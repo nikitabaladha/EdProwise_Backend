@@ -844,6 +844,19 @@ async function create(req, res) {
       expectedDeliveryDate,
     } = JSON.parse(req.body.data);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const deliveryDate = new Date(expectedDeliveryDate);
+    deliveryDate.setHours(0, 0, 0, 0);
+
+    if (deliveryDate < today) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Expected delivery date must be today or a future date.",
+      });
+    }
+
     const newQuoteRequest = new QuoteRequest({
       schoolId,
       enquiryNumber,

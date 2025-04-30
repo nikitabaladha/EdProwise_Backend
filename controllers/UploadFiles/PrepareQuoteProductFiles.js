@@ -49,7 +49,7 @@ const fields = Array.from({ length: 1000 }, (_, i) => ({
 
 const prepareQuoteImageUpload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 300 * 1024 },
   fileFilter,
 }).fields(fields);
 

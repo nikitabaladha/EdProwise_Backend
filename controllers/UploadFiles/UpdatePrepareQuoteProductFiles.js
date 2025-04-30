@@ -44,7 +44,7 @@ const fileFilter = (req, file, cb) => {
 
 const UpdatePrepareQuoteImageUpload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 3 * 100 * 1024 },
   fileFilter,
 }).single("prepareQuoteImage");
 

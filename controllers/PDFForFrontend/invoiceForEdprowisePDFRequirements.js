@@ -50,7 +50,7 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         "companyName companyType gstin pan tan cin address city state country landmark pincode contactNo alternateContactNo emailId"
       ),
       OrderDetailsFromSeller.findOne({ schoolId, sellerId }).select(
-        "invoiceDate invoiceForSchool invoiceForEdprowise"
+        "invoiceDate invoiceForSchool invoiceForEdprowise orderNumber"
       ),
       PrepareQuote.find({ sellerId, enquiryNumber }),
     ]);
@@ -250,6 +250,7 @@ async function invoiceForEdprowisePDFRequirements(req, res) {
         invoiceDate: orderDetails?.invoiceDate || null,
         invoiceForSchool: orderDetails?.invoiceForSchool || null,
         invoiceForEdprowise: orderDetails?.invoiceForEdprowise || null,
+        orderNumber: orderDetails?.orderNumber || null,
       },
       formatCost,
       formatDate,

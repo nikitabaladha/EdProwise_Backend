@@ -29,13 +29,13 @@ const prepareQuoteCreate = Joi.object({
   }),
 
   hsnSacc: Joi.string()
-    .pattern(/^\d{4,8}$/)
+    .pattern(/^(?:\d{6}|\d{8})$/)
     .required()
     .messages({
       "any.required": "HSN/SAC code is required.",
       "string.empty": "HSN/SAC code cannot be empty.",
       "string.pattern.base":
-        "HSN/SAC code must be a numeric value between 4 to 8 digits.",
+        "HSN/SAC code must be either 6 digits (SAC) or 8 digits (HSN).",
     }),
 
   listingRate: Joi.number().positive().precision(2).required().messages({
@@ -124,13 +124,13 @@ const prepareQuoteUpdate = Joi.object({
   }),
 
   hsnSacc: Joi.string()
-    .pattern(/^\d{4,8}$/)
+    .pattern(/^(?:\d{6}|\d{8})$/)
     .required()
     .messages({
       "any.required": "HSN/SAC code is required.",
       "string.empty": "HSN/SAC code cannot be empty.",
       "string.pattern.base":
-        "HSN/SAC code must be a numeric value between 4 to 8 digits.",
+        "HSN/SAC code must be either 6 digits (SAC) or 8 digits (HSN).",
     }),
 
   listingRate: Joi.number().positive().precision(2).required().messages({

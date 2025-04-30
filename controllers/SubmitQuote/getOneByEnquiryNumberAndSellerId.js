@@ -1,6 +1,7 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function getOneByEnquiryNumberAndSellerId(req, res) {
   try {
@@ -26,12 +27,18 @@ async function getOneByEnquiryNumberAndSellerId(req, res) {
 
     const quoteRequest = await QuoteRequest.findOne({ enquiryNumber });
 
+    const quoteProposal = await QuoteProposal.findOne({
+      enquiryNumber,
+      sellerId,
+    });
+
     const responseData = {
       ...quote.toObject(),
       companyName: sellerProfile ? sellerProfile.companyName : null,
       buyerStatus: quoteRequest?.buyerStatus || null,
       supplierStatus: quoteRequest?.supplierStatus || null,
       edprowiseStatus: quoteRequest?.edprowiseStatus || null,
+      quoteNumber: quoteProposal?.quoteNumber || null,
     };
 
     return res.status(200).json({
