@@ -39,9 +39,10 @@ const SubmitQuoteSchema = new mongoose.Schema(
       default: Date.now,
     },
     paymentTerms: {
-      type: String,
-      trim: true,
-      default: "",
+      type: Number,
+      required: true,
+      set: roundToTwo,
+      default: 0,
     },
     advanceRequiredAmount: {
       type: Number,

@@ -149,11 +149,10 @@
                 formatDate(profileData.quoteProposalDate)%>
               </td>
             </tr>
-            <tr>
-              <td>
-                Payment Terms : <%= profileData.paymentTerms %> (Days Only)
-              </td>
-            </tr>
+
+            <td>
+              Payment Terms : <%= profileData.paymentTerms - 15 %> (Days Only)
+            </td>
             <tr>
               <td>
                 Advance Amount Required : <%= formatCost(profileData.

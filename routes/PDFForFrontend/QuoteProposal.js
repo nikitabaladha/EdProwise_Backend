@@ -5,6 +5,7 @@ import {
   quotePDFRequirements,
   invoiceForEdprowisePDFRequirements,
   invoiceForBuyerPDFRequirements,
+  quotePDFRequirementsForBuyer,
 } from "../../controllers/PDFForFrontend/index.js";
 
 const router = express.Router();
@@ -13,6 +14,12 @@ router.get(
   "/generate-quote-pdf",
   roleBasedMiddleware("Admin", "School", "Seller"),
   quotePDFRequirements
+);
+
+router.get(
+  "/generate-quote-pdf-for-buyer",
+  roleBasedMiddleware("School"),
+  quotePDFRequirementsForBuyer
 );
 
 router.get(

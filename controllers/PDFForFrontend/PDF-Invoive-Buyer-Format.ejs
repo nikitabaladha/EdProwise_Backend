@@ -161,9 +161,10 @@
             <tr>
               <td>Invoice Date : <%= formatDate(profileData.invoiceDate) %></td>
             </tr>
-
             <tr>
-              <td>Payment Terms : <%= profileData.paymentTerms %></td>
+              <td>
+                Payment Terms : <%= profileData.paymentTerms - 15 %> (Days Only)
+              </td>
             </tr>
             <tr>
               <td>

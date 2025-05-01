@@ -28,9 +28,11 @@ const SubmitQuoteCreate = Joi.object({
     "date.min": "Expected delivery date must be today or in the future.",
   }),
 
-  paymentTerms: Joi.string().trim().required().messages({
+  paymentTerms: Joi.number().positive().max(45).required().messages({
     "any.required": "Payment terms are required.",
-    "string.empty": "Payment terms cannot be empty.",
+    "number.base": "Payment terms must be a number.",
+    "number.positive": "Payment terms must be a positive number.",
+    "number.max": "Payment terms cannot be more than 45 days.",
   }),
 
   advanceRequiredAmount: Joi.number()
@@ -69,9 +71,11 @@ const SubmitQuoteUpdate = Joi.object({
       "date.min": "Expected delivery date must be today or in the future.",
     }),
 
-  paymentTerms: Joi.string().trim().required().messages({
+  paymentTerms: Joi.number().positive().max(45).required().messages({
     "any.required": "Payment terms are required.",
-    "string.empty": "Payment terms cannot be empty.",
+    "number.base": "Payment terms must be a number.",
+    "number.positive": "Payment terms must be a positive number.",
+    "number.max": "Payment terms cannot be more than 45 days.",
   }),
 
   advanceRequiredAmount: Joi.number()
