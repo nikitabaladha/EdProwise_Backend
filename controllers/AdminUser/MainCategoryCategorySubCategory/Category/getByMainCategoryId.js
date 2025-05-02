@@ -16,7 +16,6 @@ async function getByMainCategoryId(req, res) {
         path: "mainCategoryId",
         select: "mainCategoryName",
       })
-      .select("categoryName _id")
       .exec();
 
     if (categories.length === 0) {
@@ -32,6 +31,7 @@ async function getByMainCategoryId(req, res) {
       data: categories.map((category) => ({
         id: category._id,
         categoryName: category.categoryName,
+        edprowiseMargin: category.edprowiseMargin,
         mainCategoryId: category.mainCategoryId._id,
         mainCategoryName: category.mainCategoryId.mainCategoryName,
       })),

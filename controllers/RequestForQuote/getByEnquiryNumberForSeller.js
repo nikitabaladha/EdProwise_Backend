@@ -1,3 +1,144 @@
+// import QuoteRequest from "../../models/QuoteRequest.js";
+// import Product from "../../models/Product.js";
+// import SellerProfile from "../../models/SellerProfile.js";
+
+// async function getByEnquiryNumberForSeller(req, res) {
+//   try {
+//     const sellerId = req.user?.id;
+
+//     if (!sellerId) {
+//       return res.status(401).json({
+//         hasError: true,
+//         message:
+//           "Access denied: You do not have permission to request for a quote.",
+//       });
+//     }
+
+//     const { enquiryNumber } = req.params;
+
+//     // Fetch the seller's profile to get the dealing products
+//     const sellerProfile = await SellerProfile.findOne({ sellerId })
+//       .populate("dealingProducts.categoryId")
+//       .populate("dealingProducts.subCategoryIds");
+
+//     if (!sellerProfile) {
+//       return res.status(404).json({
+//         hasError: true,
+//         message: "Seller profile not found.",
+//       });
+//     }
+
+//     // Extract the dealing products
+//     const dealingProducts = sellerProfile.dealingProducts;
+
+//     // Create arrays for categoryIds and subCategoryIds
+//     const categoryIds = dealingProducts.map((product) => product.categoryId);
+//     const subCategoryIds = dealingProducts.flatMap(
+//       (product) => product.subCategoryIds
+//     );
+
+//     // Find all products that match the seller's dealing products
+//     const queryConditions = {
+//       $or: [
+//         { categoryId: { $in: categoryIds } },
+//         { subCategoryId: { $in: subCategoryIds } },
+//       ],
+//     };
+
+//     // If enquiryNumber is provided, include it in the query conditions
+//     if (enquiryNumber) {
+//       queryConditions.enquiryNumber = enquiryNumber;
+//     }
+
+//     const products = await Product.find(queryConditions)
+//       .populate({
+//         path: "categoryId",
+//         select: "categoryName edprowiseMargin",
+//       })
+//       .populate({
+//         path: "subCategoryId",
+//         select: "subCategoryName",
+//       })
+//       .exec();
+
+//     // Fetch quote requests associated with the seller
+//     const quoteRequests = await QuoteRequest.find();
+
+//     // Create a map of quote requests by enquiry number
+//     const quoteRequestsMap = quoteRequests.reduce((acc, quoteRequest) => {
+//       acc[quoteRequest.enquiryNumber] = {
+//         id: quoteRequest._id,
+//         deliveryAddress: quoteRequest.deliveryAddress,
+//         deliveryLocation: quoteRequest.deliveryLocation,
+//         deliveryLandMark: quoteRequest.deliveryLandMark,
+//         deliveryPincode: quoteRequest.deliveryPincode,
+//         expectedDeliveryDate: quoteRequest.expectedDeliveryDate,
+//         buyerStatus: quoteRequest.buyerStatus,
+//         supplierStatus: quoteRequest.supplierStatus,
+//         edprowiseStatus: quoteRequest.edprowiseStatus,
+//         createdAt: quoteRequest.createdAt,
+//         updatedAt: quoteRequest.updatedAt,
+//         enquiryNumber: quoteRequest.enquiryNumber,
+//       };
+//       return acc;
+//     }, {});
+
+//     const formattedProducts = products.map((product) => {
+//       console.log(`Product ${index} ID: ${product._id}`);
+//   console.log(`Product ${index} Enquiry Number: ${product.enquiryNumber}`);
+//   if (!product.enquiryNumber) {
+//     console.warn(` Warning: Product ${index} has no enquiryNumber!`);
+//   }
+//       const quoteRequest = quoteRequestsMap[product.enquiryNumber] || null;
+//       if (!quoteRequest) {
+//         console.warn(` Warning: No matching QuoteRequest found for Enquiry Number: ${product.enquiryNumber}`);
+//       }
+//       return {
+//         id: product._id,
+//         schoolId: product.schoolId,
+//         categoryId: product.categoryId?._id || null,
+//         edprowiseMargin: product.categoryId?.edprowiseMargin || null,
+//         categoryName: product.categoryId?.categoryName || null,
+//         subCategoryId: product.subCategoryId?._id || null,
+//         subCategoryName: product.subCategoryId?.subCategoryName || null,
+//         description: product.description,
+//         productImage: product.productImage,
+//         unit: product.unit,
+//         quantity: product.quantity,
+//         enquiryNumber: product.enquiryNumber,
+//         //quote request details
+//         quoteRequestId: quoteRequest?.id || null,
+//         deliveryAddress: quoteRequest?.deliveryAddress || null,
+//         deliveryLocation: quoteRequest?.deliveryLocation || null,
+//         deliveryLandMark: quoteRequest?.deliveryLandMark || null,
+//         deliveryPincode: quoteRequest?.deliveryPincode || null,
+//         expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
+//         buyerStatus: quoteRequest?.buyerStatus || null,
+//         supplierStatus: quoteRequest?.supplierStatus || null,
+//         edprowiseStatus: quoteRequest?.edprowiseStatus || null,
+//         createdAt: quoteRequest?.createdAt || null,
+//         updatedAt: quoteRequest?.updatedAt || null,
+//       };
+//     });
+
+//     return res.status(200).json({
+//       hasError: false,
+//       message: "Data fetched successfully.",
+//       data: {
+//         products: formattedProducts,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error fetching products for seller:", error.message);
+//     return res.status(500).json({
+//       hasError: true,
+//       message: "Failed to fetch data.",
+//       error: error.message,
+//     });
+//   }
+// }
+
+// export default getByEnquiryNumberForSeller;
 import QuoteRequest from "../../models/QuoteRequest.js";
 import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
@@ -16,7 +157,7 @@ async function getByEnquiryNumberForSeller(req, res) {
 
     const { enquiryNumber } = req.params;
 
-    // Fetch the seller's profile to get the dealing products
+    // Fetch seller profile
     const sellerProfile = await SellerProfile.findOne({ sellerId })
       .populate("dealingProducts.categoryId")
       .populate("dealingProducts.subCategoryIds");
@@ -28,16 +169,23 @@ async function getByEnquiryNumberForSeller(req, res) {
       });
     }
 
-    // Extract the dealing products
     const dealingProducts = sellerProfile.dealingProducts;
 
-    // Create arrays for categoryIds and subCategoryIds
-    const categoryIds = dealingProducts.map((product) => product.categoryId);
+    // Create categoryIds and subCategoryIds arrays
+    const categoryIds = dealingProducts.map((product) => product.categoryId?._id).filter(Boolean);
     const subCategoryIds = dealingProducts.flatMap(
-      (product) => product.subCategoryIds
+      (product) => product.subCategoryIds?.map((sub) => sub._id) || []
     );
 
-    // Find all products that match the seller's dealing products
+    if (categoryIds.length === 0 && subCategoryIds.length === 0) {
+      return res.status(200).json({
+        hasError: false,
+        message: "No dealing products found for the seller.",
+        data: { products: [] },
+      });
+    }
+
+    // Build query
     const queryConditions = {
       $or: [
         { categoryId: { $in: categoryIds } },
@@ -45,19 +193,32 @@ async function getByEnquiryNumberForSeller(req, res) {
       ],
     };
 
-    // If enquiryNumber is provided, include it in the query conditions
     if (enquiryNumber) {
       queryConditions.enquiryNumber = enquiryNumber;
     }
 
     const products = await Product.find(queryConditions)
-      .populate("categoryId", "categoryName")
-      .populate("subCategoryId", "subCategoryName");
+      .populate({
+        path: "categoryId",
+        select: "categoryName edprowiseMargin",
+      })
+      .populate({
+        path: "subCategoryId",
+        select: "subCategoryName",
+      });
 
-    // Fetch quote requests associated with the seller
+    if (products.length === 0) {
+      return res.status(200).json({
+        hasError: false,
+        message: "No matching products found.",
+        data: { products: [] },
+      });
+    }
+
+    // Fetch all quote requests
     const quoteRequests = await QuoteRequest.find();
 
-    // Create a map of quote requests by enquiry number
+    // Map quote requests by enquiryNumber
     const quoteRequestsMap = quoteRequests.reduce((acc, quoteRequest) => {
       acc[quoteRequest.enquiryNumber] = {
         id: quoteRequest._id,
@@ -76,13 +237,21 @@ async function getByEnquiryNumberForSeller(req, res) {
       return acc;
     }, {});
 
-    const formattedProducts = products.map((product) => {
+    // Final formatted product list
+    const formattedProducts = products.map((product, index) => {
       const quoteRequest = quoteRequestsMap[product.enquiryNumber] || null;
+
+      if (!product.enquiryNumber) {
+        console.warn(`Warning: Product ${index} has no enquiryNumber!`);
+      } else if (!quoteRequest) {
+        console.warn(`Warning: No matching QuoteRequest found for Enquiry Number: ${product.enquiryNumber}`);
+      }
 
       return {
         id: product._id,
         schoolId: product.schoolId,
         categoryId: product.categoryId?._id || null,
+        edprowiseMargin: product.categoryId?.edprowiseMargin || null,
         categoryName: product.categoryId?.categoryName || null,
         subCategoryId: product.subCategoryId?._id || null,
         subCategoryName: product.subCategoryId?.subCategoryName || null,
@@ -91,7 +260,7 @@ async function getByEnquiryNumberForSeller(req, res) {
         unit: product.unit,
         quantity: product.quantity,
         enquiryNumber: product.enquiryNumber,
-        //quote request details
+        // Quote request details
         quoteRequestId: quoteRequest?.id || null,
         deliveryAddress: quoteRequest?.deliveryAddress || null,
         deliveryLocation: quoteRequest?.deliveryLocation || null,

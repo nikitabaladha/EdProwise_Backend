@@ -39,17 +39,21 @@ async function updateById(req, res) {
       affiliationUpto,
       panNo,
       schoolAddress,
-      schoolLocation,
       landMark,
       schoolPincode,
       deliveryAddress,
-      deliveryLocation,
       deliveryLandMark,
       deliveryPincode,
       schoolAlternateContactNo,
       contactPersonName,
       numberOfStudents,
       principalName,
+      country,
+      state,
+      city,
+      deliveryCountry,
+      deliveryState,
+      deliveryCity,
     } = req.body;
 
     const profileImagePath = "/Images/SchoolProfile";
@@ -78,17 +82,15 @@ async function updateById(req, res) {
       schoolMobileNo: schoolMobileNo || existingSchool.schoolMobileNo,
       schoolEmail: schoolEmail || existingSchool.schoolEmail,
       schoolAddress: schoolAddress || existingSchool.schoolAddress,
-      schoolLocation: schoolLocation || existingSchool.schoolLocation,
       affiliationUpto: affiliationUpto || existingSchool.affiliationUpto,
       panNo: panNo || existingSchool.panNo,
-      profileImage,
       affiliationCertificate,
       panFile,
+      profileImage,
       panNo: panNo || existingSchool.panNo,
       landMark: landMark || existingSchool.landMark,
       schoolPincode: schoolPincode || existingSchool.schoolPincode,
       deliveryAddress: deliveryAddress || existingSchool.deliveryAddress,
-      deliveryLocation: deliveryLocation || existingSchool.deliveryLocation,
       deliveryLandMark: deliveryLandMark || existingSchool.deliveryLandMark,
       deliveryPincode: deliveryPincode || existingSchool.deliveryPincode,
       schoolAlternateContactNo:
@@ -96,13 +98,22 @@ async function updateById(req, res) {
       contactPersonName: contactPersonName || existingSchool.contactPersonName,
       numberOfStudents: numberOfStudents || existingSchool.numberOfStudents,
       principalName: principalName || existingSchool.principalName,
+      country: country || existingSchool.country,
+      state: state || existingSchool.state,
+      city: city || existingSchool.city,
+      deliveryCountry: deliveryCountry || existingSchool.deliveryCountry,
+      deliveryState: deliveryState || existingSchool.deliveryState,
+      deliveryCity: deliveryCity || existingSchool.deliveryCity,
     };
 
     console.log("Updated Data:", updatedData);
 
     const updatedSchool = await SchoolRegistration.findOneAndUpdate(
       { schoolId },
-      { $set: updatedData },
+      {
+        $set: updatedData,
+        status: "Completed",
+      },
       { new: true }
     );
 
@@ -118,9 +129,28 @@ async function updateById(req, res) {
       hasError: false,
     });
   } catch (error) {
-    console.error("Error updating School Registration:", error);
+    console.error("Error updating School Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        panNo: "PAN",
+        schoolMobileNo: "Mobile Number",
+        schoolEmail: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
-      message: "Failed to update School Registration.",
+      hasError: true,
+      message: "Failed to updat School Profile.",
       error: error.message,
     });
   }

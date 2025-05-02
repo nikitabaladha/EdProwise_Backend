@@ -67,12 +67,21 @@ const EdprowiseProfileCreateValidator = Joi.object({
     "any.required": "Address is required.",
   }),
 
-  cityStateCountry: Joi.string().required().messages({
-    "string.base": "City, State, and Country must be a string.",
-    "string.empty": "City, State, and Country cannot be empty.",
-    "any.required": "City, State, and Country are required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   landmark: Joi.string().required().messages({
     "string.base": "Landmark name must be a string.",
     "string.empty": "Landmark name cannot be empty.",
@@ -191,12 +200,21 @@ const EdprowiseProfileUpdateValidator = Joi.object({
     "any.required": "Address is required.",
   }),
 
-  cityStateCountry: Joi.string().required().messages({
-    "string.base": "City, State, and Country must be a string.",
-    "string.empty": "City, State, and Country cannot be empty.",
-    "any.required": "City, State, and Country are required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   landmark: Joi.string().required().messages({
     "string.base": "Landmark name must be a string.",
     "string.empty": "Landmark name cannot be empty.",

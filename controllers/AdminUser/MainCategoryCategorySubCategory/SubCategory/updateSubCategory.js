@@ -13,7 +13,8 @@ async function updateSubCategory(req, res) {
       });
     }
 
-    const { subCategoryName, categoryId, mainCategoryId } = req.body;
+    const { subCategoryName, categoryId, mainCategoryId, edprowiseMargin } =
+      req.body;
 
     if (!subCategoryName) {
       return res.status(400).json({
@@ -52,6 +53,7 @@ async function updateSubCategory(req, res) {
       });
     }
 
+    // Update the SubCategory first
     const updatedSubCategory = await SubCategory.findByIdAndUpdate(
       id,
       { $set: { subCategoryName, categoryId, mainCategoryId } },
@@ -75,6 +77,14 @@ async function updateSubCategory(req, res) {
       });
     }
 
+    if (edprowiseMargin !== undefined) {
+      await Category.findByIdAndUpdate(
+        categoryId,
+        { $set: { edprowiseMargin } },
+        { new: true }
+      );
+    }
+
     return res.status(200).json({
       hasError: false,
       message: "SubCategory updated successfully.",
@@ -89,10 +99,18 @@ async function updateSubCategory(req, res) {
       },
     });
   } catch (error) {
-    console.error("Error updating SubCategory:", error.message);
+    console.error("Error updating Sub Category:", error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message:
+          "A Sub Category with the same name already exists in the same Category.",
+        hasError: true,
+      });
+    }
     return res.status(500).json({
       hasError: true,
-      message: "Server error",
+      message: "Failed to update Sub Category.",
       error: error.message,
     });
   }

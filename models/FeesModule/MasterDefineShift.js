@@ -14,12 +14,10 @@ const MasterDefineShiftSchema = new mongoose.Schema(
     startTime: {
       type: Date,
       required: true,
-      set: (time) => new Date(`1970-01-01T${time}:00Z`),
     },
     endTime: {
       type: Date,
       required: true,
-      set: (time) => new Date(`1970-01-01T${time}:00Z`),
     },
   },
   { timestamps: true }

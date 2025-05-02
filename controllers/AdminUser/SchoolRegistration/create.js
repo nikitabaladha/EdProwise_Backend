@@ -3,31 +3,38 @@ import User from "../../../models/User.js";
 import SchoolRegistrationValidator from "../../../validators/AdminUser/SchoolRegistrationValidator.js";
 import saltFunction from "../../../validators/saltFunction.js";
 
-// Add Umesh 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../../models/SMTPEmailSetting.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
 function generateRandomPassword(length = 10) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join("");
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  return Array.from({ length }, () =>
+    chars.charAt(Math.floor(Math.random() * chars.length))
+  ).join("");
 }
 
 function generateSchoolId() {
   const prefix = "SID";
-  const randomSuffix = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
+  const randomSuffix = String(Math.floor(Math.random() * 1000000)).padStart(
+    6,
+    "0"
+  );
   return `${prefix}${randomSuffix}`;
 }
 
-async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCredentials) {
+async function sendSchoolRegistrationEmail(
+  schoolName,
+  schoolEmail,
+  usersWithCredentials
+) {
   let hasError = false;
   let message = "";
   try {
@@ -38,54 +45,59 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
       return false;
     }
 
-
     // 3. Create Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false, 
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
       },
       tls: {
-        rejectUnauthorized: false, 
-      }
+        rejectUnauthorized: false,
+      },
     });
 
-    const logoImagePath = path.join(__dirname, '../../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-            console.log('Logo path verification:');
-            console.log('Full path:', logoImagePath);
-            console.log('File exists:', fs.existsSync(logoImagePath));
-            
-            if (!fs.existsSync(logoImagePath)) {
-              console.error('Logo not found at:', logoImagePath);
-              return { hasError: true, message: "Logo file not found" };
-            }
-        
-            // Read logo as base64 for fallback
-            const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
-            const base64Src = `data:image/png;base64,${logoBase64}`;
-        
-            const attachments = [{
-              filename: 'logo.png',
-              path: logoImagePath,
-              cid: 'edprowiselogo@company', // Unique CID
-              contentDisposition: 'inline',
-              headers: {
-                'Content-ID': '<edprowiselogo@company>'
-              }
-            }];
-    
-    
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-            const loginUrl = `${frontendUrl.replace(/\/+$/, '')}/login`;
-            const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+    const logoImagePath = path.join(
+      __dirname,
+      "../../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+    console.log("Logo path verification:");
+    console.log("Full path:", logoImagePath);
+    console.log("File exists:", fs.existsSync(logoImagePath));
 
-    // 4. Prepare credentials 
+    if (!fs.existsSync(logoImagePath)) {
+      console.error("Logo not found at:", logoImagePath);
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const loginUrl = `${frontendUrl.replace(/\/+$/, "")}/login`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+
+    // 4. Prepare credentials
     const credentialsHtml = `
     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-        ${usersWithCredentials.map(user => `
+        ${usersWithCredentials
+          .map(
+            (user) => `
         <tr>
           <th colspan="2" class="main" style="background: #a9fffd";>Role: ${user.role}</th>
         </tr>
@@ -97,22 +109,19 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
           <th>Password</th>
           <td style="text-align: center;">${user.password}</td>
         </tr>
-        <tr>
-          <th colspan="2" class="main"></th>
-        </tr>
-        `).join('')}
+        `)
+          .join("")}
       
     </table>
   `;
-  
+
     // 5. Replace placeholders in email template
-    
 
     // 6. Send email
-    const mailOptions ={
+    const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: `${schoolName} Registration Done`,
+      subject: `Registration Successfull - ${schoolName}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -130,7 +139,6 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -223,14 +231,31 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
                         .contact-text{
                           color: #0000FF;
                         }    
+
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
+                        .fw-bold{
+                         font-weight: bold;
+                        }    
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             .content {
                                 padding: 20px;
@@ -256,10 +281,12 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear School,</p>
+                            <p class="message fw-bold">Dear ${schoolName},</p>
                             
-                            <p class="message">Welcome to the ${smtpSettings.mailFromName},</p>
-                            <p class="message">${schoolName}, school account has been successfully created.</p>
+                            <p class="message">Welcome to the ${
+                              smtpSettings.mailFromName
+                            },</p>
+                            <p class="message">We’re pleased to inform you that the school account for ${schoolName}  has been successfully created.</p>
 
                             <!-- User Details Box -->
                             <p class="message">The login details for ${schoolName} are: </p>
@@ -267,16 +294,18 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
                             ${credentialsHtml}
                 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for login </p>
+                            <p class="message">To access your account, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${loginUrl}" class="action-button">Login</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
-                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
                             </div>
                         </div>
                         
@@ -284,15 +313,16 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>
                 </html>
-            `,
-            attachments: attachments 
+             `,
+      attachments: attachments,
     };
-    
-    
 
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent:", info.messageId);
@@ -301,59 +331,77 @@ async function sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCre
     return { hasError: false, message: "Email sent successfully." };
   } catch (error) {
     console.error("Error sending registration email:", error);
-    return { hasError: true, message: "Email is not proper, we cannot send the email." };
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
   }
 }
 
-
-
 async function create(req, res) {
   try {
-    // Validate request body
-    const { error } = SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(req.body);
+    const { error } =
+      SchoolRegistrationValidator.SchoolRegistrationCreateValidator.validate(
+        req.body
+      );
     if (error) {
-      return res.status(400).json({ hasError: true, message: error.details.map(err => err.message).join(", ") });
+      return res.status(400).json({
+        hasError: true,
+        message: error.details.map((err) => err.message).join(", "),
+      });
     }
 
-    const { schoolName, schoolMobileNo, schoolEmail, schoolAddress, schoolLocation, affiliationUpto, panNo } = req.body;
+    const {
+      schoolName,
+      schoolMobileNo,
+      schoolEmail,
+      schoolAddress,
+      affiliationUpto,
+      panNo,
+      country,
+      state,
+      city,
+    } = req.body;
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
-    // Validate file uploads
     if (!affiliationCertificate?.[0]) {
-      return res.status(400).json({ hasError: true, message: "Affiliation Certificate is required." });
+      return res.status(400).json({
+        hasError: true,
+        message: "Affiliation Certificate is required.",
+      });
     }
     if (!panFile?.[0]) {
-      return res.status(400).json({ hasError: true, message: "Pan file is required." });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "Pan file is required." });
     }
 
-    // Set profile image path (default to dummy image if not provided)
     const profileImagePath = profileImage?.[0]
       ? `/Images/SchoolProfile/${profileImage[0].filename}`
       : "/Images/DummyImages/Dummy_Profile.png";
 
-    // Determine file paths based on MIME type
-    const affiliationCertificatePath = affiliationCertificate[0].mimetype.startsWith("image/")
-      ? "/Images/SchoolAffiliationCertificate"
-      : "/Documents/SchoolAffiliationCertificate";
+    const affiliationCertificatePath =
+      affiliationCertificate[0].mimetype.startsWith("image/")
+        ? "/Images/SchoolAffiliationCertificate"
+        : "/Documents/SchoolAffiliationCertificate";
     const panFilePath = panFile[0].mimetype.startsWith("image/")
       ? "/Images/SchoolPanFile"
       : "/Documents/SchoolPanFile";
 
-    // Construct full paths
     const affiliationCertificateFullPath = `${affiliationCertificatePath}/${affiliationCertificate[0].filename}`;
     const panFileFullPath = `${panFilePath}/${panFile[0].filename}`;
 
-    // Generate unique School ID
     const schoolId = generateSchoolId();
 
-    // Create School Registration entry
     const newSchoolRegistration = new SchoolRegistration({
       schoolId,
       schoolName,
       schoolMobileNo,
       schoolEmail,
       schoolAddress,
-      schoolLocation,
+      country,
+      state,
+      city,
       profileImage: profileImagePath,
       affiliationCertificate: affiliationCertificateFullPath,
       affiliationUpto,
@@ -363,7 +411,6 @@ async function create(req, res) {
 
     await newSchoolRegistration.save();
 
-    // Define user roles with unique prefixes
     const roles = [
       { role: "School", prefix: "SAdmin" },
       { role: "Principal", prefix: "Principal" },
@@ -372,8 +419,6 @@ async function create(req, res) {
       { role: "User", prefix: "User2" },
     ];
 
-    // Create user accounts
-    // add
     const usersWithCredentials = [];
 
     const usersToSave = roles.map(({ role, prefix }) => {
@@ -381,12 +426,11 @@ async function create(req, res) {
       const password = generateRandomPassword();
       const { hashedPassword, salt } = saltFunction.hashPassword(password);
 
-
       // Store credentials for email UmeshAdded
       usersWithCredentials.push({
         userId,
         role,
-        password: password
+        password: password,
       });
 
       console.log("User Created ->", { userId, password });
@@ -401,11 +445,13 @@ async function create(req, res) {
       });
     });
 
-    // Save user accounts in bulk
     await User.insertMany(usersToSave);
 
-    // add
-    await sendSchoolRegistrationEmail(schoolName, schoolEmail, usersWithCredentials);
+    await sendSchoolRegistrationEmail(
+      schoolName,
+      schoolEmail,
+      usersWithCredentials
+    );
 
     return res.status(201).json({
       message: "School Registration created successfully with users!",
@@ -413,17 +459,28 @@ async function create(req, res) {
       hasError: false,
     });
   } catch (error) {
-    console.error("Error creating School Registration:", error);
-
+    console.error("Error creating School Profile:", error.message);
     if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        panNo: "PAN",
+        schoolMobileNo: "Mobile Number",
+        schoolEmail: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
       return res.status(400).json({
         hasError: true,
-        message: "Duplicate schoolId or userId. Please check the data and try again.",
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
       });
     }
-
     return res.status(500).json({
-      message: "Failed to create School Registration.",
+      hasError: true,
+      message: "Failed to create School Profile.",
       error: error.message,
     });
   }

@@ -6,7 +6,8 @@ async function getAll(req, res) {
       .populate({
         path: "mainCategoryId",
         select: "mainCategoryName",
-      }).sort({ createdAt: -1 })
+      })
+      .sort({ createdAt: -1 })
       .select("categoryName _id");
 
     if (categories.length === 0) {
@@ -22,6 +23,7 @@ async function getAll(req, res) {
       data: categories.map((category) => ({
         id: category._id,
         categoryName: category.categoryName,
+        edprowiseMargin: category.edprowiseMargin,
         mainCategoryId: category.mainCategoryId._id,
         mainCategoryName: category.mainCategoryId.mainCategoryName,
       })),

@@ -15,14 +15,33 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       trim: true,
       require: true,
+      unique: true,
     },
     schoolAddress: {
       type: String,
       required: true,
     },
-    schoolLocation: {
+
+    country: {
       type: String,
       required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true,
+    },
+    deliveryCountry: {
+      type: String,
+    },
+    deliveryState: {
+      type: String,
+    },
+    deliveryCity: {
+      type: String,
     },
     landMark: {
       type: String,
@@ -31,9 +50,6 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
     },
     deliveryAddress: {
-      type: String,
-    },
-    deliveryLocation: {
       type: String,
     },
     deliveryLandMark: {
@@ -45,6 +61,7 @@ const SchoolSchema = new mongoose.Schema(
     schoolMobileNo: {
       type: String,
       required: true,
+      unique: true,
     },
     schoolAlternateContactNo: {
       type: String,
@@ -73,10 +90,15 @@ const SchoolSchema = new mongoose.Schema(
         "Pre-Primary",
         "Primary (Upto Class 5)",
         "Secondary (Upto Class 10)",
-        "Higher Secondary (Upto Class 12)",
+        "Senior Secondary (Upto Class 12)",
         "College",
         "University",
       ],
+    },
+    status: {
+      type: String,
+      enum: ["Pending", "Completed", "Deleted"],
+      default: "Pending",
     },
   },
   {

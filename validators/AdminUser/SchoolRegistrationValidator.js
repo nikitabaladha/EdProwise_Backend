@@ -37,18 +37,27 @@ const SchoolRegistrationCreateValidator = Joi.object({
     "any.required": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School Location must be a string.",
-    "string.empty": "School Location cannot be empty.",
-    "any.required": "School Location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -108,18 +117,27 @@ const SchoolRegistrationUpdateValidator = Joi.object({
     "any.required": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School Location must be a string.",
-    "string.empty": "School Location cannot be empty.",
-    "any.required": "School Location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
   }),
-
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
+  }),
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -143,7 +161,6 @@ const SchoolRegistrationUpdateValidator = Joi.object({
 });
 
 const SchoolProfileUpdateValidator = Joi.object({
-
   panFile: Joi.string().optional().messages({}),
   profileImage: Joi.string().optional().messages({}),
   affiliationCertificate: Joi.string().optional().messages({}),
@@ -167,9 +184,20 @@ const SchoolProfileUpdateValidator = Joi.object({
     "string.empty": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School location must be a string.",
-    "string.empty": "School location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
+  }),
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
   }),
 
   landMark: Joi.string().required().messages({
@@ -187,9 +215,20 @@ const SchoolProfileUpdateValidator = Joi.object({
     "string.empty": "School delivery address is required.",
   }),
 
-  deliveryLocation: Joi.string().required().messages({
-    "string.base": "Delivery Location must be a string.",
-    "string.empty": "Delivery Location is required.",
+  deliveryCountry: Joi.string().required().messages({
+    "string.base": "School delivery Country must be a string.",
+    "string.empty": "School delivery Country cannot be empty.",
+    "any.required": "School delivery Country is required.",
+  }),
+  deliveryState: Joi.string().required().messages({
+    "string.base": "School delivery State must be a string.",
+    "string.empty": "School delivery State cannot be empty.",
+    "any.required": "School delivery State is required.",
+  }),
+  deliveryCity: Joi.string().required().messages({
+    "string.base": "School delivery City must be a string.",
+    "string.empty": "School delivery City cannot be empty.",
+    "any.required": "School delivery City is required.",
   }),
 
   deliveryLandMark: Joi.string().required().messages({
@@ -213,7 +252,8 @@ const SchoolProfileUpdateValidator = Joi.object({
 
   schoolAlternateContactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .optional().allow("")
+    .optional()
+    .allow("")
     .messages({
       "string.base": "School alternate contact number must be a string.",
       "string.pattern.base":
@@ -221,14 +261,15 @@ const SchoolProfileUpdateValidator = Joi.object({
     }),
 
   schoolEmail: Joi.string()
-  .trim()
-  .lowercase()
-  .email({ tlds: { allow: false } }) 
-  .required().messages({
-    "string.base": "School email must be a string.",
-    "string.empty": "School email is required.",
-    "string.email": "School email must be a valid email address.",
-  }), 
+    .trim()
+    .lowercase()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.base": "School email must be a string.",
+      "string.empty": "School email is required.",
+      "string.email": "School email must be a valid email address.",
+    }),
 
   contactPersonName: Joi.string().optional().allow("").messages({
     "string.base": "Contact person name must be a string.",
@@ -242,14 +283,14 @@ const SchoolProfileUpdateValidator = Joi.object({
 
   principalName: Joi.string().optional().allow("").messages({
     "string.base": "Principal name must be a string.",
-      }),
+  }),
 
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )
@@ -286,11 +327,37 @@ const SchoolProfileCreateByUserValidator = Joi.object({
     "string.empty": "School address is required.",
   }),
 
-  schoolLocation: Joi.string().required().messages({
-    "string.base": "School location must be a string.",
-    "string.empty": "School location is required.",
+  country: Joi.string().required().messages({
+    "string.base": "School Country must be a string.",
+    "string.empty": "School Country cannot be empty.",
+    "any.required": "School Country is required.",
+  }),
+  state: Joi.string().required().messages({
+    "string.base": "School State must be a string.",
+    "string.empty": "School State cannot be empty.",
+    "any.required": "School State is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "School City must be a string.",
+    "string.empty": "School City cannot be empty.",
+    "any.required": "School City is required.",
   }),
 
+  deliveryCountry: Joi.string().required().messages({
+    "string.base": "School delivery Country must be a string.",
+    "string.empty": "School delivery Country cannot be empty.",
+    "any.required": "School delivery Country is required.",
+  }),
+  deliveryState: Joi.string().required().messages({
+    "string.base": "School delivery State must be a string.",
+    "string.empty": "School delivery State cannot be empty.",
+    "any.required": "School deliveryState is required.",
+  }),
+  deliveryCity: Joi.string().required().messages({
+    "string.base": "School delivery City must be a string.",
+    "string.empty": "School delivery City cannot be empty.",
+    "any.required": "School delivery City is required.",
+  }),
   landMark: Joi.string().required().messages({
     "string.base": "Landmark must be a string.",
     "string.empty": "Landmark is required.",
@@ -304,11 +371,6 @@ const SchoolProfileCreateByUserValidator = Joi.object({
   deliveryAddress: Joi.string().required().messages({
     "string.base": "School delivery address must be a string.",
     "string.empty": "School delivery address is required.",
-  }),
-
-  deliveryLocation: Joi.string().required().messages({
-    "string.base": "Delivery Location must be a string.",
-    "string.empty": "Delivery Location is required.",
   }),
 
   deliveryLandMark: Joi.string().required().messages({
@@ -332,7 +394,8 @@ const SchoolProfileCreateByUserValidator = Joi.object({
 
   schoolAlternateContactNo: Joi.string()
     .pattern(/^[0-9]{10}$/)
-    .optional().allow("")
+    .optional()
+    .allow("")
     .messages({
       "string.base": "School alternate contact number must be a string.",
       "string.pattern.base":
@@ -340,14 +403,15 @@ const SchoolProfileCreateByUserValidator = Joi.object({
     }),
 
   schoolEmail: Joi.string()
-  .trim()
-  .lowercase()
-  .email({ tlds: { allow: false } }) 
-  .required().messages({
-    "string.base": "School email must be a string.",
-    "string.empty": "School email is required.",
-    "string.email": "School email must be a valid email address.",
-  }), 
+    .trim()
+    .lowercase()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.base": "School email must be a string.",
+      "string.empty": "School email is required.",
+      "string.email": "School email must be a valid email address.",
+    }),
 
   contactPersonName: Joi.string().optional().allow("").messages({
     "string.base": "Contact person name must be a string.",
@@ -361,14 +425,14 @@ const SchoolProfileCreateByUserValidator = Joi.object({
 
   principalName: Joi.string().optional().allow("").messages({
     "string.base": "Principal name must be a string.",
-      }),
+  }),
 
   affiliationUpto: Joi.string()
     .valid(
       "Pre-Primary",
       "Primary (Upto Class 5)",
       "Secondary (Upto Class 10)",
-      "Higher Secondary (Upto Class 12)",
+      "Senior Secondary (Upto Class 12)",
       "College",
       "University"
     )

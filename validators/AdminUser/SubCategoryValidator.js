@@ -30,6 +30,17 @@ const SubCategoryValidatorWithoutCategoryId = Joi.object({
     "string.empty": "Category name cannot be empty.",
     "any.required": "Category name is required.",
   }),
+  edprowiseMargin: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .required()
+    .messages({
+      "any.required": "Edprowise margin is required.",
+      "number.base": "Edprowise margin must be a number.",
+      "number.min": "Edprowise margin cannot be negative.",
+      "number.max": "Edprowise margin cannot exceed 100%.",
+    }),
   mainCategoryId: Joi.string().required().messages({
     "string.base": "Main CategoryId must be a string.",
     "string.empty": "Main CategoryId cannot be empty.",
@@ -49,6 +60,17 @@ const SubCategoryValidatorWithoutIds = Joi.object({
     "string.empty": "Category name cannot be empty.",
     "any.required": "Category name is required 123.",
   }),
+  edprowiseMargin: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .required()
+    .messages({
+      "any.required": "Edprowise margin is required.",
+      "number.base": "Edprowise margin must be a number.",
+      "number.min": "Edprowise margin cannot be negative.",
+      "number.max": "Edprowise margin cannot exceed 100%.",
+    }),
   mainCategoryName: Joi.string().required().messages({
     "string.base": "Main Category name must be a string.",
     "string.empty": "Main Category name cannot be empty. 123456",

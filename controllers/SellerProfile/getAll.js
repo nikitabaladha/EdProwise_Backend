@@ -1,9 +1,17 @@
 import SellerProfile from "../../models/SellerProfile.js";
-import Seller from "../../models/Seller.js";
 
 async function getAll(req, res) {
   try {
-    const sellerProfiles = await SellerProfile.find()
+    const { companyName } = req.query;
+
+    // Build the query object
+    const query = { status: { $in: ["Pending", "Completed"] } };
+
+    if (companyName) {
+      query.companyName = { $regex: new RegExp(companyName, "i") };
+    }
+
+    const sellerProfiles = await SellerProfile.find(query)
       .sort({ createdAt: -1 })
       .populate("sellerId");
 
@@ -18,7 +26,10 @@ async function getAll(req, res) {
       tan: profile.tan,
       cin: profile.cin,
       address: profile.address,
-      cityStateCountry: profile.cityStateCountry,
+
+      city: profile.city,
+      state: profile.state,
+      country: profile.country,
       landmark: profile.landmark,
       pincode: profile.pincode,
       contactNo: profile.contactNo,
@@ -34,10 +45,10 @@ async function getAll(req, res) {
       ceoName: profile.ceoName,
       turnover: profile.turnover,
       dealingProducts: profile.dealingProducts,
-      panFile:profile.panFile,
-      cinFile:profile.cinFile,
-      gstFile:profile.gstFile,
-      tanFile:profile.tanFile
+      panFile: profile.panFile,
+      cinFile: profile.cinFile,
+      gstFile: profile.gstFile,
+      tanFile: profile.tanFile,
     }));
 
     return res.status(200).json({

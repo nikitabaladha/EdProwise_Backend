@@ -77,6 +77,7 @@ async function create(req, res) {
         sellerId: prepareQuoteEntry?.sellerId || null,
         cartImage: prepareQuoteEntry?.prepareQuoteImage || null,
         subcategoryName: prepareQuoteEntry?.subcategoryName || "",
+        subCategoryId: prepareQuoteEntry?.subCategoryId || "",
         hsnSacc: prepareQuoteEntry?.hsnSacc || "",
         listingRate: prepareQuoteEntry?.listingRate || 0,
         edprowiseMargin: prepareQuoteEntry?.edprowiseMargin || 0,

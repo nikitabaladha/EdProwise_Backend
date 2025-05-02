@@ -2,12 +2,12 @@ import MasterDefineShift from "../../../../models/FeesModule/MasterDefineShift.j
 
 async function getAll(req, res) {
   try {
-    const schoolId = req.user?.schoolId;
+    const { schoolId } = req.params; 
 
     if (!schoolId) {
-      return res.status(401).json({
+      return res.status(400).json({
         hasError: true,
-        message: "Access denied: You do not have permission to view Shifts.",
+        message: "Missing schoolId in request parameters.",
       });
     }
 

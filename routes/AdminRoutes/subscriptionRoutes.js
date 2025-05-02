@@ -19,7 +19,7 @@ router.get("/subscription", roleBasedMiddleware("Admin"), getAll);
 router.get("/subscription-by-id/:id", roleBasedMiddleware("Admin"), getById);
 router.get(
   "/subscription/:schoolId",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "School"),
   getBySchoolId
 );
 router.put("/subscription/:id", roleBasedMiddleware("Admin"), updateById);

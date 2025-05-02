@@ -2,13 +2,12 @@ import FeesType from "../../../../models/FeesModule/FeesType.js";
 
 async function getAll(req, res) {
   try {
-    const schoolId = req.user?.schoolId;
+    const { schoolId } = req.params;
 
     if (!schoolId) {
-      return res.status(401).json({
+      return res.status(400).json({
         hasError: true,
-        message:
-          "Access denied: You do not have permission to view Fees Types.",
+        message: "School ID is required.",
       });
     }
 

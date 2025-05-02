@@ -8,25 +8,65 @@ import Category from "../../models/Category.js";
 import SubCategory from "../../models/SubCategory.js";
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
-import SchoolRequestForQuoteEmailTemplate from "../../models/EmailTeamplates/SchoolRequestForQuoteEmailTemplate.js";
 import SellerProfile from "../../models/SellerProfile.js";
-import NewQuoteRequestReceiveEmailTemplate from "../../models/EmailTeamplates/NewQuoteRequestReceiveEmailTemplate.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-function generateEnquiryNumber() {
+async function generateEnquiryNumber() {
   const prefix = "ENQ";
-  const timestamp = Date.now();
-  const randomSuffix = Math.floor(Math.random() * 10000);
-  return `${prefix}${timestamp}${randomSuffix}`;
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    // April or later - current year to next year (2024-25)
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    // January-March - previous year to current year (2023-24)
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  // Find the last enquiry number for this financial year
+  const lastEnquiry = await QuoteRequest.findOne({
+    enquiryNumber: new RegExp(`^${prefix}/${financialYear}/`),
+  }).sort({ createdAt: -1 });
+
+  let sequenceNumber;
+  if (lastEnquiry) {
+    // Extract the sequence number from the last enquiry
+    const lastSequence = parseInt(lastEnquiry.enquiryNumber.split("/")[2]);
+    sequenceNumber = lastSequence + 1;
+  } else {
+    // First enquiry of this financial year
+    sequenceNumber = 1;
+  }
+
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
 }
 
-async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCredentials) {
+async function sendSchoolRequestQuoteEmail(
+  schoolName,
+  schoolEmail,
+  usersWithCredentials
+) {
   let hasError = false;
   let message = "";
 
@@ -42,68 +82,81 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
       },
       tls: {
         rejectUnauthorized: false,
-      }
+      },
     });
 
-    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
 
     if (!fs.existsSync(logoImagePath)) {
-      console.error('Logo not found at:', logoImagePath);
+      console.error("Logo not found at:", logoImagePath);
       return { hasError: true, message: "Logo file not found" };
     }
 
     // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    const attachments = [{
-      filename: 'logo.png',
-      path: logoImagePath,
-      cid: 'edprowiselogo@company', // Unique CID
-      contentDisposition: 'inline',
-      headers: {
-        'Content-ID': '<edprowiselogo@company>'
-      }
-    }];
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const viewQuoteUrl = `${frontendUrl.replace(/\/+$/, '')}/school-dashboard/procurement-services/track-quote`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
-
+    
 
     const { enquiryNumber, products, quoteRequest } = usersWithCredentials;
-
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    // const viewQuoteUrl = `${frontendUrl.replace(
+    //   /\/+$/,
+    //   ""
+    // )}/school-dashboard/procurement-services/view-requested-quote`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+    // const viewQuoteUrl = new URL(
+    //   "/school-dashboard/procurement-services/view-requested-quote",
+    //   frontendUrl
+    // );
+    // viewQuoteUrl.searchParams.append('enquiryNumber', enquiryNumber);
+    const encodedEnquiry = encodeURIComponent(enquiryNumber);
+const viewQuoteUrl = `${frontendUrl}/school-dashboard/procurement-services/view-requested-quote?enquiryNumber=${encodedEnquiry}`;
     const quoteDetailsHtml = `
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>S.No</th>
             <th>Category</th>
-            <th>Sub Category</th>
-            <th>Description</th>
             <th>Unit</th>
             <th>Quantity</th>
           </tr>
         </thead>
         <tbody>
-          ${products.map((product, index) => `
+          ${products
+            .map(
+              (product, index) => `
             <tr>
               <td style="text-align: center;">${index + 1}</td>
-              <td style="text-align: center;">${product.categoryName}</td>
               <td style="text-align: center;">${product.subCategoryName}</td>
-              <td style="text-align: center;">${product.description || '-'}</td>
               <td style="text-align: center;">${product.unit}</td>
               <td style="text-align: center;">${product.quantity}</td>
             </tr>
-          `).join("")}
+          `
+            )
+            .join("")}
         </tbody>
       </table>
     `;
@@ -111,19 +164,29 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
     // 6. Create deliveryDetailsHtml
     const deliveryDetailsHtml = `
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-        <tr><th>Address</th>  <td>${quoteRequest.deliveryAddress || '-'}</td>  </tr>
-        <tr><th>Location</th> <td>${quoteRequest.deliveryLocation || '-'}</td> </tr>
-        <tr><th>Landmark</th> <td>${quoteRequest.deliveryLandMark || '-'}</td> </tr>
-        <tr><th>Pincode</th>  <td>${quoteRequest.deliveryPincode || '-'}</td>  </tr>
-        <tr><th>Expected Delivery Date</th><td>${quoteRequest.expectedDeliveryDate || '-'}</td></tr>        
+        <tr><th>Address</th>  <td>${
+          quoteRequest.deliveryAddress || "-"
+        }</td>  </tr>
+        <tr><th>Location</th> <td>${
+          quoteRequest.deliveryLocation || "-"
+        }</td> </tr>
+        <tr><th>Landmark</th> <td>${
+          quoteRequest.deliveryLandMark || "-"
+        }</td> </tr>
+        <tr><th>Pincode</th>  <td>${
+          quoteRequest.deliveryPincode || "-"
+        }</td>  </tr>
+        <tr><th>Expected Delivery Date</th><td>${
+          quoteRequest.expectedDeliveryDate || "-"
+        }</td></tr>        
       </table>
     `;
 
     // 8. Send email
-    const mailOptions ={
+    const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: "Request For Quote Done" ,
+      subject: `Your Quote Request Submitted - ${enquiryNumber}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -141,7 +204,7 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                         }
 
                        .outer-div{
-                          width:100%;
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -184,10 +247,7 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                         .content {
                             padding: 30px;
                         }
-                        .heading{
-                        color: #000000;
-                        font-size: 17px;
-                        }
+                      
                         .message {
                             font-size: 16px;
                             color: #4a5568;
@@ -237,17 +297,33 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                         .contact-text{
                           color: #0000FF;
                         }    
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
+                        .fw-bold{
+                          font-weight: bold;
+                        }    
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
                             }
                             .content {
                                 padding: 20px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             
                         }
@@ -270,13 +346,14 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear ${schoolName},</p>
+                            <p class="message fw-bold">Dear ${schoolName},</p>
                             
 
-                            <p class="message">Your request has been received and we are processing it now. </p>
+                            <p class="message">Thank you for your quote request. We have received your quote request and are processing it now.</p>
+                            
                             <p class="message">Your quote requested details are as follow : </p>
 
-                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
+                            <p class="message">Enquiry Number:<span class="fw-bold">${enquiryNumber}</span></p>
 
                             <!-- Quote Details Box -->
                             ${quoteDetailsHtml}
@@ -285,16 +362,18 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                             ${deliveryDetailsHtml}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view requested quote </p>
+                            <p class="message">To view your requested quote, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-                            <!-- Signature -->
+                           <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                                   <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
-                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
                             </div>
                         </div>
                         
@@ -302,29 +381,35 @@ async function sendSchoolRequestQuoteEmail(schoolName, schoolEmail, usersWithCre
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>
                 </html>
             `,
-            attachments: attachments 
+      attachments: attachments,
     };
-    
+
     await transporter.sendMail(mailOptions);
-
-
 
     console.log("Request quote email sent successfully");
     return { hasError: false, message: "Email sent successfully." };
-
   } catch (error) {
     console.error("Error sending quote request email:", error);
-    return { hasError: true, message: "Email is not proper, we cannot send the email." };
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
   }
 }
 
-
-async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryNumber }) {
+async function sendEmailsToSellers({
+  enrichedProducts,
+  newQuoteRequest,
+  enquiryNumber,
+}) {
   try {
     const smtpSettings = await SMTPEmailSetting.findOne();
     if (!smtpSettings) {
@@ -334,57 +419,66 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
       },
-      tls: { rejectUnauthorized: false }
+      tls: { rejectUnauthorized: false },
     });
 
-    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
 
     if (!fs.existsSync(logoImagePath)) {
-      console.error('Logo not found at:', logoImagePath);
+      console.error("Logo not found at:", logoImagePath);
       return { hasError: true, message: "Logo file not found" };
     }
 
     // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    const attachments = [{
-      filename: 'logo.png',
-      path: logoImagePath,
-      cid: 'edprowiselogo@company', // Unique CID
-      contentDisposition: 'inline',
-      headers: {
-        'Content-ID': '<edprowiselogo@company>'
-      }
-    }];
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const viewQuoteUrl = `${frontendUrl.replace(/\/+$/, '')}/seller-dashboard/procurement-services/track-quote`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
-
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    // const viewQuoteUrl = `${frontendUrl.replace(
+    //   /\/+$/,
+    //   ""
+    // )}/seller-dashboard/procurement-services/track-quote`;
+    const viewQuoteUrl = new URL(
+      "/seller-dashboard/procurement-services/view-requested-quote",
+      frontendUrl
+    );
+    viewQuoteUrl.searchParams.append('enquiryNumber', enquiryNumber);
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const sellerMap = new Map();
     let totalMatchedSellers = 0;
 
     for (const product of enrichedProducts) {
-      
       // Corrected query to match dealingProducts structure
       const matchedSellers = await SellerProfile.find({
-        'dealingProducts.categoryId': product.categoryId,
-        'dealingProducts.subCategoryIds': product.subCategoryId
+        "dealingProducts.categoryId": product.categoryId,
+        "dealingProducts.subCategoryIds": product.subCategoryId,
       });
 
       console.log(`Found ${matchedSellers.length} sellers for this product`);
       totalMatchedSellers += matchedSellers.length;
 
       for (const seller of matchedSellers) {
-        
         const id = seller._id.toString();
         if (!sellerMap.has(id)) {
           sellerMap.set(id, { seller, products: [product] });
@@ -396,75 +490,99 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
 
     // Rest of the function remains the same...
     if (sellerMap.size === 0) {
-      return { hasError: true, message: "No matching sellers found for any products" };
+      return {
+        hasError: true,
+        message: "No matching sellers found for any products",
+      };
     }
 
     let emailsSent = 0;
     for (const [id, { seller, products }] of sellerMap.entries()) {
       try {
-
-        
         const productHtml = `
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <table class="lll" border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>S.No</th>
-            <th>Category</th>
-            <th>Sub Category</th>
-            <th>Description</th>
+            <th>Category</th>       
             <th>Unit</th>
             <th>Quantity</th>
           </tr>
         </thead>
         <tbody>
-          ${products.map((product, index) => `
+          ${products
+            .map(
+              (product, index) => `
             <tr>
               <td style="text-align: center;">${index + 1}</td>
-              <td style="text-align: center;">${product.categoryName}</td>
               <td style="text-align: center;">${product.subCategoryName}</td>
-              <td style="text-align: center;">${product.description || '-'}</td>
               <td style="text-align: center;">${product.unit}</td>
               <td style="text-align: center;">${product.quantity}</td>
             </tr>
-          `).join("")}
+          ` )
+            .join("")}
+        </tbody>
+      </table>
+      `;
+      const quoteDetailsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products
+            .map(
+              (product, index) => `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
+            </tr>
+          `
+            )
+            .join("")}
         </tbody>
       </table>
     `;
-        
 
         const deliveryDetailsHtml = `
           <h3>Delivery Information</h3>
           <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top: 10px;">
               <tr>
                 <th style="width: 30%;">Address</th>
-                <td >${newQuoteRequest.deliveryAddress || '-'}</td>
+                <td >${newQuoteRequest.deliveryAddress || "-"}</td>
               </tr>
               <tr>
                 <th>Location</th>
-                <td>${newQuoteRequest.deliveryLocation || '-'}</td>
+                <td>${newQuoteRequest.deliveryLocation || "-"}</td>
               </tr>
               <tr>
                 <th>Landmark</th>
-                <td>${newQuoteRequest.deliveryLandMark || '-'}</td>
+                <td>${newQuoteRequest.deliveryLandMark || "-"}</td>
               </tr>
               <tr>
                 <th>Pincode</th>
-                <td>${newQuoteRequest.deliveryPincode || '-'}</td>
+                <td>${newQuoteRequest.deliveryPincode || "-"}</td>
               </tr>
               <tr>
                 <th>Expected Delivery Date</th>
-                <td>${newQuoteRequest.expectedDeliveryDate || '-'}</td>
+                <td>${newQuoteRequest.expectedDeliveryDate || "-"}</td>
               </tr>
             </table>
           `;
 
-
         // 8. Send email
-    const mailOptions ={
-      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
-      to: seller.emailId,
-      subject: "New Quote Request" ,
-      html: `
+        const mailOptions = {
+          from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+          to: seller.emailId,
+          subject: ` New Quote Request Received – ${enquiryNumber}`,
+          html: `
               <!DOCTYPE html>
                 <html>
                 <head>
@@ -481,7 +599,7 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
                         }
 
                        .outer-div{
-                          width:100%;
+                          
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -494,6 +612,10 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
                             border-radius: 8px;
                             overflow: hidden;
                             box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+
+                        .lll{
+                          display: none;
                         }
                         
                         /* Header Section */
@@ -576,18 +698,34 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
                         }
                         .contact-text{
                           color: #0000FF;
-                        }    
+                        }   
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        } 
+                         .fw-bold{
+                         font-weight: bold;
+                         }   
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
                             }
                             .content {
                                 padding: 20px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             
                         }
@@ -610,31 +748,32 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear Seller,</p>
+                            <p class="message fw-bold">Dear Seller,</p>
                             
-
-                            <p class="message">New quote request has been received, pls processing it now. </p>
+                            <p class="message">New quote request has been received, Prepared your quote and please Submit Now. Hurry Up !!!</p>
                             <p class="message">Quote requested details are as follow : </p>
 
-                            <h3>Enquiry Number : ${enquiryNumber}</h3>
-
+                        
+<h3 class="message">Enquiry Number:<span class="fw-bold">${enquiryNumber}</span></h3>
                             <!-- Quote Details Box -->
                             ${productHtml}
-
+                            ${quoteDetailsHtml}
                             
                             ${deliveryDetailsHtml}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view quote </p>
+                            <p class="message">To view the full quote, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
-                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
                             </div>
                         </div>
                         
@@ -642,15 +781,18 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>
                 </html>
             `,
-            attachments: attachments 
-    };
-    
-    await transporter.sendMail(mailOptions);
+          attachments: attachments,
+        };
+
+        await transporter.sendMail(mailOptions);
         emailsSent++;
       } catch (emailError) {
         console.error(`Failed to send email to ${seller.emailId}:`, emailError);
@@ -664,10 +806,9 @@ async function sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryN
       stats: {
         totalProducts: enrichedProducts.length,
         totalMatchedSellers,
-        emailsSent
-      }
+        emailsSent,
+      },
     };
-
   } catch (error) {
     console.error("Error in sendEmailsToSellers:", error);
     return { hasError: true, message: "Failed to send seller emails." };
@@ -712,8 +853,8 @@ async function create(req, res) {
 
     const uploadedImages = req.files || [];
     const createdEntries = [];
-    const enquiryNumber = generateEnquiryNumber();
 
+    const enquiryNumber = await generateEnquiryNumber();
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
 
@@ -767,7 +908,9 @@ async function create(req, res) {
 
     const {
       deliveryAddress,
-      deliveryLocation,
+      deliveryCity,
+      deliveryState,
+      deliveryCountry,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,
@@ -777,7 +920,9 @@ async function create(req, res) {
       schoolId,
       enquiryNumber,
       deliveryAddress,
-      deliveryLocation,
+      deliveryCity,
+      deliveryState,
+      deliveryCountry,
       deliveryLandMark,
       deliveryPincode,
       expectedDeliveryDate,
@@ -788,23 +933,33 @@ async function create(req, res) {
 
     await newQuoteRequest.save({ session });
 
-    // add umesh
-    const schoolDetail = await School.findOne({ schoolId })
+    const schoolDetail = await School.findOne({ schoolId });
+
     console.log("School details: ", schoolDetail);
 
     const schoolEmail = schoolDetail.schoolEmail;
+
     const schoolName = schoolDetail.schoolName;
+
     console.log("school Name:", schoolName);
 
     const enrichedProducts = await Promise.all(
       createdEntries.map(async (product) => {
         const category = await Category.findById(product.categoryId).lean();
-        const subCategory = await SubCategory.findById(product.subCategoryId).lean();
-        6
+
+        const subCategory = await SubCategory.findById(
+          product.subCategoryId
+        ).lean();
+
+        6;
+
         return {
           ...product.toObject(),
+
           categoryName: category?.categoryName || "Unknown Category",
-          subCategoryName: subCategory?.subCategoryName || "Unknown SubCategory",
+
+          subCategoryName:
+            subCategory?.subCategoryName || "Unknown SubCategory",
         };
       })
     );
@@ -818,7 +973,11 @@ async function create(req, res) {
       quoteRequest: newQuoteRequest,
     });
 
-    await sendEmailsToSellers({ enrichedProducts, newQuoteRequest, enquiryNumber });
+    await sendEmailsToSellers({
+      enrichedProducts,
+      newQuoteRequest,
+      enquiryNumber,
+    });
 
     return res.status(201).json({
       hasError: false,

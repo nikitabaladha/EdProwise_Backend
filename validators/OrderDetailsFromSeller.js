@@ -12,10 +12,6 @@ const orderDetailsFromSellerUpdate = Joi.object({
   otherCharges: Joi.number().optional().messages({
     "number.base": "Other charges must be a number.",
   }),
-
-  // finalReceivableFromEdprowise: Joi.number().optional().allowmessages({
-  //   "number.base": "Final receivable amount must be a number.",
-  // }),
 });
 
 export default {

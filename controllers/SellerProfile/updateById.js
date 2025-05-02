@@ -31,7 +31,9 @@ async function update(req, res) {
       tan,
       cin,
       address,
-      cityStateCountry,
+      country,
+      state,
+      city,
       landmark,
       pincode,
       contactNo,
@@ -80,36 +82,44 @@ async function update(req, res) {
       ? `${sellerProfileImagePath}/${req.files.sellerProfile[0].filename}`
       : existingSeller.sellerProfile;
 
-      const panFile = req.files?.panFile ? req.files.panFile : null;
-      const gstFile = req.files?.gstFile ? req.files.gstFile : null;
-      const tanFile = req.files?.tanFile ? req.files.tanFile : null;
-      const cinFile = req.files?.cinFile ? req.files.cinFile : null;
+    const signatureImagePath = "/Images/SellerSignature";
+    const signature = req.files?.signature?.[0]?.filename
+      ? `${signatureImagePath}/${req.files.signature[0].filename}`
+      : existingSeller.signature;
 
-      // File path initialization for the documents (if they exist)
-    const panFilePath = panFile && panFile[0].mimetype.startsWith("image/")
-    ? `/Images/SellerPanFile/${panFile[0].filename}`
-    : panFile
-    ? `/Documents/SellerPanFile/${panFile[0].filename}`
-    : existingSeller.panFile;
+    const panFile = req.files?.panFile ? req.files.panFile : null;
+    const gstFile = req.files?.gstFile ? req.files.gstFile : null;
+    const tanFile = req.files?.tanFile ? req.files.tanFile : null;
+    const cinFile = req.files?.cinFile ? req.files.cinFile : null;
 
-  const gstFilePath = gstFile && gstFile[0].mimetype.startsWith("image/")
-    ? `/Images/SellerGstFile/${gstFile[0].filename}`
-    : gstFile
-    ? `/Documents/SellerGstFile/${gstFile[0].filename}`
-    : existingSeller.gstFile;
+    // File path initialization for the documents (if they exist)
+    const panFilePath =
+      panFile && panFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerPanFile/${panFile[0].filename}`
+        : panFile
+        ? `/Documents/SellerPanFile/${panFile[0].filename}`
+        : existingSeller.panFile;
 
-  const tanFilePath = tanFile && tanFile[0].mimetype.startsWith("image/")
-    ? `/Images/SellerTanFile/${tanFile[0].filename}`
-    : tanFile
-    ? `/Documents/SellerTanFile/${tanFile[0].filename}`
-    : existingSeller.tanFile;
+    const gstFilePath =
+      gstFile && gstFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerGstFile/${gstFile[0].filename}`
+        : gstFile
+        ? `/Documents/SellerGstFile/${gstFile[0].filename}`
+        : existingSeller.gstFile;
 
-  const cinFilePath = cinFile && cinFile[0].mimetype.startsWith("image/")
-    ? `/Images/SellerCinFile/${cinFile[0].filename}`
-    : cinFile
-    ? `/Documents/SellerCinFile/${cinFile[0].filename}`
-    : existingSeller.cinFile;
+    const tanFilePath =
+      tanFile && tanFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerTanFile/${tanFile[0].filename}`
+        : tanFile
+        ? `/Documents/SellerTanFile/${tanFile[0].filename}`
+        : existingSeller.tanFile;
 
+    const cinFilePath =
+      cinFile && cinFile[0].mimetype.startsWith("image/")
+        ? `/Images/SellerCinFile/${cinFile[0].filename}`
+        : cinFile
+        ? `/Documents/SellerCinFile/${cinFile[0].filename}`
+        : existingSeller.cinFile;
 
     const updatedData = {
       companyName: companyName || existingSeller.companyName,
@@ -119,7 +129,9 @@ async function update(req, res) {
       tan: tan || existingSeller.tan,
       cin: cin || existingSeller.cin,
       address: address || existingSeller.address,
-      cityStateCountry: cityStateCountry || existingSeller.cityStateCountry,
+      country: country || existingSeller.country,
+      state: state || existingSeller.state,
+      city: city || existingSeller.city,
       landmark: landmark || existingSeller.landmark,
       pincode: pincode || existingSeller.pincode,
       contactNo: contactNo || existingSeller.contactNo,
@@ -135,6 +147,7 @@ async function update(req, res) {
       ceoName: ceoName || existingSeller.ceoName,
       turnover: turnover || existingSeller.turnover,
       sellerProfile,
+      signature,
       panFile: panFilePath,
       gstFile: gstFilePath,
       tanFile: tanFilePath,
@@ -164,6 +177,27 @@ async function update(req, res) {
     });
   } catch (error) {
     console.error("Error updating Seller Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        gstin: "GSTIN",
+        pan: "PAN",
+        contactNo: "contact number",
+        emailId: "email",
+        accountNo: "account number",
+        ifsc: "IFSC code",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
       hasError: true,
       message: "Failed to update Seller Profile.",

@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get(
   "/get-all-user-by-school-id/:schoolId",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "School"),
   getAllUsersBySchoolId
 );
 router.post("/create-user", roleBasedMiddleware("Admin"), createUser);

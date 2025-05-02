@@ -3,16 +3,19 @@ import saltFunction from "../../validators/saltFunction.js";
 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
-async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredentials) {
+async function sendPasswordUpdateEmail(
+  userFullName,
+  userEmail,
+  usersWithCredentials
+) {
   let hasError = false;
   let message = "";
   try {
@@ -27,48 +30,51 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false, 
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
       },
       tls: {
-        rejectUnauthorized: false, 
-      }
+        rejectUnauthorized: false,
+      },
     });
 
-    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-            
-        
-            if (!fs.existsSync(logoImagePath)) {
-              console.error('Logo not found at:', logoImagePath);
-              return { hasError: true, message: "Logo file not found" };
-            }
-        
-            // Read logo as base64 for fallback
-            const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
-            const base64Src = `data:image/png;base64,${logoBase64}`;
-        
-            const attachments = [{
-              filename: 'logo.png',
-              path: logoImagePath,
-              cid: 'edprowiselogo@company', // Unique CID
-              contentDisposition: 'inline',
-              headers: {
-                'Content-ID': '<edprowiselogo@company>'
-              }
-            }];
-        
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-            const loginUrl = `${frontendUrl.replace(/\/+$/, '')}/login/admin`;
-            const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
-    
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+
+    if (!fs.existsSync(logoImagePath)) {
+      console.error("Logo not found at:", logoImagePath);
+      return { hasError: true, message: "Logo file not found" };
+    }
+
+    // Read logo as base64 for fallback
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
+    const base64Src = `data:image/png;base64,${logoBase64}`;
+
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const loginUrl = `${frontendUrl.replace(/\/+$/, "")}/login/admin`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     // 6. Send email
-    const mailOptions ={
+    const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: userEmail,
-      subject: "Update Password" ,
+      subject: ` ${userFullName}, Your Password Has Been Successfully Updated`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -86,7 +92,6 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -179,11 +184,25 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
                         .contact-text{
                           color: #0000FF;
                         }    
+                         .fw-bold{
+                         font-weight: bold;
+                         } 
+
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
@@ -191,7 +210,10 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
                             .content {
                                 padding: 20px;
                             }
-                            
+                            .note-content{
+                               padding: 0px 20px;
+                               text-align: center;
+                             }         
                         }
                     </style>
                 </head>
@@ -212,36 +234,42 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear Admin,</p>
-                            
-                            <p class="message">You recently update the password of ${smtpSettings.mailFromName} account.</p>
-                            <p class="message">Admin ${FullName}, password has been successfully updated.</p>
+                            <p class="message fw-bold">Dear ${userFullName},</p>
+                           
+                            <p class="message">You have recently updated the password for your ${
+                              smtpSettings.mailFromName
+                            } account.</p>
+                            <p class="message">Admin ${userFullName}, password has been successfully updated.</p>
 
                             <!-- User Details Box -->
-                            <p class="message">The new login details for Admin ${userFullName} are: </p>
+                            <p class="message">The updated login details for ${userFullName} are: </p>
                             <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                               <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
                               <tbody>
                                 <tr>
                                   <td class="center-text">Admin</td>
                                   <td class="center-text">${userEmail}</td>
-                                  <td class="center-text">${usersWithCredentials.password}</td>
+                                  <td class="center-text">${
+                                    usersWithCredentials.password
+                                  }</td>
                                 </tr>
                               </tbody>
                             </table>
                             
                 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for login </p>
+                            <p class="message">To log in, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${loginUrl}" class="action-button">Login</a>
                             </div>
-                            
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                               <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>                    
+                    
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
-                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
                             </div>
                         </div>
                         
@@ -249,28 +277,37 @@ async function sendPasswordUpdateEmail(userFullName, userEmail, usersWithCredent
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                        </div>
                     </div>
                   </div>  
                 </body>
                 </html>
             `,
-            attachments: attachments 
+      attachments: attachments,
     };
-    
+
     await transporter.sendMail(mailOptions);
 
     console.log("Password update email sent successfully");
-    return { hasError: false, message: "Password update email sent successfully." };
+    return {
+      hasError: false,
+      message: "Password update email sent successfully.",
+    };
   } catch (error) {
     console.error("Error sending password update email:", error);
-    return { hasError: true, message: "Email is not proper, we cannot send the email." };
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
   }
 }
-
 
 async function changeAdminPassword(req, res) {
   try {
     const userId = req.user?.id;
+
     if (!userId) {
       return res.status(401).json({
         hasError: true,
@@ -279,6 +316,7 @@ async function changeAdminPassword(req, res) {
       });
     }
 
+    
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
@@ -295,8 +333,11 @@ async function changeAdminPassword(req, res) {
         .status(404)
         .json({ hasError: true, message: "Admin User not found." });
     }
+
     const userFullName = `${user.firstName} ${user.lastName}`;
+
     const userEmail = user.email;
+
 
     const isPasswordValid = saltFunction.validatePassword(
       currentPassword,
@@ -316,7 +357,10 @@ async function changeAdminPassword(req, res) {
     user.salt = salt;
     await user.save();
 
-    await sendPasswordUpdateEmail(userFullName, userEmail, {userFullName, password:newPassword});
+    await sendPasswordUpdateEmail(userFullName, userEmail, {
+      userFullName,
+      password: newPassword,
+    });
 
     return res.status(200).json({
       hasError: false,

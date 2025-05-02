@@ -24,6 +24,10 @@ const prepareQuoteCreate = Joi.object({
     "string.empty": "Subcategory name cannot be empty.",
   }),
 
+  subCategoryId: Joi.string().required().messages({
+    "any.required": "Subcategory ID is a required field.",
+  }),
+
   hsnSacc: Joi.string()
     .pattern(/^\d{4,8}$/)
     .required()
@@ -66,19 +70,31 @@ const prepareQuoteCreate = Joi.object({
     "number.max": "Discount cannot exceed 100%.",
   }),
 
-  cgstRate: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "CGST rate is required.",
-    "number.base": "CGST rate must be a number.",
-    "number.min": "CGST rate cannot be negative.",
-    "number.max": "CGST rate cannot exceed 100%.",
-  }),
+  cgstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "any.required": "CGST rate is required.",
+      "number.base": "CGST rate must be a number.",
+      "number.min": "CGST rate cannot be negative.",
+      "number.max": "CGST rate cannot exceed 100%.",
+    }),
 
-  sgstRate: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "SGST rate is required.",
-    "number.base": "SGST rate must be a number.",
-    "number.min": "SGST rate cannot be negative.",
-    "number.max": "SGST rate cannot exceed 100%.",
-  }),
+  sgstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "any.required": "SGST rate is required.",
+      "number.base": "SGST rate must be a number.",
+      "number.min": "SGST rate cannot be negative.",
+      "number.max": "SGST rate cannot exceed 100%.",
+    }),
 
   igstRate: Joi.number()
     .min(0)
@@ -108,7 +124,7 @@ const prepareQuoteUpdate = Joi.object({
   }),
 
   hsnSacc: Joi.string()
-    .pattern(/^\d{4,8}$/) // HSN/SAC codes are typically numeric with 4-8 digits
+    .pattern(/^\d{4,8}$/)
     .required()
     .messages({
       "any.required": "HSN/SAC code is required.",
@@ -149,19 +165,31 @@ const prepareQuoteUpdate = Joi.object({
     "number.max": "Discount cannot exceed 100%.",
   }),
 
-  cgstRate: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "CGST rate is required.",
-    "number.base": "CGST rate must be a number.",
-    "number.min": "CGST rate cannot be negative.",
-    "number.max": "CGST rate cannot exceed 100%.",
-  }),
+  cgstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "any.required": "CGST rate is required.",
+      "number.base": "CGST rate must be a number.",
+      "number.min": "CGST rate cannot be negative.",
+      "number.max": "CGST rate cannot exceed 100%.",
+    }),
 
-  sgstRate: Joi.number().min(0).max(100).precision(2).required().messages({
-    "any.required": "SGST rate is required.",
-    "number.base": "SGST rate must be a number.",
-    "number.min": "SGST rate cannot be negative.",
-    "number.max": "SGST rate cannot exceed 100%.",
-  }),
+  sgstRate: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .optional()
+    .allow(null, "")
+    .messages({
+      "any.required": "SGST rate is required.",
+      "number.base": "SGST rate must be a number.",
+      "number.min": "SGST rate cannot be negative.",
+      "number.max": "SGST rate cannot exceed 100%.",
+    }),
 
   igstRate: Joi.number()
     .min(0)

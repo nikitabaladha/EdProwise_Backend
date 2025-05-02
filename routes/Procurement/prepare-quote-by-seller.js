@@ -10,6 +10,7 @@ import {
   getAllBySellerIdAndEnquiryNumber,
   updateByEnquiryNumberAndSellerId,
   updateByEnqAndSellerIdBySeller,
+  getLocation,
 } from "../../controllers/PrepareQuote/index.js";
 
 const uploadFiles = (req, res, next) => {
@@ -41,6 +42,12 @@ router.get(
   "/prepare-quote",
   roleBasedMiddleware("Admin", "School", "Seller"),
   getAllBySellerIdAndEnquiryNumber
+);
+
+router.get(
+  "/get-location",
+  roleBasedMiddleware("Seller", "Admin", "School"),
+  getLocation
 );
 
 router.put(

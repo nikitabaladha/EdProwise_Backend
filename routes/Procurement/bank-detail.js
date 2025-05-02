@@ -17,7 +17,7 @@ router.post(
 );
 router.get(
   "/bank-detail",
-  roleBasedMiddleware("Admin"),
+  roleBasedMiddleware("Admin", "School", "Seller"),
   getAllEdprowiseBankDetails
 );
 

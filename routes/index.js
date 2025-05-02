@@ -1,5 +1,7 @@
 import loginSignupRoutes from "./login-signup.js";
 
+import PDFRoutes from "./PDFForFrontend/QuoteProposal.js";
+
 import DashboardRoutes from "./DashboardRoutes/TotalCounts.js";
 
 import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
@@ -35,27 +37,35 @@ import GlobalSearchRoutes from "./Procurement/global-search.js";
 // ====================Fees Module===================
 
 import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
+import FormRoutes from "./FeesModule/Form.js";
+import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js";
 
 // Umesh Routes
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
 import ContactUsFormRoutes from "./ContactUsFormRoutes/ContactUsFormRoutes.js";
 
-import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js"
-import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js"
-import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js"
-import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js"
-import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js"
+// ==================Email Routes =========================
+import SMTPEmailSettings from "./AdminRoutes/SMTPEmailSettings.js";
+import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.js";
+import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js";
+import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
+import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
-
-// new Added Umesh
-import AdminRegistrationTemplate from "./EmailTemplatesRoutes/AdminRegistrationTemplate.js"
-import UserIdUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/UserIdUpdateEmailTemplateRoutes.js"
-import SchoolRequestForQuoteTemplateRoutes from "./EmailTemplatesRoutes/SchoolRequestForQuoteTemplateRoutes.js"
-import QuoteProposalSendToSchoolEmailRoutes from "./EmailTemplatesRoutes/QuoteProposalSendToSchoolEmailRoutes.js"
-import NewQuoteReceiveSellerTemplateRoutes from "./EmailTemplatesRoutes/NewQuoteReceiveSellerTemplateRoutes.js"
-import OrderPlaceAndReceiveTemplates from "./EmailTemplatesRoutes/OrderPlaceAndReceiveTemplates.js"
 export default (app) => {
+  // PDF Routes
+  app.use("/api", PDFRoutes);
+  // ==================Email Routes =========================
+
+  app.use("/api", SMTPEmailSettings);
+  app.use("/api", SignUPTemplatesRoutes);
+  app.use("/api", SellerEmailTemplateRoutes);
+  app.use("/api", PasswordUpdateEmailTemplateRoutes);
+  app.use("/api", ForgotPasswordRoutes);
+
+  // ===================Login/Signup ==================
   app.use("/api", loginSignupRoutes);
+
+  // ====================School/Seller/Edprowise Routes==========
   app.use("/api", schoolRoutes);
   app.use("/api", SellerRoutes);
   app.use("/api", schoolUserRoutes);
@@ -84,26 +94,16 @@ export default (app) => {
   app.use("/api", UpdateTDSRoutes);
   app.use("/api", DashboardRoutes);
 
+  //=====================Globar search for dashboard routes===============
   app.use("/api", GlobalSearchRoutes);
 
   // ================Fees Module====================
-  app.use("./api", AdminSettingRoutes);
+  app.use("/api", AdminSettingRoutes);
+  app.use("/api", FormRoutes);
+  app.use("/api", FeesReceiptsRoutes);
 
   // Umesh Routes
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
-  app.use("/api", SMTPEmailSettings);
-  app.use("/api", SignUPTemplatesRoutes);
-  app.use("/api", SellerEmailTemplateRoutes);
-  app.use("/api", PasswordUpdateEmailTemplateRoutes);
-  app.use("/api", ForgotPasswordRoutes);
-
-  // new umesh for email
-  app.use("/api", AdminRegistrationTemplate);
-  app.use("/api", UserIdUpdateEmailTemplateRoutes);
-  app.use("/api", SchoolRequestForQuoteTemplateRoutes);
-  app.use("/api", QuoteProposalSendToSchoolEmailRoutes);
-  app.use("/api", NewQuoteReceiveSellerTemplateRoutes);
-  app.use("/api", OrderPlaceAndReceiveTemplates)
 };

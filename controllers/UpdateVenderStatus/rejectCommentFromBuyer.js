@@ -1,4 +1,5 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function rejectCommentFromBuyer(req, res) {
   try {
@@ -32,6 +33,22 @@ async function rejectCommentFromBuyer(req, res) {
       return res.status(404).json({
         hasError: true,
         message: "Quote not found for the given enquiryNumber and sellerId.",
+      });
+    }
+
+    const updatedQuoteProposal = await QuoteProposal.findOneAndUpdate(
+      { enquiryNumber, sellerId },
+      {
+        supplierStatus: "Quote Rejected",
+      },
+      { new: true }
+    );
+
+    if (!updatedQuoteProposal) {
+      return res.status(404).json({
+        hasError: true,
+        message:
+          "Quote Proposal not found for the given enquiryNumber and sellerId.",
       });
     }
 

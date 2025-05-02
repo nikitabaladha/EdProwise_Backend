@@ -52,7 +52,9 @@ async function updateById(req, res) {
       tan,
       cin,
       address,
-      cityStateCountry,
+      country,
+      state,
+      city,
       landmark,
       pincode,
       contactNo,
@@ -73,7 +75,9 @@ async function updateById(req, res) {
       tan: tan || existingProfile.tan,
       cin: cin || existingProfile.cin,
       address: address || existingProfile.address,
-      cityStateCountry: cityStateCountry || existingProfile.cityStateCountry,
+      country: country || existingSchool.country,
+      state: state || existingSchool.state,
+      city: city || existingSchool.city,
       landmark: landmark || existingProfile.landmark,
       pincode: pincode || existingProfile.pincode,
       contactNo: contactNo || existingProfile.contactNo,
@@ -102,10 +106,29 @@ async function updateById(req, res) {
       data: updatedProfile,
     });
   } catch (error) {
-    console.error("Error updating EdProwise Profile:", error.message);
+    console.error("Error creating Edprowise Profile:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        gstin: "GSTIN",
+        pan: "PAN",
+        contactNo: "contact number",
+        emailId: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
     return res.status(500).json({
       hasError: true,
-      message: "Failed to update EdProwise Profile.",
+      message: "Failed to create Edprowise Profile.",
       error: error.message,
     });
   }

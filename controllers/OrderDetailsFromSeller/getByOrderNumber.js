@@ -11,7 +11,19 @@ async function getByOrderNumber(req, res) {
       });
     }
 
-    const existingOrder = await OrderDetailsFromSeller.findOne({ orderNumber });
+    const sellerId = req.user?.id;
+
+    if (!sellerId) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Seller Id is required.",
+      });
+    }
+
+    const existingOrder = await OrderDetailsFromSeller.findOne({
+      orderNumber,
+      sellerId,
+    });
 
     if (!existingOrder) {
       return res.status(404).json({

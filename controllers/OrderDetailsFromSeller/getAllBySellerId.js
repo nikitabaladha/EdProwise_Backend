@@ -3,6 +3,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
+import PrepareQuote from "../../models/PrepareQuote.js";
 
 async function getAllBySellerId(req, res) {
   const { id } = req.params;
@@ -17,7 +18,7 @@ async function getAllBySellerId(req, res) {
   try {
     const orderDetails = await OrderDetailsFromSeller.find({ sellerId: id })
       .select(
-        "orderNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
+        "orderNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId"
       )
       .sort({ createdAt: -1 })
       .lean();
@@ -29,7 +30,6 @@ async function getAllBySellerId(req, res) {
       });
     }
 
-    // Fetch company name from SellerProfile
     const sellerProfile = await SellerProfile.findOne({ sellerId: id })
       .select("companyName")
       .lean();
@@ -50,6 +50,15 @@ async function getAllBySellerId(req, res) {
         })
           .select(
             "totalAmountBeforeGstAndDiscount totalAmount orderStatus totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus totalTaxableValueForEdprowise totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise finalPayableAmountWithTDSForEdprowise"
+          )
+          .lean();
+
+        const prepareQuote = await PrepareQuote.findOne({
+          sellerId: id,
+          enquiryNumber,
+        })
+          .select(
+            "cgstRate sgstRate igstRate cgstRateForEdprowise sgstRateForEdprowise igstRateForEdprowise"
           )
           .lean();
 
@@ -84,6 +93,12 @@ async function getAllBySellerId(req, res) {
           finalPayableAmountWithTDSForEdprowise:
             quoteProposal?.finalPayableAmountWithTDSForEdprowise || 0,
           tDSAmount: quoteProposal?.tDSAmount || 0,
+          cgstRate: prepareQuote.cgstRate || 0,
+          sgstRate: prepareQuote.sgstRate || 0,
+          igstRate: prepareQuote.igstRate || 0,
+          cgstRateForEdprowise: prepareQuote.cgstRateForEdprowise || 0,
+          sgstRateForEdprowise: prepareQuote.sgstRateForEdprowise || 0,
+          igstRateForEdprowise: prepareQuote.igstRateForEdprowise || 0,
         };
       })
     );

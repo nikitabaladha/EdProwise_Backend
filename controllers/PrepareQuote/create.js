@@ -2,12 +2,24 @@
 // import PrepareQuoteValidator from "../../validators/PrepareQuote.js";
 // import QuoteProposal from "../../models/QuoteProposal.js";
 // import SubmitQuote from "../../models/SubmitQuote.js";
+// import QuoteRequest from "../../models/QuoteRequest.js";
+// import SellerProfile from "../../models/SellerProfile.js";
+// import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+
+// function extractState(locationString) {
+//   if (!locationString) return null;
+//   const parts = locationString.split(",");
+//   if (parts.length >= 2) {
+//     return parts[1].trim();
+//   }
+//   return null;
+// }
 
 // function generateQuoteNumber() {
 //   const prefix = "QUOTE";
-//   const timestamp = Date.now();
-//   const randomSuffix = Math.floor(Math.random() * 10000);
-//   return `${prefix}${timestamp}${randomSuffix}`;
+//   const randomSuffix = Math.floor(Math.random() * 100000000);
+//   const formattedSuffix = String(randomSuffix).padStart(8, "0");
+//   return `${prefix}${formattedSuffix}`;
 // }
 
 // async function create(req, res) {
@@ -39,21 +51,46 @@
 //       });
 //     }
 
+//     // Fetch location data for all parties
+//     const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
+//       QuoteRequest.findOne({ enquiryNumber }),
+//       SellerProfile.findOne({ sellerId }),
+//       EdprowiseProfile.findOne(),
+//     ]);
+
+//     if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
+//       return res.status(404).json({
+//         hasError: true,
+//         message: "Required profile data not found.",
+//       });
+//     }
+
+//     // Extract states from location strings
+//     const schoolState = extractState(quoteRequest.deliveryLocation);
+//     const sellerState = extractState(sellerProfile.cityStateCountry);
+//     const edprowiseState = extractState(edprowiseProfile.cityStateCountry);
+
+//     if (!schoolState || !sellerState || !edprowiseState) {
+//       return res.status(400).json({
+//         hasError: true,
+//         message: "Location data is incomplete.",
+//       });
+//     }
+
 //     const uploadedImages = req.files || [];
 //     const createdEntries = [];
 
-//     // Initialize totals for QuoteProposal
 //     let totalQuantity = 0;
 //     let totalFinalRateBeforeDiscount = 0;
 //     let totalTaxableValue = 0;
 //     let totalCgstAmount = 0;
 //     let totalSgstAmount = 0;
 //     let totalIgstAmount = 0;
+//     let totalTaxAmount = 0;
 //     let totalAmountBeforeGstAndDiscount = 0;
 //     let totalDiscountAmount = 0;
-//     let totalGstAmount = 0;
-//     let totalTaxAmount = 0;
 //     let totalAmount = 0;
+//     let totalFinalRate = 0;
 
 //     let totalFinalRateBeforeDiscountForEdprowise = 0;
 //     let totalTaxableValueForEdprowise = 0;
@@ -61,13 +98,12 @@
 //     let totalSgstAmountForEdprowise = 0;
 //     let totalIgstAmountForEdprowise = 0;
 //     let totalTaxAmountForEdprowise = 0;
-//     let totalGstAmountForEdprowise = 0;
 //     let totalAmountForEdprowise = 0;
+//     let totalFinalRateForEdprowise = 0;
 
 //     for (let i = 0; i < products.length; i++) {
 //       const product = products[i];
 
-//       // Validate the product data
 //       const { error } = PrepareQuoteValidator.prepareQuoteCreate.validate({
 //         sellerId,
 //         enquiryNumber,
@@ -81,14 +117,11 @@
 //         return res.status(400).json({ hasError: true, message: errorMessages });
 //       }
 
-//       // Check for required fields
 //       const requiredFields = [
 //         "listingRate",
 //         "edprowiseMargin",
 //         "quantity",
 //         "discount",
-//         "cgstRate",
-//         "sgstRate",
 //       ];
 
 //       for (const field of requiredFields) {
@@ -111,12 +144,50 @@
 //       const edprowiseMargin = parseFloat(product.edprowiseMargin);
 //       const quantity = parseFloat(product.quantity);
 //       const discount = parseFloat(product.discount);
-//       const cgstRate = parseFloat(product.cgstRate);
-//       const sgstRate = parseFloat(product.sgstRate);
-//       const igstRate =
-//         product.igstRate !== undefined && product.igstRate !== ""
-//           ? parseFloat(product.igstRate)
-//           : 0;
+
+//       // Original GST rates from product
+//       const cgstRate = parseFloat(product.cgstRate) || 0;
+//       const sgstRate = parseFloat(product.sgstRate) || 0;
+//       const igstRate = parseFloat(product.igstRate) || 0;
+
+//       // Determine GST rates for Edprowise based on location scenarios
+//       let cgstRateForEdprowise = 0;
+//       let sgstRateForEdprowise = 0;
+//       let igstRateForEdprowise = 0;
+
+//       // Scenario 1: All locations match
+//       if (schoolState === edprowiseState && edprowiseState === sellerState) {
+//         cgstRateForEdprowise = cgstRate;
+//         sgstRateForEdprowise = sgstRate;
+//         igstRateForEdprowise = igstRate;
+//       }
+//       // Scenario 2: School ≠ Edprowise = Seller
+//       else if (
+//         schoolState !== edprowiseState &&
+//         edprowiseState === sellerState
+//       ) {
+//         cgstRateForEdprowise = igstRate / 2;
+//         sgstRateForEdprowise = igstRate / 2;
+//         igstRateForEdprowise = 0;
+//       }
+//       // Scenario 3: All locations different
+//       else if (
+//         schoolState !== edprowiseState &&
+//         edprowiseState !== sellerState
+//       ) {
+//         cgstRateForEdprowise = 0;
+//         sgstRateForEdprowise = 0;
+//         igstRateForEdprowise = igstRate;
+//       }
+//       // Scenario 4: School = Edprowise ≠ Seller
+//       else if (
+//         schoolState === edprowiseState &&
+//         edprowiseState !== sellerState
+//       ) {
+//         cgstRateForEdprowise = 0;
+//         sgstRateForEdprowise = 0;
+//         igstRateForEdprowise = cgstRate + sgstRate;
+//       }
 
 //       // Calculate finalRateBeforeDiscount
 //       const finalRateBeforeDiscount =
@@ -130,20 +201,19 @@
 
 //       // Calculate taxableValue
 //       const taxableValue = finalRate * quantity;
-
 //       const taxableValueForEdprowise = finalRateForEdprowise * quantity;
 
-//       // Calculate GST amounts
+//       // Calculate GST amounts using the determined rates
 //       const cgstAmount = (taxableValue * cgstRate) / 100;
 //       const sgstAmount = (taxableValue * sgstRate) / 100;
 //       const igstAmount = (taxableValue * igstRate) / 100;
 
 //       const cgstAmountForEdprowise =
-//         (taxableValueForEdprowise * cgstRate) / 100;
+//         (taxableValueForEdprowise * cgstRateForEdprowise) / 100;
 //       const sgstAmountForEdprowise =
-//         (taxableValueForEdprowise * sgstRate) / 100;
+//         (taxableValueForEdprowise * sgstRateForEdprowise) / 100;
 //       const igstAmountForEdprowise =
-//         (taxableValueForEdprowise * igstRate) / 100;
+//         (taxableValueForEdprowise * igstRateForEdprowise) / 100;
 
 //       // Calculate amountBeforeGstAndDiscount
 //       const amountBeforeGstAndDiscount = finalRateBeforeDiscount * quantity;
@@ -153,7 +223,6 @@
 
 //       // Calculate gstAmount
 //       const gstAmount = cgstAmount + sgstAmount + igstAmount;
-
 //       const gstAmountForEdprowise =
 //         cgstAmountForEdprowise +
 //         sgstAmountForEdprowise +
@@ -162,59 +231,63 @@
 //       // Calculate totalAmount
 //       const totalAmountForProduct =
 //         amountBeforeGstAndDiscount - discountAmount + gstAmount;
-
 //       const totalAmountForProductForEdprowise =
 //         taxableValueForEdprowise + gstAmountForEdprowise;
 
-//       // Update totals for QuoteProposal
 //       totalQuantity += quantity;
 //       totalFinalRateBeforeDiscount += finalRateBeforeDiscount;
 //       totalAmountBeforeGstAndDiscount += amountBeforeGstAndDiscount;
 //       totalDiscountAmount += discountAmount;
-//       totalGstAmount += gstAmount;
 //       totalAmount += totalAmountForProduct;
 //       totalTaxableValue += taxableValue;
 //       totalCgstAmount += cgstAmount;
 //       totalSgstAmount += sgstAmount;
 //       totalIgstAmount += igstAmount;
 //       totalTaxAmount += gstAmount;
+//       totalFinalRate += finalRate;
 
+//       totalFinalRateBeforeDiscountForEdprowise += finalRateBeforeDiscount;
 //       totalTaxableValueForEdprowise += taxableValueForEdprowise;
-//       totalCgstAmountForEdprowise += igstAmountForEdprowise;
+//       totalCgstAmountForEdprowise += cgstAmountForEdprowise;
 //       totalSgstAmountForEdprowise += sgstAmountForEdprowise;
 //       totalIgstAmountForEdprowise += igstAmountForEdprowise;
 //       totalTaxAmountForEdprowise += gstAmountForEdprowise;
 //       totalAmountForEdprowise += totalAmountForProductForEdprowise;
+//       totalFinalRateForEdprowise += finalRateForEdprowise;
 
-//       // Create new PrepareQuote entry
 //       const newPrepareQuote = new PrepareQuote({
 //         sellerId,
 //         enquiryNumber,
 //         prepareQuoteImage,
 //         subcategoryName: product.subcategoryName,
+//         subCategoryId: product.subCategoryId,
 //         hsnSacc: product.hsnSacc,
-//         listingRate: listingRate,
-//         edprowiseMargin: edprowiseMargin,
-//         quantity: quantity,
-//         finalRateBeforeDiscount: finalRateBeforeDiscount,
-//         discount: discount,
-//         finalRate: finalRate,
-//         taxableValue: taxableValue,
-//         cgstRate: cgstRate,
-//         cgstAmount: cgstAmount,
-//         sgstRate: sgstRate,
-//         sgstAmount: sgstAmount,
-//         igstRate: igstRate,
-//         igstAmount: igstAmount,
-//         amountBeforeGstAndDiscount: amountBeforeGstAndDiscount,
-//         discountAmount: discountAmount,
-//         gstAmount: gstAmount,
+//         listingRate,
+//         edprowiseMargin,
+//         quantity,
+//         finalRateBeforeDiscount,
+//         discount,
+//         finalRate,
+//         taxableValue,
+//         cgstRate,
+//         sgstRate,
+//         igstRate,
+//         cgstRateForEdprowise,
+//         sgstRateForEdprowise,
+//         igstRateForEdprowise,
+//         cgstAmount,
+//         sgstAmount,
+//         igstAmount,
+//         amountBeforeGstAndDiscount,
+//         discountAmount,
+//         gstAmount,
 //         totalAmount: totalAmountForProduct,
-//         finalRateForEdprowise: finalRateForEdprowise,
-//         taxableValueForEdprowise: taxableValueForEdprowise,
-//         cgstAmountForEdprowise: cgstAmountForEdprowise,
-//         igstAmountForEdprowise: igstAmountForEdprowise,
-//         gstAmountForEdprowise: gstAmountForEdprowise,
+//         finalRateForEdprowise,
+//         taxableValueForEdprowise,
+//         cgstAmountForEdprowise,
+//         sgstAmountForEdprowise,
+//         igstAmountForEdprowise,
+//         gstAmountForEdprowise,
 //         totalAmountForEdprowise: totalAmountForProductForEdprowise,
 //       });
 
@@ -234,13 +307,13 @@
 //       totalFinalRateBeforeDiscount,
 //       totalAmountBeforeGstAndDiscount,
 //       totalDiscountAmount,
-//       totalGstAmount,
 //       totalAmount,
 //       totalTaxableValue,
 //       totalCgstAmount,
 //       totalSgstAmount,
 //       totalIgstAmount,
 //       totalTaxAmount,
+//       totalFinalRate,
 //       // For Edprowise
 //       totalFinalRateBeforeDiscountForEdprowise,
 //       totalTaxableValueForEdprowise,
@@ -248,15 +321,27 @@
 //       totalSgstAmountForEdprowise,
 //       totalIgstAmountForEdprowise,
 //       totalTaxAmountForEdprowise,
-//       totalGstAmountForEdprowise,
 //       totalAmountForEdprowise,
-
+//       totalFinalRateForEdprowise,
 //       supplierStatus: "Quote Submitted",
 //       edprowiseStatus: "Quote Received",
-//       buyerStatus: "Quote Received",
+//       buyerStatus: "Quote Requested",
+//       orderStatus: "Pending",
 //     });
 
-//     // Save the QuoteProposal entry
+//     const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
+//       { enquiryNumber },
+//       { edprowiseStatus: "Quote Received" },
+//       { new: true }
+//     );
+
+//     if (!updatedQuoteRequest) {
+//       return res.status(404).json({
+//         hasError: true,
+//         message: "Quote request not found with the given enquiry number.",
+//       });
+//     }
+
 //     await newQuoteProposal.save();
 
 //     const newSubmitQuote = new SubmitQuote({
@@ -293,14 +378,14 @@ import PrepareQuoteValidator from "../../validators/PrepareQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
-
-// in QuoteRequest table find enquiryNumber i want to update the edprowiseStatus = "Quote Requested"
+import SellerProfile from "../../models/SellerProfile.js";
+import EdprowiseProfile from "../../models/EdprowiseProfile.js";
 
 function generateQuoteNumber() {
   const prefix = "QUOTE";
-  const timestamp = Date.now();
-  const randomSuffix = Math.floor(Math.random() * 10000);
-  return `${prefix}${timestamp}${randomSuffix}`;
+  const randomSuffix = Math.floor(Math.random() * 100000000);
+  const formattedSuffix = String(randomSuffix).padStart(8, "0");
+  return `${prefix}${formattedSuffix}`;
 }
 
 async function create(req, res) {
@@ -332,19 +417,47 @@ async function create(req, res) {
       });
     }
 
+    // Fetch location data for all parties
+    const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
+      QuoteRequest.findOne({ enquiryNumber }),
+      SellerProfile.findOne({ sellerId }),
+      EdprowiseProfile.findOne(),
+    ]);
+
+    if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: "Required profile data not found.",
+      });
+    }
+
+    // Extract states from location strings
+    const schoolState = quoteRequest.deliveryState;
+    const sellerState = sellerProfile.state;
+    const edprowiseState = edprowiseProfile.state;
+console.log("School State...................:", schoolState);
+console.log("Seller State...................:", sellerState);
+console.log("Edprowise State...................:", edprowiseState);
+
+    if (!schoolState || !sellerState || !edprowiseState) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Location data is incomplete.",
+      });
+    }
+
     const uploadedImages = req.files || [];
     const createdEntries = [];
 
-    // Initialize totals for QuoteProposal
     let totalQuantity = 0;
     let totalFinalRateBeforeDiscount = 0;
     let totalTaxableValue = 0;
     let totalCgstAmount = 0;
     let totalSgstAmount = 0;
     let totalIgstAmount = 0;
+    let totalTaxAmount = 0;
     let totalAmountBeforeGstAndDiscount = 0;
     let totalDiscountAmount = 0;
-    let totalTaxAmount = 0;
     let totalAmount = 0;
     let totalFinalRate = 0;
 
@@ -360,7 +473,6 @@ async function create(req, res) {
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
 
-      // Validate the product data
       const { error } = PrepareQuoteValidator.prepareQuoteCreate.validate({
         sellerId,
         enquiryNumber,
@@ -374,14 +486,11 @@ async function create(req, res) {
         return res.status(400).json({ hasError: true, message: errorMessages });
       }
 
-      // Check for required fields
       const requiredFields = [
         "listingRate",
         "edprowiseMargin",
         "quantity",
         "discount",
-        "cgstRate",
-        "sgstRate",
       ];
 
       for (const field of requiredFields) {
@@ -404,12 +513,50 @@ async function create(req, res) {
       const edprowiseMargin = parseFloat(product.edprowiseMargin);
       const quantity = parseFloat(product.quantity);
       const discount = parseFloat(product.discount);
-      const cgstRate = parseFloat(product.cgstRate);
-      const sgstRate = parseFloat(product.sgstRate);
-      const igstRate =
-        product.igstRate !== undefined && product.igstRate !== ""
-          ? parseFloat(product.igstRate)
-          : 0;
+
+      // Original GST rates from product
+      const cgstRate = parseFloat(product.cgstRate) || 0;
+      const sgstRate = parseFloat(product.sgstRate) || 0;
+      const igstRate = parseFloat(product.igstRate) || 0;
+
+      // Determine GST rates for Edprowise based on location scenarios
+      let cgstRateForEdprowise = 0;
+      let sgstRateForEdprowise = 0;
+      let igstRateForEdprowise = 0;
+
+      // Scenario 1: All locations match
+      if (schoolState === edprowiseState && edprowiseState === sellerState) {
+        cgstRateForEdprowise = cgstRate;
+        sgstRateForEdprowise = sgstRate;
+        igstRateForEdprowise = igstRate;
+      }
+      // Scenario 2: School ≠ Edprowise = Seller
+      else if (
+        schoolState !== edprowiseState &&
+        edprowiseState === sellerState
+      ) {
+        cgstRateForEdprowise = igstRate / 2;
+        sgstRateForEdprowise = igstRate / 2;
+        igstRateForEdprowise = 0;
+      }
+      // Scenario 3: All locations different
+      else if (
+        schoolState !== edprowiseState &&
+        edprowiseState !== sellerState
+      ) {
+        cgstRateForEdprowise = 0;
+        sgstRateForEdprowise = 0;
+        igstRateForEdprowise = igstRate;
+      }
+      // Scenario 4: School = Edprowise ≠ Seller
+      else if (
+        schoolState === edprowiseState &&
+        edprowiseState !== sellerState
+      ) {
+        cgstRateForEdprowise = 0;
+        sgstRateForEdprowise = 0;
+        igstRateForEdprowise = cgstRate + sgstRate;
+      }
 
       // Calculate finalRateBeforeDiscount
       const finalRateBeforeDiscount =
@@ -425,17 +572,17 @@ async function create(req, res) {
       const taxableValue = finalRate * quantity;
       const taxableValueForEdprowise = finalRateForEdprowise * quantity;
 
-      // Calculate GST amounts
+      // Calculate GST amounts using the determined rates
       const cgstAmount = (taxableValue * cgstRate) / 100;
       const sgstAmount = (taxableValue * sgstRate) / 100;
       const igstAmount = (taxableValue * igstRate) / 100;
 
       const cgstAmountForEdprowise =
-        (taxableValueForEdprowise * cgstRate) / 100;
+        (taxableValueForEdprowise * cgstRateForEdprowise) / 100;
       const sgstAmountForEdprowise =
-        (taxableValueForEdprowise * sgstRate) / 100;
+        (taxableValueForEdprowise * sgstRateForEdprowise) / 100;
       const igstAmountForEdprowise =
-        (taxableValueForEdprowise * igstRate) / 100;
+        (taxableValueForEdprowise * igstRateForEdprowise) / 100;
 
       // Calculate amountBeforeGstAndDiscount
       const amountBeforeGstAndDiscount = finalRateBeforeDiscount * quantity;
@@ -456,12 +603,10 @@ async function create(req, res) {
       const totalAmountForProductForEdprowise =
         taxableValueForEdprowise + gstAmountForEdprowise;
 
-      // Update totals for QuoteProposal
       totalQuantity += quantity;
       totalFinalRateBeforeDiscount += finalRateBeforeDiscount;
       totalAmountBeforeGstAndDiscount += amountBeforeGstAndDiscount;
       totalDiscountAmount += discountAmount;
-      // totalGstAmount += gstAmount;
       totalAmount += totalAmountForProduct;
       totalTaxableValue += taxableValue;
       totalCgstAmount += cgstAmount;
@@ -479,36 +624,39 @@ async function create(req, res) {
       totalAmountForEdprowise += totalAmountForProductForEdprowise;
       totalFinalRateForEdprowise += finalRateForEdprowise;
 
-      // Create new PrepareQuote entry
       const newPrepareQuote = new PrepareQuote({
         sellerId,
         enquiryNumber,
         prepareQuoteImage,
         subcategoryName: product.subcategoryName,
+        subCategoryId: product.subCategoryId,
         hsnSacc: product.hsnSacc,
-        listingRate: listingRate,
-        edprowiseMargin: edprowiseMargin,
-        quantity: quantity,
-        finalRateBeforeDiscount: finalRateBeforeDiscount,
-        discount: discount,
-        finalRate: finalRate,
-        taxableValue: taxableValue,
-        cgstRate: cgstRate,
-        cgstAmount: cgstAmount,
-        sgstRate: sgstRate,
-        sgstAmount: sgstAmount,
-        igstRate: igstRate,
-        igstAmount: igstAmount,
-        amountBeforeGstAndDiscount: amountBeforeGstAndDiscount,
-        discountAmount: discountAmount,
-        gstAmount: gstAmount,
+        listingRate,
+        edprowiseMargin,
+        quantity,
+        finalRateBeforeDiscount,
+        discount,
+        finalRate,
+        taxableValue,
+        cgstRate,
+        sgstRate,
+        igstRate,
+        cgstRateForEdprowise,
+        sgstRateForEdprowise,
+        igstRateForEdprowise,
+        cgstAmount,
+        sgstAmount,
+        igstAmount,
+        amountBeforeGstAndDiscount,
+        discountAmount,
+        gstAmount,
         totalAmount: totalAmountForProduct,
-        finalRateForEdprowise: finalRateForEdprowise,
-        taxableValueForEdprowise: taxableValueForEdprowise,
-        cgstAmountForEdprowise: cgstAmountForEdprowise,
-        sgstAmountForEdprowise: sgstAmountForEdprowise,
-        igstAmountForEdprowise: igstAmountForEdprowise,
-        gstAmountForEdprowise: gstAmountForEdprowise,
+        finalRateForEdprowise,
+        taxableValueForEdprowise,
+        cgstAmountForEdprowise,
+        sgstAmountForEdprowise,
+        igstAmountForEdprowise,
+        gstAmountForEdprowise,
         totalAmountForEdprowise: totalAmountForProductForEdprowise,
       });
 
@@ -563,7 +711,6 @@ async function create(req, res) {
       });
     }
 
-    // Save the QuoteProposal entry
     await newQuoteProposal.save();
 
     const newSubmitQuote = new SubmitQuote({

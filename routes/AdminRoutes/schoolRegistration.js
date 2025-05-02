@@ -37,6 +37,11 @@ router.put(
   roleBasedMiddleware("Admin"),
   updateById
 );
-router.delete("/school/:id", roleBasedMiddleware("Admin"), deleteById);
+// router.delete("/school/:id", roleBasedMiddleware("Admin"), deleteById);
+router.put(
+  "/school-delete/:schoolId",
+  roleBasedMiddleware("Admin"),
+  deleteById
+);
 
 export default router;

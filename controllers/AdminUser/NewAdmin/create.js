@@ -4,15 +4,19 @@ import AdminAddValidationSchema from "../../../validators/signupValidationSchema
 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../../models/SMTPEmailSetting.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredentials) {
+async function sendAdminRegistrationEmail(
+  adminFullName,
+  email,
+  usersWithCredentials
+) {
   let hasError = false;
   let message = "";
   try {
@@ -27,48 +31,53 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
       },
       tls: {
         rejectUnauthorized: false,
-      }
+      },
     });
 
-    const logoImagePath = path.join(__dirname, '../../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
-    console.log('Logo path verification:');
-    console.log('Full path:', logoImagePath);
-    console.log('File exists:', fs.existsSync(logoImagePath));
+    const logoImagePath = path.join(
+      __dirname,
+      "../../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
+    console.log("Logo path verification:");
+    console.log("Full path:", logoImagePath);
+    console.log("File exists:", fs.existsSync(logoImagePath));
 
     if (!fs.existsSync(logoImagePath)) {
-      console.error('Logo not found at:', logoImagePath);
+      console.error("Logo not found at:", logoImagePath);
       return { hasError: true, message: "Logo file not found" };
     }
 
     // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    const attachments = [{
-      filename: 'logo.png',
-      path: logoImagePath,
-      cid: 'edprowiselogo@company', // Unique CID
-      contentDisposition: 'inline',
-      headers: {
-        'Content-ID': '<edprowiselogo@company>'
-      }
-    }];
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const loginUrl = `${frontendUrl.replace(/\/+$/, '')}/login/admin`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const loginUrl = `${frontendUrl.replace(/\/+$/, "")}/login/admin`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
-    const mailOptions ={
+    const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: email,
-      subject: "Admin Registration Done" ,
+      subject: `Welcome to EdProwise – ${adminFullName}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -86,7 +95,6 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                         }
 
                        .outer-div{
-                          width:100%;
                           border: 1px solid transparent;
                           background-color: #f1f1f1;
                         }
@@ -129,7 +137,15 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                         .content {
                             padding: 30px;
                         }
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
                         
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
                         .message {
                             font-size: 16px;
                             color: #4a5568;
@@ -170,6 +186,9 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                             font-size: 14px;
                             color: #718096;
                         }
+                        .fw-bold{
+                        font-weight: bold;
+                        }    
                         
                         .signature {
                             margin-top: 25px;
@@ -184,10 +203,16 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                         @media only screen and (max-width: 600px) {
                             .email-container {
                                 border-radius: 0;
+                                margin: 0px auto;
                             }
                             .logo {
                                 width: 200px;
                             }
+                                
+                            .note-content{
+                               padding: 0px 20px;
+                            }
+
                             .content {
                                 padding: 20px;
                             }
@@ -212,36 +237,42 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear Admin,</p>
+                            <p class="message fw-bold">Dear ${adminFullName},</p>
                             
-                            <p class="message">Welcome to the ${smtpSettings.mailFromName},</p>
-                            <p class="message">Admin ${adminFullName}, account has been successfully created.</p>
+                            <p class="message">Welcome to ${smtpSettings.mailFromName}, We’re excited to have you on board.</p>
+                            <p class="message">Your admin account has been successfully created. Below are your login credentials:</p>
 
                             <!-- User Details Box -->
-                            <p class="message">The login details for Admin ${adminFullName} are: </p>
                             <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                               <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
                               <tbody>
                                 <tr>
                                   <td class="center-text">Admin</td>
-                                  <td class="center-text">${usersWithCredentials.email}</td>
-                                  <td class="center-text">${usersWithCredentials.password}</td>
+                                  <td class="center-text">${
+                                    usersWithCredentials.email
+                                  }</td>
+                                  <td class="center-text">${
+                                    usersWithCredentials.password
+                                  }</td>
                                 </tr>
                               </tbody>
                             </table>
                             
                 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for login </p>
+                            <p class="message">To access your account, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${loginUrl}" class="action-button">Login</a>
                             </div>
-                            
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                        
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
-                                <p><strong>${smtpSettings.mailFromName} Team</strong></p>
+                                <p><strong>${
+                                  smtpSettings.mailFromName
+                                } Team</strong></p>
                             </div>
                         </div>
                         
@@ -249,21 +280,27 @@ async function sendAdminRegistrationEmail(adminFullName, email, usersWithCredent
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                        </div>
                     </div>
                   </div>  
                 </body>
                 </html>
             `,
-            attachments: attachments 
+      attachments: attachments,
     };
-    
+
     const info = await transporter.sendMail(mailOptions);
 
     console.log("Registration email sent successfully");
     return { hasError: false, message: "Email sent successfully." };
   } catch (error) {
     console.error("Error sending registration email:", error);
-    return { hasError: true, message: "Email is not proper, we cannot send the email." };
+    return {
+      hasError: true,
+      message: "Email is not proper, we cannot send the email.",
+    };
   }
 }
 
@@ -322,8 +359,28 @@ async function addAdmin(req, res) {
       },
     });
   } catch (error) {
-    console.error(error.message);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error creating New Admin:", error.message);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      const fieldNames = {
+        email: "email",
+      };
+
+      const displayName = fieldNames[field] || field;
+
+      return res.status(400).json({
+        hasError: true,
+        message: `This ${displayName} (${value}) is already registered. Please use a different ${displayName}.`,
+        field: field,
+        value: value,
+      });
+    }
+    return res.status(500).json({
+      hasError: true,
+      message: "Failed to create New Admin.",
+      error: error.message,
+    });
   }
 }
 

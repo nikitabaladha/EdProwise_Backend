@@ -5,24 +5,29 @@ import School from "../../models/School.js";
 import User from "../../models/User.js";
 import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials, role) => {
+const sendPasswordUpdateEmail = async (
+  companyName,
+  email,
+  usersWithCredentials,
+  role
+) => {
   try {
     const smtpSettings = await SMTPEmailSetting.findOne();
-    if (!smtpSettings) return { hasError: true, message: "SMTP settings not found." };
+    if (!smtpSettings)
+      return { hasError: true, message: "SMTP settings not found." };
 
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: false,
+      secure: smtpSettings.mailEncryption === "SSL",
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -32,33 +37,38 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
       },
     });
 
-    const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
+    const logoImagePath = path.join(
+      __dirname,
+      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+    );
     if (!fs.existsSync(logoImagePath)) {
       return { hasError: true, message: "Logo file not found" };
     }
 
     // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
     const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    const attachments = [{
-      filename: 'logo.png',
-      path: logoImagePath,
-      cid: 'edprowiselogo@company', // Unique CID
-      contentDisposition: 'inline',
-      headers: {
-        'Content-ID': '<edprowiselogo@company>'
-      }
-    }];
+    const attachments = [
+      {
+        filename: "logo.png",
+        path: logoImagePath,
+        cid: "edprowiselogo@company", // Unique CID
+        contentDisposition: "inline",
+        headers: {
+          "Content-ID": "<edprowiselogo@company>",
+        },
+      },
+    ];
 
     const frontendUrl = process.env.FRONTEND_URL;
-    const loginUrl = `${frontendUrl.replace(/\/+$/, '')}/login`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+    const loginUrl = `${frontendUrl.replace(/\/+$/, "")}/login`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: email,
-      subject: "UserId Reset Verification Code",
+      subject: "Your Password Has Been Successfully Changed",
       html: `
           <!DOCTYPE html>
 <html>
@@ -76,7 +86,6 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         }
             
        .outer-div{
-          width:100%;
           border: 1px solid transparent;
           background-color: #f1f1f1;
         }
@@ -121,7 +130,15 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         .center-text {
           text-align: center;
         }
-      
+        .note-email{
+          font-size: 9px;
+          color: #4a5568;
+         }
+        
+        .note-content{
+            padding: 0px 30px;
+            text-align: center;
+        }
         /* Action Button */
         .action-button {
             display: inline-block;
@@ -152,6 +169,9 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         .contact-text{
           color: #0000FF;
         }    
+        .fw-bold{
+          font-weight: bold;
+        }  
         
         /* Responsive */
         @media only screen and (max-width: 600px) {
@@ -160,6 +180,9 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
             }
             .logo {
                 width: 200px;
+            }
+            .note-content{
+              padding: 0px 20px;
             }
             .content {
                 padding: 20px;
@@ -183,33 +206,37 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         
         <!-- Main Content -->
         <div class="content">
-            <p class="message">Dear ${companyName},</p>
+            <p class="message fw-bold">Dear ${companyName},</p>
             
-            <p class="message">We wanted to let you know that your password was successfully reset.</p>
-            <p class="message">Know your new login details are:</p>
+            <p class="message">We wanted to inform you that your password has been successfully changed.</p>
+            <p class="message">Here are your updated login details:</p>
             <!-- User Details Box -->
               <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                 <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
                 <tbody>
                   <tr>
                     <td class="center-text">${role}</td>
-                    <td class="center-text">${usersWithCredentials.userName}</td>
-                    <td class="center-text">${usersWithCredentials.password}</td>
+                    <td class="center-text">${
+                      usersWithCredentials.userName
+                    }</td>
+                    <td class="center-text">${
+                      usersWithCredentials.password
+                    }</td>
                   </tr>
                 </tbody>
               </table>
 
             <!-- Action Button -->
 
-            <p class="message">Please click below button for login </p>
+            <p class="message">To access your account, please click the button below: </p>
               <div style="text-align: center;">
                   <a href="${loginUrl}" class="action-button">Login</a>
               </div>
 
-              <p class="message">If you did not perform this action, please contact our team immediately.</p>
+              <p class="message">If you did not request this change, please contact our team immediately.</p>
 
-             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-            <!-- Signature -->
+              <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>                    
+             <!-- Signature -->
             <div class="signature">
                 <p>Best regards,</p>
                 <p><strong>${smtpSettings.mailFromName} Team</strong></p>
@@ -220,13 +247,16 @@ const sendPasswordUpdateEmail = async (companyName, email, usersWithCredentials,
         <div class="footer">
             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
         </div>
+        <div class="note-content">
+            <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+        </div>
     </div>
   </div>  
 </body>
 </html>
 
                       `,
-      attachments: attachments
+      attachments: attachments,
     };
 
     await transporter.sendMail(mailOptions);
@@ -281,7 +311,9 @@ const resetUserOrSellerPassword = async (req, res) => {
       seller.salt = salt;
       await seller.save();
 
-      const sellerProfile = await SellerProfile.findOne({ sellerId: seller._id });
+      const sellerProfile = await SellerProfile.findOne({
+        sellerId: seller._id,
+      });
       if (sellerProfile) {
         await sendPasswordUpdateEmail(
           sellerProfile.companyName,

@@ -3,6 +3,7 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SellerProfile from "../../models/SellerProfile.js";
+import PrepareQuote from "../../models/PrepareQuote.js";
 
 async function getAllBySchoolId(req, res) {
   const { id } = req.params;
@@ -18,7 +19,7 @@ async function getAllBySchoolId(req, res) {
     const orderDetails = await OrderDetailsFromSeller.find({ schoolId: id })
       .sort({ createdAt: -1 })
       .select(
-        "_id orderNumber quoteNumber createdAt actualDeliveryDate otherCharges finalReceivableFromEdprowise enquiryNumber sellerId schoolId"
+        "_id orderNumber quoteNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId"
       )
       .lean();
 
@@ -33,21 +34,29 @@ async function getAllBySchoolId(req, res) {
       orderDetails.map(async (order) => {
         const { enquiryNumber, sellerId, quoteNumber } = order;
 
-        const [quoteRequest, quoteProposals, submitQuote, sellerProfile] =
-          await Promise.all([
-            QuoteRequest.findOne({ enquiryNumber })
-              .select("expectedDeliveryDate")
-              .lean(),
-            QuoteProposal.findOne({ enquiryNumber, quoteNumber, sellerId })
-              .select(
-                "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
-              )
-              .lean(),
-            SubmitQuote.findOne({ enquiryNumber, sellerId })
-              .select("advanceRequiredAmount")
-              .lean(),
-            SellerProfile.findOne({ sellerId }).select("companyName").lean(),
-          ]);
+        const [
+          quoteRequest,
+          quoteProposals,
+          submitQuote,
+          sellerProfile,
+          prepareQuote,
+        ] = await Promise.all([
+          QuoteRequest.findOne({ enquiryNumber })
+            .select("expectedDeliveryDate")
+            .lean(),
+          QuoteProposal.findOne({ enquiryNumber, quoteNumber, sellerId })
+            .select(
+              "totalAmountBeforeGstAndDiscount totalAmount totalTaxableValue totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus edprowiseStatus buyerStatus"
+            )
+            .lean(),
+          SubmitQuote.findOne({ enquiryNumber, sellerId })
+            .select("advanceRequiredAmount")
+            .lean(),
+          SellerProfile.findOne({ sellerId }).select("companyName").lean(),
+          PrepareQuote.findOne({ enquiryNumber, sellerId })
+            .select("cgstRate sgstRate igstRate")
+            .lean(),
+        ]);
 
         return {
           _id: order._id,
@@ -58,7 +67,6 @@ async function getAllBySchoolId(req, res) {
           schoolId: order.schoolId,
           actualDeliveryDate: order.actualDeliveryDate || null,
           otherCharges: order.otherCharges || 0,
-          finalReceivableFromEdprowise: order.finalReceivableFromEdprowise || 0,
           createdAt: order.createdAt,
           expectedDeliveryDate: quoteRequest?.expectedDeliveryDate || null,
           supplierStatus: quoteProposals?.supplierStatus || null,
@@ -75,6 +83,9 @@ async function getAllBySchoolId(req, res) {
           tDSAmount: quoteProposals?.tDSAmount || 0,
           advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
           companyName: sellerProfile?.companyName || "Not Available",
+          cgstRate: prepareQuote?.cgstRate || 0,
+          sgstRate: prepareQuote?.sgstRate || 0,
+          igstRate: prepareQuote?.igstRate || 0,
         };
       })
     );
