@@ -38,10 +38,15 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       expectedDeliveryDateBySeller,
       paymentTerms,
       advanceRequiredAmount,
+      deliveryCharges,
     } = req.body;
 
     existingQuote.quotedAmount =
       quotedAmount !== undefined ? quotedAmount : existingQuote.quotedAmount;
+    existingQuote.deliveryCharges =
+      deliveryCharges !== undefined
+        ? deliveryCharges
+        : existingQuote.deliveryCharges;
     existingQuote.description =
       description !== undefined ? description : existingQuote.description;
     existingQuote.remarksFromSupplier =

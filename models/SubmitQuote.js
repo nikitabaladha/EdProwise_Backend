@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const roundToTwo = (num) => {
   const isArgString = typeof num === "string";
   if (isArgString) num = Number(num);
@@ -49,6 +50,7 @@ const SubmitQuoteSchema = new mongoose.Schema(
       set: roundToTwo,
       default: 0,
     },
+    deliveryCharges: { type: Number, default: 0, set: roundToTwo },
     venderStatus: {
       type: String,
       enum: [

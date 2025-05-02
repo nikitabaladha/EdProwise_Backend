@@ -7,17 +7,14 @@ const SubmitQuoteCreate = Joi.object({
     "any.required": "Enquiry number is required.",
     "string.empty": "Enquiry number cannot be empty.",
   }),
-
   quotedAmount: Joi.number().positive().required().messages({
     "any.required": "Quoted amount is required.",
     "number.base": "Quoted amount must be a number.",
     "number.positive": "Quoted amount must be a positive number.",
   }),
-
   description: Joi.string().trim().allow("").messages({
     "string.base": "Description must be a string.",
   }),
-
   remarksFromSupplier: Joi.string().trim().allow("").messages({
     "string.base": "Remarks from supplier must be a string.",
   }),
@@ -62,14 +59,10 @@ const SubmitQuoteUpdate = Joi.object({
     "string.base": "Remarks from supplier must be a string.",
   }),
 
-  expectedDeliveryDateBySeller: Joi.date()
-    .min(today) // Use precomputed date
-    .required()
-    .messages({
-      "any.required": "Expected delivery date by seller is required.",
-      "date.base": "Expected delivery date must be a valid date.",
-      "date.min": "Expected delivery date must be today or in the future.",
-    }),
+  expectedDeliveryDateBySeller: Joi.date().required().messages({
+    "any.required": "Expected delivery date by seller is required.",
+    "date.base": "Expected delivery date must be a valid date.",
+  }),
 
   paymentTerms: Joi.number().positive().max(45).required().messages({
     "any.required": "Payment terms are required.",
@@ -90,7 +83,16 @@ const SubmitQuoteUpdate = Joi.object({
     .optional(),
 });
 
+const SubmitQuoteUpdateDeliveryCharges = Joi.object({
+  deliveryCharges: Joi.number().positive().required().messages({
+    "any.required": "DeliveryCharges is required.",
+    "number.base": "Delivery Charges must be a number.",
+    "number.positive": "Delivery Charges must be a positive number.",
+  }),
+});
+
 export default {
   SubmitQuoteCreate,
   SubmitQuoteUpdate,
+  SubmitQuoteUpdateDeliveryCharges,
 };
