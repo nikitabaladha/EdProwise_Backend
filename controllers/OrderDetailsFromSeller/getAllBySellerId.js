@@ -18,7 +18,7 @@ async function getAllBySellerId(req, res) {
   try {
     const orderDetails = await OrderDetailsFromSeller.find({ sellerId: id })
       .select(
-        "orderNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId invoiceForSchool invoiceForEdprowise"
+        "orderNumber createdAt actualDeliveryDate enquiryNumber sellerId schoolId invoiceForSchool invoiceForEdprowise"
       )
       .sort({ createdAt: -1 })
       .lean();
@@ -63,7 +63,7 @@ async function getAllBySellerId(req, res) {
           .lean();
 
         const submitQuote = await SubmitQuote.findOne({ enquiryNumber })
-          .select("advanceRequiredAmount")
+          .select("advanceRequiredAmount deliveryCharges")
           .lean();
 
         return {

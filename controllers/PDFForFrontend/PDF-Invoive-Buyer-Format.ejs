@@ -212,12 +212,67 @@
         <% }); %>
 
         <tr class="center bold">
-          <td colspan="2">Total</td>
+          <td colspan="2">Sub Total</td>
           <td><%= quoteProposalData.totalQuantity %></td>
           <td></td>
           <td><%= formatCost(quoteProposalData.totalTaxableValue) %></td>
           <td><%= formatCost(quoteProposalData.totalTaxAmount) %></td>
           <td><%= formatCost(quoteProposalData.totalAmount) %></td>
+        </tr>
+
+        <tr class="center">
+          <td></td>
+          <td>Delivery Charges</td>
+          <td></td>
+          <td></td>
+          <td><%= formatCost(profileData.deliveryCharges) %></td>
+          <td>
+            <%= formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise)
+            %>
+          </td>
+          <td>
+            <%= formatCost(profileData.deliveryCharges +
+            quoteProposalData.totalDeliveryGstAmountForEdprowise) %>
+          </td>
+        </tr>
+
+        <tr class="center">
+          <td></td>
+          <td>Insurance Charges @<%= profileData.insuranceCharges %>%</td>
+          <td></td>
+          <td></td>
+
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxableInsuranceCharges) %>
+          </td>
+          <td><%= formatCost(quoteProposalData.totalInsuranceGstAmount) %></td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxableInsuranceCharges +
+            quoteProposalData.totalInsuranceGstAmount) %>
+          </td>
+        </tr>
+
+        <tr class="center bold">
+          <td colspan="2">Total</td>
+          <td><%= quoteProposalData.totalQuantity %></td>
+          <td></td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxableValue +
+            profileData.deliveryCharges +
+            quoteProposalData.totalTaxableInsuranceCharges) %>
+          </td>
+          <td>
+            <%= formatCost(quoteProposalData.totalTaxAmount +
+            quoteProposalData.totalDeliveryGstAmount +
+            quoteProposalData.totalInsuranceGstAmount) %>
+          </td>
+          <td>
+            <%= formatCost(quoteProposalData.totalAmount +
+            profileData.deliveryCharges +
+            quoteProposalData.totalDeliveryGstAmount+
+            quoteProposalData.totalTaxableInsuranceCharges +
+            quoteProposalData.totalInsuranceGstAmount) %>
+          </td>
         </tr>
       </tbody>
     </table>

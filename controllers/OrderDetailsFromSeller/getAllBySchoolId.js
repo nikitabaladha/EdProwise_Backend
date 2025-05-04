@@ -19,7 +19,7 @@ async function getAllBySchoolId(req, res) {
     const orderDetails = await OrderDetailsFromSeller.find({ schoolId: id })
       .sort({ createdAt: -1 })
       .select(
-        "_id orderNumber quoteNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId"
+        "_id orderNumber quoteNumber createdAt actualDeliveryDate enquiryNumber sellerId schoolId"
       )
       .lean();
 
@@ -50,7 +50,7 @@ async function getAllBySchoolId(req, res) {
             )
             .lean(),
           SubmitQuote.findOne({ enquiryNumber, sellerId })
-            .select("advanceRequiredAmount")
+            .select("advanceRequiredAmount deliveryCharges")
             .lean(),
           SellerProfile.findOne({ sellerId }).select("companyName").lean(),
           PrepareQuote.findOne({ enquiryNumber, sellerId })
@@ -82,6 +82,7 @@ async function getAllBySchoolId(req, res) {
             quoteProposals?.finalPayableAmountWithTDS || 0,
           tDSAmount: quoteProposals?.tDSAmount || 0,
           advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
+          deliveryCharges: submitQuote?.deliveryCharges || 0,
           companyName: sellerProfile?.companyName || "Not Available",
           cgstRate: prepareQuote?.cgstRate || 0,
           sgstRate: prepareQuote?.sgstRate || 0,

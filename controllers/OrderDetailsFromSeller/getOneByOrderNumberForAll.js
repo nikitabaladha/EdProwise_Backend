@@ -19,7 +19,7 @@ async function getOneByOrderNumber(req, res) {
     // First find the order details by orderNumber
     const orderDetails = await OrderDetailsFromSeller.findOne({ orderNumber })
       .select(
-        "orderNumber createdAt actualDeliveryDate otherCharges enquiryNumber sellerId schoolId invoiceForSchool invoiceForEdprowise"
+        "orderNumber createdAt actualDeliveryDate enquiryNumber sellerId schoolId invoiceForSchool invoiceForEdprowise"
       )
       .lean();
 
@@ -61,7 +61,7 @@ async function getOneByOrderNumber(req, res) {
           )
           .lean(),
         SubmitQuote.findOne({ enquiryNumber, sellerId })
-          .select("advanceRequiredAmount")
+          .select("advanceRequiredAmount deliveryCharges")
           .lean(),
       ]);
 
@@ -85,6 +85,7 @@ async function getOneByOrderNumber(req, res) {
       totalTaxableValueForEdprowise:
         quoteProposal?.totalTaxableValueForEdprowise || 0,
       advanceAdjustment: submitQuote?.advanceRequiredAmount || 0,
+      deliveryCharges: submitQuote?.deliveryCharges || 0,
       tdsValue: quoteProposal?.tdsValue || 0,
       tdsValueForEdprowise: quoteProposal?.tdsValueForEdprowise || 0,
       finalPayableAmountWithTDS: quoteProposal?.finalPayableAmountWithTDS || 0,

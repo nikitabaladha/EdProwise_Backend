@@ -342,6 +342,19 @@ async function updateSingleProduct(req, res) {
     existingQuoteProposal.finalPayableAmountWithTDSForEdprowise =
       finalPayableAmountWithTDSForEdprowise;
 
+    const insuranceCharges = edprowiseProfile.insuranceCharges || 0;
+
+    existingQuoteProposal.totalTaxableInsuranceCharges =
+      (totalTaxableValue * insuranceCharges) / 100;
+    existingQuoteProposal.totalTaxableInsuranceChargesForEdprowise =
+      (totalTaxableValueForEdprowise * insuranceCharges) / 100;
+
+    existingQuoteProposal.totalInsuranceGstAmount =
+      (totalTaxAmount / totalTaxableValue) * totalTaxableInsuranceCharges;
+    existingQuoteProposal.totalInsuranceGstAmountForEdprowise =
+      (totalTaxAmountForEdprowise / totalTaxableValueForEdprowise) *
+      totalTaxableInsuranceChargesForEdprowise;
+
     // Save the updated QuoteProposal
     await existingQuoteProposal.save();
 

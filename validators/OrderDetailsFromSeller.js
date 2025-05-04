@@ -8,10 +8,6 @@ const orderDetailsFromSellerUpdate = Joi.object({
     "date.base": "Actual delivery date must be a valid date.",
     "date.min": "Actual delivery date must be today or in the future.",
   }),
-
-  otherCharges: Joi.number().optional().messages({
-    "number.base": "Other charges must be a number.",
-  }),
 });
 
 export default {

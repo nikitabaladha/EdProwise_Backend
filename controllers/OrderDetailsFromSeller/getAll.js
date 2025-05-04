@@ -60,7 +60,7 @@ async function getAll(req, res) {
         enquiryNumber: { $in: enquiryNumbers },
         sellerId: { $in: sellerIds },
       })
-        .select("enquiryNumber sellerId advanceRequiredAmount")
+        .select("enquiryNumber sellerId advanceRequiredAmount deliveryCharges")
         .lean(),
       PrepareQuote.find({
         enquiryNumber: { $in: enquiryNumbers },
@@ -124,6 +124,8 @@ async function getAll(req, res) {
         totalGstAmountForEdprowise:
           quoteProposal.totalTaxAmountForEdprowise || null,
         advanceAdjustment: submitQuote.advanceRequiredAmount || 0,
+        deliveryCharges: submitQuote?.deliveryCharges || 0,
+
         finalPayableAmountWithTDS: quoteProposal.finalPayableAmountWithTDS || 0,
         finalPayableAmountWithTDSForEdprowise:
           quoteProposal.finalPayableAmountWithTDSForEdprowise || 0,

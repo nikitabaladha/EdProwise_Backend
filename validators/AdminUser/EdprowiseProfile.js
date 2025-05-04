@@ -61,6 +61,13 @@ const EdprowiseProfileCreateValidator = Joi.object({
       "string.base": "CIN must be a string.",
     }),
 
+  insuranceCharges: Joi.number().min(0).max(100).required().messages({
+    "number.base": "Insurance charges must be a number.",
+    "number.min": "Insurance charges cannot be less than 0%.",
+    "number.max": "Insurance charges cannot exceed 100%.",
+    "any.required": "Insurance charges are required.",
+  }),
+
   address: Joi.string().required().messages({
     "string.base": "Address must be a string.",
     "string.empty": "Address cannot be empty.",
@@ -138,6 +145,12 @@ const EdprowiseProfileUpdateValidator = Joi.object({
     "string.base": "Company name must be a string.",
     "string.empty": "Company name cannot be empty.",
     "any.required": "Company name is required.",
+  }),
+  insuranceCharges: Joi.number().min(0).max(100).required().messages({
+    "number.base": "Insurance charges must be a number.",
+    "number.min": "Insurance charges cannot be less than 0%.",
+    "number.max": "Insurance charges cannot exceed 100%.",
+    "any.required": "Insurance charges are required.",
   }),
 
   companyType: Joi.string()

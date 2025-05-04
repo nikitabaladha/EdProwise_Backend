@@ -41,6 +41,7 @@ const EdprowiseProfileSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    insuranceCharges: { type: Number, required: true },
     address: {
       type: String,
       required: true,

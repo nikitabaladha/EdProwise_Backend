@@ -35,12 +35,12 @@ async function create(req, res) {
       country,
       state,
       city,
-
       landmark,
       pincode,
       contactNo,
       alternateContactNo,
       emailId,
+      insuranceCharges,
     } = req.body;
 
     const edprowiseProfileImagePath = "/Images/EdprowiseProfile";
@@ -67,6 +67,7 @@ async function create(req, res) {
       alternateContactNo,
       emailId,
       edprowiseProfile,
+      insuranceCharges,
     });
 
     await newEdprowiseProfile.save();

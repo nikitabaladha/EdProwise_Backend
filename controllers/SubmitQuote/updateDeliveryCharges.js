@@ -1,5 +1,6 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import SubmitQuoteValidator from "../../validators/SubmitQuote.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function updateDeliveryCharges(req, res) {
   try {
@@ -39,6 +40,36 @@ async function updateDeliveryCharges(req, res) {
         : existingQuote.deliveryCharges;
 
     const updatedQuote = await existingQuote.save();
+
+    const existingQuoteProposal = await QuoteProposal.findOne({
+      enquiryNumber,
+      sellerId,
+    });
+
+    if (!existingQuoteProposal) {
+      return res.status(404).json({
+        hasError: true,
+        message:
+          "Quote Proposal not found for the given enquiryNumber and sellerId.",
+      });
+    }
+
+    const totalDeliveryGstAmount =
+      (existingQuoteProposal.totalTaxAmount /
+        existingQuoteProposal.totalTaxableValue) *
+      existingQuote.deliveryCharges;
+
+    const totalDeliveryGstAmountForEdprowise =
+      (existingQuoteProposal.totalTaxAmountForEdprowise /
+        existingQuoteProposal.totalTaxableValueForEdprowise) *
+      existingQuote.deliveryCharges;
+
+    // Update the QuoteProposal with the new values
+    existingQuoteProposal.totalDeliveryGstAmount = totalDeliveryGstAmount;
+    existingQuoteProposal.totalDeliveryGstAmountForEdprowise =
+      totalDeliveryGstAmountForEdprowise;
+
+    const updatedQuoteProposal = await existingQuoteProposal.save();
 
     return res.status(200).json({
       hasError: false,

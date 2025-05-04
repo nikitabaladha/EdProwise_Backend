@@ -1,5 +1,7 @@
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import OrderDetailsFromSellerValidator from "../../validators/OrderDetailsFromSeller.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
+import SubmitQuote from "../../models/SubmitQuote.js";
 
 async function updateByOrderNumber(req, res) {
   try {
@@ -46,13 +48,14 @@ async function updateByOrderNumber(req, res) {
     const updatedData = {
       actualDeliveryDate:
         value.actualDeliveryDate ?? existingOrder.actualDeliveryDate ?? null,
+      otherCharges: value.otherCharges ?? existingOrder.otherCharges ?? 0,
     };
 
     const updatedOrderDetails = await OrderDetailsFromSeller.findOneAndUpdate(
       { sellerId, orderNumber },
       { $set: updatedData },
       { new: true }
-    ).select("sellerId enquiryNumber actualDeliveryDate");
+    ).select("sellerId enquiryNumber actualDeliveryDate otherCharges");
 
     if (!updatedOrderDetails) {
       return res.status(500).json({
@@ -60,6 +63,51 @@ async function updateByOrderNumber(req, res) {
         message: "Failed to update order details.",
       });
     }
+
+    const { enquiryNumber } = updatedOrderDetails;
+
+    const existingQuoteProposal = await QuoteProposal.findOne({
+      sellerId,
+      enquiryNumber,
+    });
+    const existingSubmitQuote = await SubmitQuote.findOne({
+      sellerId,
+      enquiryNumber,
+    });
+
+    if (!existingQuoteProposal || !existingSubmitQuote) {
+      return res.status(404).json({
+        hasError: true,
+        message:
+          "No Quote Proposal or Submit Quote found for the given enquiryNumber and sellerId.",
+      });
+    }
+
+    const totalAmount = Number(existingQuoteProposal.totalAmount) || 0;
+    const totalAmountForEdprowise =
+      Number(existingQuoteProposal.totalAmountForEdprowise) || 0;
+    const advanceRequiredAmount =
+      Number(existingSubmitQuote.advanceRequiredAmount) || 0;
+    const tdsValue = Number(existingQuoteProposal.tdsValue) || 0;
+    const tdsValueForEdprowise =
+      Number(existingQuoteProposal.tdsValueForEdprowise) || 0;
+    const otherCharges = Number(updatedData.otherCharges) || 0;
+
+    const finalPayableAmountWithTDS =
+      totalAmount - advanceRequiredAmount - tdsValue + otherCharges;
+
+    const finalPayableAmountWithTDSForEdprowise =
+      totalAmountForEdprowise -
+      advanceRequiredAmount -
+      tdsValueForEdprowise +
+      otherCharges;
+
+    // Update QuoteProposal with new calculations
+    await QuoteProposal.findOneAndUpdate(
+      { sellerId, enquiryNumber },
+      { finalPayableAmountWithTDS, finalPayableAmountWithTDSForEdprowise },
+      { new: true }
+    );
 
     return res.status(200).json({
       message: "Order details updated successfully!",
