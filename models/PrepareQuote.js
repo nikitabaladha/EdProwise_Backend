@@ -18,9 +18,13 @@ const PrepareQuoteSchema = new mongoose.Schema(
       required: true,
       ref: "QuoteRequest",
     },
-    prepareQuoteImage: {
-      type: String,
-    },
+    prepareQuoteImages: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
+
     subcategoryName: {
       type: String,
       required: true,

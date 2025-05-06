@@ -212,6 +212,7 @@ async function updateSingleProduct(req, res) {
     let totalSgstAmount = 0;
     let totalIgstAmount = 0;
     let totalTaxAmount = 0;
+    let totalTaxableInsuranceCharges = 0;
 
     let totalFinalRateBeforeDiscountForEdprowise = 0;
     let totalTaxableValueForEdprowise = 0;
@@ -220,6 +221,7 @@ async function updateSingleProduct(req, res) {
     let totalIgstAmountForEdprowise = 0;
     let totalTaxAmountForEdprowise = 0;
     let totalAmountForEdprowise = 0;
+    let totalTaxableInsuranceChargesForEdprowise = 0;
 
     allPrepareQuotes.forEach((quote) => {
       totalQuantity += quote.quantity;

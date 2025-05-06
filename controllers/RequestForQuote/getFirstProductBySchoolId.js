@@ -53,7 +53,7 @@ async function getBySchoolId(req, res) {
             ? firstProduct.subCategoryId.subCategoryName
             : null,
           description: firstProduct ? firstProduct.description : null,
-          productImage: firstProduct ? firstProduct.productImage : null,
+          productImages: firstProduct ? firstProduct.productImages : [],
           unit: firstProduct ? firstProduct.unit : null,
           quantity: firstProduct ? firstProduct.quantity : null,
           productEnquiryNumber: firstProduct

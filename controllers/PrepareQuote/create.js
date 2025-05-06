@@ -166,11 +166,23 @@ async function create(req, res) {
         }
       }
 
-      // Prepare image path
-      const prepareQuoteImageKey = `products[${i}][prepareQuoteImage]`;
-      const prepareQuoteImage = req.files[prepareQuoteImageKey]
-        ? `/Images/PrepareQuoteImage/${req.files[prepareQuoteImageKey][0].filename}`
-        : null;
+      const prepareQuoteImages = [];
+      if (req.files) {
+        const imageKeys = Object.keys(req.files).filter((key) => {
+          for (let j = 0; j <= 4; j++) {
+            if (key.startsWith(`products[${i}][prepareQuoteImages][${j}]`))
+              return true;
+          }
+          return false;
+        });
+        imageKeys.forEach((key) => {
+          req.files[key].forEach((file) => {
+            prepareQuoteImages.push(
+              `/Images/PrepareQuoteImage/${file.filename}`
+            );
+          });
+        });
+      }
 
       // Perform calculations
       const listingRate = parseFloat(product.listingRate);
@@ -291,7 +303,7 @@ async function create(req, res) {
       const newPrepareQuote = new PrepareQuote({
         sellerId,
         enquiryNumber,
-        prepareQuoteImage,
+        prepareQuoteImages,
         subcategoryName: product.subcategoryName,
         subCategoryId: product.subCategoryId,
         hsnSacc: product.hsnSacc,

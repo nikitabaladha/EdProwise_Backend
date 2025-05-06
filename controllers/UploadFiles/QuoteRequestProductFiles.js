@@ -42,10 +42,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const fields = Array.from({ length: 1000 }, (_, i) => ({
-  name: `products[${i}][productImage]`,
-  maxCount: 1,
-}));
+const fields = Array.from({ length: 100 }).flatMap((_, productIndex) =>
+  Array.from({ length: 4 }, (_, imageIndex) => ({
+    name: `products[${productIndex}][productImages][${imageIndex}]`,
+    maxCount: 1,
+  }))
+);
 
 const productImageUpload = multer({
   storage,
@@ -54,6 +56,7 @@ const productImageUpload = multer({
 }).fields(fields);
 
 export default (req, res, next) => {
+  console.log(fields);
   productImageUpload(req, res, (err) => {
     if (err) {
       if (err.code === "LIMIT_FILE_SIZE") {

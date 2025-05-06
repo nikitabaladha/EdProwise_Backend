@@ -26,7 +26,12 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
     description: { type: String },
-    productImage: { type: String },
+    productImages: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
     unit: {
       type: String,
       enum: [

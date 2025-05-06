@@ -33,7 +33,7 @@ async function getFirstProductForAdmin(req, res) {
           subCategoryId: product?.subCategoryId?._id || null,
           subCategoryName: product?.subCategoryId?.subCategoryName || null,
           description: product?.description || null,
-          productImage: product?.productImage || null,
+          productImages: product.productImages || [],
           unit: product?.unit || null,
           quantity: product?.quantity || null,
           productEnquiryNumber: product?.enquiryNumber || null,

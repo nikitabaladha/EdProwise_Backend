@@ -7,7 +7,7 @@ async function getAll(req, res) {
 
     const orders = await OrderFromBuyer.find(
       { orderNumber, sellerId },
-      "orderNumber cartImage subcategoryName listingRate quantity discount finalRate"
+      "orderNumber cartImages subcategoryName listingRate quantity discount finalRate"
     );
 
     if (!orders.length) {

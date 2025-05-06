@@ -30,6 +30,7 @@ const UserSchema = new mongoose.Schema(
       enum: ["Pending", "Completed", "Deleted"],
       default: "Pending",
     },
+    subscription: [{ type: String }],
   },
   {
     timestamps: true,

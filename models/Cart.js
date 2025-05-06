@@ -28,9 +28,12 @@ const CartSchema = new mongoose.Schema(
       required: true,
       ref: "QuoteRequest",
     },
-    cartImage: {
-      type: String,
-    },
+    cartImages: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
     subcategoryName: {
       type: String,
       required: true,

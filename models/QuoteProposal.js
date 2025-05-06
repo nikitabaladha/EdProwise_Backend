@@ -40,10 +40,10 @@ const QuoteProposalSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
-    totalDeliveryGstAmount: { type: Number, required: true, set: roundToTwo },
+    totalDeliveryGstAmount: { type: Number, required: false, set: roundToTwo },
     totalDeliveryGstAmountForEdprowise: {
       type: Number,
-      required: true,
+      required: false,
       set: roundToTwo,
     },
     totalFinalRateBeforeDiscount: {

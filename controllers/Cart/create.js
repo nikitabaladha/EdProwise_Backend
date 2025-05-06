@@ -75,7 +75,7 @@ async function create(req, res) {
         enquiryNumber,
         prepareQuoteId: product.prepareQuoteId,
         sellerId: prepareQuoteEntry?.sellerId || null,
-        cartImage: prepareQuoteEntry?.prepareQuoteImage || null,
+        cartImages: prepareQuoteEntry?.prepareQuoteImages || [],
         subcategoryName: prepareQuoteEntry?.subcategoryName || "",
         subCategoryId: prepareQuoteEntry?.subCategoryId || "",
         hsnSacc: prepareQuoteEntry?.hsnSacc || "",

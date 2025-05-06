@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 import roleBasedMiddleware from "../../middleware/index.js";
-import productImageUpload from "../../controllers/UploadFiles/ProductFiles.js";
+import productImageUpload from "../../controllers/UploadFiles/QuoteRequestProductFiles.js";
 
 import {
   create,

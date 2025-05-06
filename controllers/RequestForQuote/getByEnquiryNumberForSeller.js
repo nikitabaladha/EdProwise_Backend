@@ -95,7 +95,7 @@ async function getByEnquiryNumberForSeller(req, res) {
         subCategoryId: product.subCategoryId?._id || null,
         subCategoryName: product.subCategoryId?.subCategoryName || null,
         description: product.description,
-        productImage: product.productImage,
+        productImages: product.productImages || [],
         unit: product.unit,
         quantity: product.quantity,
         enquiryNumber: product.enquiryNumber,

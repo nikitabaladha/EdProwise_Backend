@@ -280,7 +280,10 @@
     <p>
       <strong
         >Amount Chargeable (in words ) : INR <%=
-        convertToWords(quoteProposalData.totalAmount) %> Only</strong
+        convertToWords(quoteProposalData.totalAmount +
+        profileData.deliveryCharges + quoteProposalData.totalDeliveryGstAmount+
+        quoteProposalData.totalTaxableInsuranceCharges +
+        quoteProposalData.totalInsuranceGstAmount) %> Only</strong
       >
     </p>
 

@@ -893,7 +893,7 @@ async function create(req, res) {
         enquiryNumber,
         cartId: product.cartId,
         sellerId: cartEntry.sellerId,
-        cartImage: cartEntry.cartImage || null,
+        cartImages: cartEntry.cartImages || [],
         subcategoryName: cartEntry.subcategoryName || "",
         subCategoryId: cartEntry.subCategoryId || "",
         hsnSacc: cartEntry.hsnSacc || "",

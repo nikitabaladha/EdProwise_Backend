@@ -11,7 +11,7 @@ const prepareQuoteCreate = Joi.object({
     "string.empty": "Enquiry number cannot be empty.",
   }),
 
-  prepareQuoteImage: Joi.string()
+  prepareQuoteImages: Joi.string()
     .uri({ scheme: ["http", "https"] })
     .optional()
     .allow("")

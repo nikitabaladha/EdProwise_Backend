@@ -814,14 +814,25 @@ async function create(req, res) {
         }
       }
 
-      const productImageKey = `products[${i}][productImage]`;
-      const productImage = req.files[productImageKey]
-        ? `/Images/ProductImage/${req.files[productImageKey][0].filename}`
-        : null;
+      const productImages = [];
+      if (req.files) {
+        const imageKeys = Object.keys(req.files).filter((key) => {
+          for (let j = 0; j <= 4; j++) {
+            if (key.startsWith(`products[${i}][productImages][${j}]`))
+              return true;
+          }
+          return false;
+        });
+        imageKeys.forEach((key) => {
+          req.files[key].forEach((file) => {
+            productImages.push(`/Images/ProductImage/${file.filename}`);
+          });
+        });
+      }
 
       const newProduct = new Product({
         schoolId,
-        productImage,
+        productImages,
         categoryId: product.categoryId,
         subCategoryId: product.subCategoryId,
         description: product.description || "No description provided",
@@ -896,9 +907,7 @@ async function create(req, res) {
 
         return {
           ...product.toObject(),
-
           categoryName: category?.categoryName || "Unknown Category",
-
           subCategoryName:
             subCategory?.subCategoryName || "Unknown SubCategory",
         };

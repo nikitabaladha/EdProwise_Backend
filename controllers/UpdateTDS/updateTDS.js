@@ -64,14 +64,12 @@ async function updateTDS(req, res) {
     const finalPayableAmountWithTDS =
       existingQuoteProposal.totalAmount -
       existingSubmitQuote.advanceRequiredAmount -
-      tdsValue +
-      (existingOrderDetailsFromSeller.otherCharges || 0);
+      tdsValue;
 
     const finalPayableAmountWithTDSForEdprowise =
       existingQuoteProposal.totalAmountForEdprowise -
       existingSubmitQuote.advanceRequiredAmount -
-      tdsValueForEdprowise +
-      (existingOrderDetailsFromSeller.otherCharges || 0);
+      tdsValueForEdprowise;
 
     existingQuoteProposal.tDSAmount = tDSAmount;
     existingQuoteProposal.tdsValue = tdsValue;
