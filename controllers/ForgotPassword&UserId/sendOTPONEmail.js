@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
-import VerificationCode from "../../models/VerificationCode.js";
+import VerificationCodeForEmail from "../../models/VerificationCodeForEmail.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import School from "../../models/School.js";
 import path from 'path';
@@ -267,7 +267,7 @@ async function sendOTPOnEmail(req, res) {
       
         console.log(`Verification email sent successfully to ${email}.`);
 
-        await VerificationCode.findOneAndUpdate(
+        await VerificationCodeForEmail.findOneAndUpdate(
             { email: email }, // Notice: using email as userId for OTP record since no user exists yet
             { code: verificationCode, expiresAt: new Date(Date.now() + 1 * 60000) },
             { upsert: true, new: true }

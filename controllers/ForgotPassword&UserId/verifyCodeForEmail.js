@@ -1,11 +1,10 @@
-import VerificationCode from "../../models/VerificationCode.js";
-
+import VerificationCodeForEmail from "../../models/VerificationCodeForEmail.js";
 
 async function verifyCodeForEmail(req, res) {
     const { email,verificationCode } = req.body;
 
     try {
-        const storedCode = await VerificationCode.findOne({ email });
+        const storedCode = await VerificationCodeForEmail.findOne({ email });
         console.log("store code :", storedCode);
         
         if (!storedCode) {
@@ -32,7 +31,7 @@ async function verifyCodeForEmail(req, res) {
           }
 
         // Code is valid - delete from DB to prevent reuse
-        await VerificationCode.deleteOne({ email });
+        await VerificationCodeForEmail.deleteOne({ email });
 
         return res.json({ 
             hasError: false, 

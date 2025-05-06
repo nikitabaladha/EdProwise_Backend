@@ -75,12 +75,8 @@ async function sendVerificationCode(req, res) {
       __dirname,
       "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
     );
-    console.log("Logo path verification:");
-    console.log("Full path:", logoImagePath);
-    console.log("File exists:", fs.existsSync(logoImagePath));
-
+   
     if (!fs.existsSync(logoImagePath)) {
-      console.error("Logo not found at:", logoImagePath);
       return { hasError: true, message: "Logo file not found" };
     }
 
