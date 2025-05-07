@@ -27,7 +27,6 @@ import UpdateVenderStatusRoutes from "./Procurement/update-vender-status.js";
 import CartRoutes from "./Procurement/cart-by-school.js";
 import OrderFromBuyerRoutes from "./Procurement/order-from-buyer.js";
 import QuoteProposalRoutes from "./Procurement/quote-proposal.js";
-import PdfMakingRequiredRoutes from "./Procurement/pdf-requirements.js";
 import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-seller.js";
 import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
 import UpdateTDSRoutes from "./Procurement/update-tds.js";
@@ -88,7 +87,6 @@ export default (app) => {
   app.use("/api", CartRoutes);
   app.use("/api", OrderFromBuyerRoutes);
   app.use("/api", QuoteProposalRoutes);
-  app.use("/api", PdfMakingRequiredRoutes);
   app.use("/api", OrderDetailsFromSellerRoutes);
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
