@@ -9,7 +9,6 @@ const roundToTwo = (num) => {
 const OrderFromBuyerSchema = new mongoose.Schema(
   {
     orderNumber: { type: String },
-
     cartId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Cart",
@@ -39,7 +38,6 @@ const OrderFromBuyerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     subCategoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SubCategory",

@@ -157,7 +157,7 @@ async function userLogin(req, res) {
 
       const subscriptions = await Subscription.find(
         { schoolId: user.schoolId },
-        { _id: 0, subscriptionFor: 1, subscriptionStartDate: 1 }
+        { _id: 0, subscriptionFor: 1, subscriptionEndDate: 1 }
       ).lean();
 
       tokenPayload.subscription = subscriptions || [];
