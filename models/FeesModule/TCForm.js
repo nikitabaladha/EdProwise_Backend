@@ -9,6 +9,7 @@ const TCFormSchema = new Schema({
     ref: 'School'
   },
   AdmissionNumber: { type: String, unique: true },
+  studentPhoto: { type: String }, 
   firstName: { type: String, required: true },
   middleName: { type: String },
   lastName: { type: String, required: true },
@@ -61,13 +62,29 @@ const TCFormSchema = new Schema({
   reasonForLeaving: {type:String},
   anyRemarks: {type:String},
   agreementChecked: { type: Boolean, required: true, default: false },
+  TCfees: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  concessionAmount: {
+    type: Number,
+    default: 0,
+  },
+  finalAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   name: { type: String, required: true },
   paymentMode: {
     type: String,
     required: true,
     enum: ['Cash', 'Cheque', 'Online']
   },
-
+  paymentDate: {  
+    type: Date,
+  },
   chequeNumber: { type: String },
   bankName: { type: String },
   
@@ -82,9 +99,6 @@ const TCFormSchema = new Schema({
   receiptNumber: {
     type: String,
     unique: true,
-    default: function() {
-      return 'RECN' + Math.floor(10000 + Math.random() * 90000);
-    }
   },
   certificateNumber:{
     type: String,
@@ -105,7 +119,17 @@ const TCFormSchema = new Schema({
 }, { timestamps: true });
 
 
+TCFormSchema.pre('save', async function(next) {
+  if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque') && !this.paymentDate) {
+    this.paymentDate = new Date();
+  }
 
+  const countDocuments = await this.constructor.countDocuments({});
+  const nextNumber = (countDocuments + 1).toString().padStart(6, '0');
+  this.receiptNumber = `REC/TCF/${nextNumber}`;
+
+  next();
+});
 
 
 

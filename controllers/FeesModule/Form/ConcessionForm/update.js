@@ -2,7 +2,6 @@ import ConcessionFormModel from '../../../../models/FeesModule/ConcessionForm.js
 import { ConcessionFormValidator } from '../../../../validators/FeesModule/ConcessionValidator/ConcessionFormvalidator.js';
 import fs from 'fs';
 
-
 const getConcessionFilePath = (file) => {
   if (!file) return '';
   return file.mimetype.startsWith('image/')
@@ -32,22 +31,27 @@ const updateConcessionForm = async (req, res) => {
     }
 
     const newCertificateFile = req.files?.castOrIncomeCertificate?.[0];
+    const newPhotoFile = req.files?.studentPhoto?.[0];
+
     const newCertificatePath = newCertificateFile?.path;
+    const newPhotoPath = newPhotoFile?.path;
 
     const updatedData = {
       ...req.body,
       schoolId,
       castOrIncomeCertificate: newCertificateFile
         ? getConcessionFilePath(newCertificateFile)
-        : existingForm.castOrIncomeCertificate
+        : existingForm.castOrIncomeCertificate,
+      studentPhoto: newPhotoFile
+        ? getConcessionFilePath(newPhotoFile)
+        : existingForm.studentPhoto
     };
 
     const { error } = ConcessionFormValidator.validate(updatedData);
 
     if (error) {
-      if (newCertificatePath) {
-        fs.unlinkSync(newCertificatePath); 
-      }
+      if (newCertificatePath) fs.unlinkSync(newCertificatePath);
+      if (newPhotoPath) fs.unlinkSync(newPhotoPath);
       return res.status(400).json({
         hasError: true,
         message: error.details[0].message
@@ -56,17 +60,19 @@ const updateConcessionForm = async (req, res) => {
 
 
     if (newCertificateFile && existingForm.castOrIncomeCertificate) {
-      const oldPath = `.${existingForm.castOrIncomeCertificate}`;
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
-      }
+      const oldCertPath = `.${existingForm.castOrIncomeCertificate}`;
+      if (fs.existsSync(oldCertPath)) fs.unlinkSync(oldCertPath);
     }
 
-    const updatedForm = await ConcessionFormModel.findByIdAndUpdate(
-      id,
-      updatedData,
-      { new: true }
-    );
+  
+    if (newPhotoFile && existingForm.studentPhoto) {
+      const oldPhotoPath = `.${existingForm.studentPhoto}`;
+      if (fs.existsSync(oldPhotoPath)) fs.unlinkSync(oldPhotoPath);
+    }
+
+    const updatedForm = await ConcessionFormModel.findByIdAndUpdate(id, updatedData, {
+      new: true
+    });
 
     return res.status(200).json({
       hasError: false,
@@ -75,9 +81,8 @@ const updateConcessionForm = async (req, res) => {
     });
 
   } catch (err) {
-    if (req.files?.castOrIncomeCertificate?.[0]?.path) {
-      fs.unlinkSync(req.files.castOrIncomeCertificate[0].path);
-    }
+    if (newCertificatePath && fs.existsSync(newCertificatePath)) fs.unlinkSync(newCertificatePath);
+    if (newPhotoPath && fs.existsSync(newPhotoPath)) fs.unlinkSync(newPhotoPath);
     return res.status(500).json({
       hasError: true,
       message: err.message

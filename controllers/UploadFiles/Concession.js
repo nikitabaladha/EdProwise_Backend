@@ -5,7 +5,6 @@ import fs from 'fs';
 const imageDir = './Images/Concession';
 const documentDir = './Documents/Concession';
 
-
 if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir, { recursive: true });
 if (!fs.existsSync(documentDir)) fs.mkdirSync(documentDir, { recursive: true });
 
@@ -33,14 +32,28 @@ const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = file.mimetype;
 
-  if ((ext === '.jpg' || ext === '.jpeg') && mime === 'image/jpeg') {
-    if (file.size > 300 * 1024) return cb(new Error('JPEG/JPG must be under 300KB'));
-    return cb(null, true);
+  if (file.fieldname === 'studentPhoto') {
+
+    if ((ext === '.jpg' || ext === '.jpeg') && mime === 'image/jpeg') {
+      if (file.size > 300 * 1024) return cb(new Error('JPEG/JPG must be under 300KB'));
+      return cb(null, true);
+    }
+    return cb(new Error('Only JPEG/JPG files are allowed for studentPhoto'));
   }
 
-  if (ext === '.pdf' && mime === 'application/pdf') {
-    return cb(null, true);
+  if (file.fieldname === 'castOrIncomeCertificate') {
+   
+    if ((ext === '.jpg' || ext === '.jpeg') && mime === 'image/jpeg') {
+      if (file.size > 300 * 1024) return cb(new Error('JPEG/JPG must be under 300KB for cast certificate'));
+      return cb(null, true);
+    }
+    
+    if (ext === '.pdf' && mime === 'application/pdf') {
+      return cb(null, true);
+    }
+    return cb(new Error('Only JPEG/JPG and PDF files are allowed for castOrIncomeCertificate'));
   }
+
 
   return cb(new Error('Only .jpg, .jpeg, and .pdf files are allowed'));
 };
@@ -50,5 +63,6 @@ export const concessionFileUpload = multer({
   limits: { fileSize: 2 * 1024 * 1024 }, 
   fileFilter,
 }).fields([
+  { name: 'studentPhoto', maxCount: 1 },
   { name: 'castOrIncomeCertificate', maxCount: 1 },
 ]);

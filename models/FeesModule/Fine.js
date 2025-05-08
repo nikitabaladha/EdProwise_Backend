@@ -6,6 +6,10 @@ const FineSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
     feeType: {
       type: String,
       enum: ['fixed', 'percentage'],

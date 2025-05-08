@@ -52,6 +52,8 @@ export const admissionFileUpload = multer({
   },
   fileFilter,
 }).fields([
+  
+  { name: 'studentPhoto', maxCount: 1 },
   { name: 'aadharPassportFile', maxCount: 1 },
   { name: 'castCertificate', maxCount: 1 },
   { name: 'tcCertificate', maxCount: 1 },

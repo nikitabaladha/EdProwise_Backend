@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+ 
 const SubscriptionSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -15,6 +15,9 @@ const SubscriptionSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    subscriptionEndDate: {
+      type: Date,
+    },
     subscriptionNoOfMonth: {
       type: Number,
       required: true,
@@ -28,14 +31,8 @@ const SubscriptionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+ 
 
-SubscriptionSchema.index(
-  {
-    schoolId: 1,
-    subscriptionFor: 1,
-    subscriptionStartDate: 1,
-  },
-  { unique: true }
-);
-
+ 
 export default mongoose.model("Subscription", SubscriptionSchema);
+ 

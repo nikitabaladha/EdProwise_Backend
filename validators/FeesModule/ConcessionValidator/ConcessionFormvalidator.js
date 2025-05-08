@@ -50,6 +50,9 @@ export const ConcessionFormValidator = Joi.object({
     'string.base': 'Admission number must be a string.',
     'any.required': 'Admission number is required.'
   }),
+   studentPhoto: Joi.string().optional().messages({
+          "any.required": "Studentphoto is required."
+        }),
   firstName: Joi.string().required().messages({
     'string.base': 'First name must be a string.',
     'any.required': 'First name is required.'

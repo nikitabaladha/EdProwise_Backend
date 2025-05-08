@@ -9,7 +9,8 @@ const concessionDetailSchema = new Schema({
     feesType: {
         type: Schema.Types.ObjectId,
         ref: 'FeeType',
-        required: true
+        // type: String,
+        // required: true
     },
     totalFees: {
         type: Number,
@@ -44,6 +45,9 @@ const concessionSchema = new Schema({
         type: String,
         required: true
     },
+    studentPhoto: { 
+        type: String 
+    }, 
     firstName: {
         type: String,
         required: true
@@ -78,11 +82,26 @@ const concessionSchema = new Schema({
         type: String,
         required: true
     },
+
+    receiptNumber: {
+        type: String,
+        unique: true,
+    },
     concessionDetails: {
         type: [concessionDetailSchema],
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
     }
+}, { timestamps: true }); 
+
+
+concessionSchema.pre('save', async function(next) {
+    if (!this.receiptNumber) {
+        const countDocuments = await this.constructor.countDocuments({});
+        const nextNumber = (countDocuments + 1).toString().padStart(6, '0');
+        this.receiptNumber = `CON/${nextNumber}`;
+    }
+    next();
 });
 
 export default mongoose.model('ConcessionForm', concessionSchema);

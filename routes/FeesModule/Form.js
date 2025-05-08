@@ -2,7 +2,8 @@ import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 import { studentFileUpload } from "../../controllers/UploadFiles/Registration.js";
 import {admissionFileUpload } from "../../controllers/UploadFiles/AdmissionForm.js";
-import {concessionFileUpload} from "../../controllers/UploadFiles/Concession.js"
+import {concessionFileUpload} from "../../controllers/UploadFiles/Concession.js";
+import {tcFileUpload } from "../../controllers/UploadFiles/TCForm.js";
 
 
 import {
@@ -10,6 +11,7 @@ import {
   getRegistrationsBySchoolId,
   deleteRegistrationbyid,
   updateRegistrationForm,
+  downloadreceipts,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -57,6 +59,12 @@ router.put(
     updateRegistrationForm 
 );
 
+router.post(
+  "/create-registration-receipts",
+  roleBasedMiddleware("Admin","School"),
+ downloadreceipts
+);
+
 //------------------------------------Admission Form-------------------------------------------------------------//
 
 router.post(
@@ -87,7 +95,7 @@ router.put(
 //------------------------------------TC Form-------------------------------------------------------------//
 router.post(
   "/create-TC-form",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School"),tcFileUpload,
   createTCForm
 );
 
@@ -105,7 +113,7 @@ router.delete(
 
 router.put(
   "/update-TC-form/:id",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School"),tcFileUpload,
   updateTCForm
 );
 

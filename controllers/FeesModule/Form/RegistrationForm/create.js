@@ -1,5 +1,5 @@
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
+import {RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
 
 const getFilePath = (file) => {
   if (!file) return '';

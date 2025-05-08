@@ -1,11 +1,8 @@
-// controllers/getAllFeesInstallments.js
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
-import FeesType from "../../../../models/FeesModule/FeesType.js";
 
 export const getAllFeesInstallments = async (req, res) => {
   try {
     const { classId, sectionIds, schoolId } = req.query;
-
 
     if (!classId || !sectionIds || !schoolId) {
       return res
@@ -13,11 +10,9 @@ export const getAllFeesInstallments = async (req, res) => {
         .json({ message: "classId, sectionIds, and schoolId are required" });
     }
 
-
     const sectionIdArray = Array.isArray(sectionIds)
       ? sectionIds
       : [sectionIds];
-
 
     const feesStructures = await FeesStructure.find({
       schoolId,
@@ -34,7 +29,6 @@ export const getAllFeesInstallments = async (req, res) => {
         });
     }
 
-
     const maxInstallments = Math.max(
       ...feesStructures.map((structure) => structure.installments?.length || 0)
     );
@@ -47,6 +41,7 @@ export const getAllFeesInstallments = async (req, res) => {
 
         if (inst) {
           response.push({
+            installmentId: inst._id, // ✅ Installment ID added here
             name: inst.name,
             dueDate: inst.dueDate,
             fees: inst.fees?.map((fee) => ({

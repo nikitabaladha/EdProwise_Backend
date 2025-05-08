@@ -2,6 +2,7 @@ import createRegistrationForm from './RegistrationForm/create.js';
 import getRegistrationsBySchoolId from './RegistrationForm/get.js';
 import deleteRegistrationbyid from './RegistrationForm/delete.js';
 import updateRegistrationForm from './RegistrationForm/update.js';
+import downloadreceipts from './RegistrationForm/downloadreceipts.js'
 
 import createAdmissionForm from './AdmissionForm/create.js'
 import getAdmissionFormsBySchoolId from './AdmissionForm/get.js';
@@ -25,6 +26,7 @@ export {
   getRegistrationsBySchoolId,
   deleteRegistrationbyid,
   updateRegistrationForm, 
+  downloadreceipts,
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
   deleteAdmissionFormById,

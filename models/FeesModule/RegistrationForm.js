@@ -15,7 +15,7 @@ const studentRegistrationSchema = new Schema({
   lastName: { type: String, required: true },
   dateOfBirth: { type: Date, required: true },
   age: { type: Number, required: true },
-  studentPhoto: { type: String }, 
+  studentPhoto: { type: String },
   nationality: {
     type: String,
     required: true,
@@ -41,11 +41,13 @@ const studentRegistrationSchema = new Schema({
   motherName: { type: String, required: true },
   motherContactNo: { type: String, required: true },
   currentAddress: { type: String, required: true },
-  cityStateCountry: { type: String, required: true },
+  country: { type: String, required: true },  
+  state: { type: String, required: true },    
+  city: { type: String, required: true },  
   pincode: { type: String, required: true },
-  previousSchoolName: { type: String },
-  previousSchoolBoard: { type: String },
-  addressOfpreviousSchool: { type: String },
+  previousSchoolName: { type: String},
+  previousSchoolBoard: { type: String},
+  addressOfpreviousSchool: { type: String},
   previousSchoolResult: { type: String },
   tcCertificate: { type: String },
   studentCategory: {
@@ -62,6 +64,21 @@ const studentRegistrationSchema = new Schema({
   aadharPassportNumber: { type: String, required: true },
   castCertificate: { type: String },
   agreementChecked: { type: Boolean, required: true, default: false },
+  registrationFee: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  concessionAmount: {
+    type: Number,
+    default: 0,
+  },
+  finalAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+
   name: { type: String, required: true },
   paymentMode: {
     type: String,
@@ -80,13 +97,14 @@ const studentRegistrationSchema = new Schema({
   receiptNumber: {
     type: String,
     unique: true,
-    default: function () {
-      return 'RECN' + Math.floor(10000 + Math.random() * 90000);
-    }
   },
+  
   registrationNumber: {
     type: String,
     unique: true
+  },
+  paymentDate: {  
+    type: Date,
   },
   status: {
     type: String,
@@ -147,6 +165,14 @@ studentRegistrationSchema.pre('save', async function (next) {
       } else {
         throw new Error("Incomplete prefix setting.");
       }
+
+      if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque') && !this.paymentDate) {
+        this.paymentDate = new Date();
+      }
+
+      const countDocuments = await this.constructor.countDocuments({});
+      const nextNumber = (countDocuments + 1).toString().padStart(6, '0');
+      this.receiptNumber = `REC/REG/${nextNumber}`; 
 
       next();
     } catch (err) {

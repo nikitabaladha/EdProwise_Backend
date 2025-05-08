@@ -37,6 +37,7 @@ import GlobalSearchRoutes from "./Procurement/global-search.js";
 import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import FormRoutes from "./FeesModule/Form.js";
 import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js"
+import FeesManagementYearRoutes from "./FeesModule/FeesManagementYear.js";
 
 // Umesh Routes
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
@@ -95,8 +96,10 @@ export default (app) => {
 
   // ================Fees Module====================
   app.use("/api", AdminSettingRoutes);
-  app.use("/api", FormRoutes)
-  app.use("/api",FeesReceiptsRoutes)
+  app.use("/api", FormRoutes);
+  app.use("/api",FeesReceiptsRoutes);
+  app.use("/api",FeesManagementYearRoutes);
+
 
   // Umesh Routes
 

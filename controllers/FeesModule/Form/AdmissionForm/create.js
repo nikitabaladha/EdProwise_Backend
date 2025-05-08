@@ -49,6 +49,9 @@ const admissionform = async (req, res) => {
     const newAdmission = new AdmissionFormModel({
       ...req.body,
       schoolId,
+      studentPhoto: files?.studentPhoto?.[0]
+      ? getFilePath(files.studentPhoto[0])
+      : registeredStudent?.studentPhoto|| '',
       aadharPassportFile: files?.aadharPassportFile?.[0]
         ? getFilePath(files.aadharPassportFile[0])
         : registeredStudent?.aadharPassportFile || '',
