@@ -2,7 +2,8 @@ import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
 import { studentFileUpload } from "../../controllers/UploadFiles/Registration.js";
 import {admissionFileUpload } from "../../controllers/UploadFiles/AdmissionForm.js";
-import {concessionFileUpload} from "../../controllers/UploadFiles/Concession.js"
+import {concessionFileUpload} from "../../controllers/UploadFiles/Concession.js";
+import {tcFileUpload } from "../../controllers/UploadFiles/TCForm.js";
 
 
 import {
@@ -10,11 +11,14 @@ import {
   getRegistrationsBySchoolId,
   deleteRegistrationbyid,
   updateRegistrationForm,
+   getRegistrationsBySchoolIdandyear,
+  downloadreceipts,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
   deleteAdmissionFormById,
   updateAdmissionForm,
+  getbySchoolIdandYear,
 
   createTCForm,
   getTCForm,
@@ -40,9 +44,15 @@ router.post(
 );
 
 router.get(
-    "/get-registartion-form/:schoolId",
+    "/get-registartion-form/:schoolId/:academicYear",
     roleBasedMiddleware("Admin","School"),
-    getRegistrationsBySchoolId
+    getRegistrationsBySchoolIdandyear,
+  );
+
+  router.get(
+    "/get-registartion-formbySchoolId/:schoolId",
+    roleBasedMiddleware("Admin","School"),
+   getRegistrationsBySchoolId
   );
 
 router.delete(
@@ -57,6 +67,12 @@ router.put(
     updateRegistrationForm 
 );
 
+router.post(
+  "/create-registration-receipts",
+  roleBasedMiddleware("Admin","School"),
+ downloadreceipts
+);
+
 //------------------------------------Admission Form-------------------------------------------------------------//
 
 router.post(
@@ -69,6 +85,12 @@ router.get(
   "/get-admission-form/:schoolId",
   roleBasedMiddleware("Admin","School"),
   getAdmissionFormsBySchoolId
+);
+
+router.get(
+  "/get-admission-form-by-year-schoolId/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+ getbySchoolIdandYear
 );
 
 router.delete(
@@ -87,12 +109,12 @@ router.put(
 //------------------------------------TC Form-------------------------------------------------------------//
 router.post(
   "/create-TC-form",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School"),tcFileUpload,
   createTCForm
 );
 
 router.get(
-  "/get-TC-form/:schoolId",
+  "/get-TC-form/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getTCForm
 );
@@ -105,7 +127,7 @@ router.delete(
 
 router.put(
   "/update-TC-form/:id",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School"),tcFileUpload,
   updateTCForm
 );
 
@@ -119,7 +141,7 @@ createConcessionForm
 );
 
 router.get(
-  "/get-concession-form/:schoolId",
+  "/get-concession-form/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getConcessionFormsBySchoolId
 );

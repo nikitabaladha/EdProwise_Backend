@@ -42,6 +42,7 @@ const updateAdmissionForm = async (req, res) => {
 
     const updatedFields = {
       ...req.body,
+      studentPhoto:getFilePath(files?.studentPhoto?.[0]) || existingAdmission.studentPhoto,
       aadharPassportFile: getFilePath(files?.aadharPassportFile?.[0]) || existingAdmission.aadharPassportFile,
       castCertificate: getFilePath(files?.castCertificate?.[0]) || existingAdmission.castCertificate,
       tcCertificate: getFilePath(files?.tcCertificate?.[0]) || existingAdmission.tcCertificate,

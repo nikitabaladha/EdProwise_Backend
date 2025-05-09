@@ -1,5 +1,6 @@
 import fs from 'fs';
 import ConcessionFormModel from '../../../../models/FeesModule/ConcessionForm.js';
+import AdmissionFormModel from '../../../../models/FeesModule/AdmissionForm.js';
 import { ConcessionFormValidator } from '../../../../validators/FeesModule/ConcessionValidator/ConcessionFormvalidator.js';
 
 const getConcessionFilePath = (file) => {
@@ -19,15 +20,19 @@ const createConcessionForm = async (req, res) => {
     });
   }
 
+  const { AdmissionNumber } = req.body;
+
   const castOrIncomeCertificateFile = req.files?.castOrIncomeCertificate?.[0];
+  const studentPhotoFile = req.files?.studentPhoto?.[0];
   const castOrIncomeCertificatePath = castOrIncomeCertificateFile?.path;
 
-  const { AdmissionNumber } = req.body;
   const { error } = ConcessionFormValidator.validate({ ...req.body, schoolId });
-
   if (error) {
     if (castOrIncomeCertificatePath) {
       fs.unlinkSync(castOrIncomeCertificatePath);
+    }
+    if (studentPhotoFile?.path) {
+      fs.unlinkSync(studentPhotoFile.path);
     }
     return res.status(400).json({
       hasError: true,
@@ -36,22 +41,31 @@ const createConcessionForm = async (req, res) => {
   }
 
   try {
-    const existingForm = await ConcessionFormModel.findOne({ AdmissionNumber, schoolId });
+   const existingForm = await ConcessionFormModel.findOne({
+  AdmissionNumber,
+  schoolId,
+  academicYear: req.body.academicYear
+});
 
     if (existingForm) {
-      if (castOrIncomeCertificatePath) {
-        fs.unlinkSync(castOrIncomeCertificatePath);
-      }
+      if (castOrIncomeCertificatePath) fs.unlinkSync(castOrIncomeCertificatePath);
+      if (studentPhotoFile?.path) fs.unlinkSync(studentPhotoFile.path);
       return res.status(400).json({
         hasError: true,
         message: `Concession form for admission number ${AdmissionNumber} already exists.`
       });
     }
 
+    const admissionData = await AdmissionFormModel.findOne({ AdmissionNumber, schoolId });
+    const studentPhoto = studentPhotoFile
+      ? getConcessionFilePath(studentPhotoFile)
+      : admissionData?.studentPhoto || ''; 
+
     const form = new ConcessionFormModel({
       ...req.body,
       schoolId,
-      castOrIncomeCertificate: getConcessionFilePath(castOrIncomeCertificateFile) 
+      studentPhoto,
+      castOrIncomeCertificate: getConcessionFilePath(castOrIncomeCertificateFile)
     });
 
     await form.save();
@@ -63,9 +77,8 @@ const createConcessionForm = async (req, res) => {
     });
 
   } catch (err) {
-    if (castOrIncomeCertificatePath) {
-      fs.unlinkSync(castOrIncomeCertificatePath);
-    }
+    if (castOrIncomeCertificatePath) fs.unlinkSync(castOrIncomeCertificatePath);
+    if (studentPhotoFile?.path) fs.unlinkSync(studentPhotoFile.path);
     return res.status(500).json({
       hasError: true,
       message: err.message

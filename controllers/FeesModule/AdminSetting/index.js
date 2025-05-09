@@ -31,6 +31,13 @@ import createFine from "./Fine/create.js";
 import getFinesBySchoolId from "./Fine/get.js";
 import deleteFineById from "./Fine/delete.js";
 
+import createOneTimeFees from "./OneTimeFees/create.js";
+import getOneTimeFeesBySchoolId from "./OneTimeFees/get.js";
+import deleteOneTimeFees from "./OneTimeFees/delete.js";
+import updateOneTimeFees from "./OneTimeFees/update.js";
+import getAllBySchoolAndClass from "./OneTimeFees/getbyschholandclassid.js";
+import getAllBySchoolClassAndSection from "./OneTimeFees/getbySchoolClassnSection.js";
+
 export {
   createFeesType,
   getAllFeesType,
@@ -57,5 +64,12 @@ export {
   deletAdmissionPrefix,
   createFine,
   getFinesBySchoolId,
-  deleteFineById
+  deleteFineById,
+  createOneTimeFees,
+  getOneTimeFeesBySchoolId,
+  deleteOneTimeFees,
+  updateOneTimeFees,
+  getAllBySchoolAndClass,
+  getAllBySchoolClassAndSection
+
 };

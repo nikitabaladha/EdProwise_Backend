@@ -10,7 +10,7 @@ export const createFine = async (req, res) => {
     });
   }
 
-  const { feeType, frequency, value, maxCapFee } = req.body;
+  const { feeType, frequency, value, maxCapFee, academicYear } = req.body;
 
 
   if (!feeType || !['fixed', 'percentage'].includes(feeType)) {
@@ -44,6 +44,7 @@ export const createFine = async (req, res) => {
   try {
     const payload = {
       schoolId,
+      academicYear,
       feeType,
       frequency,
       value,

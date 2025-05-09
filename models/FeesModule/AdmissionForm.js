@@ -9,9 +9,14 @@ const AdmissionFormSchema = new Schema({
     required: true,
     ref: 'School'
   },
+  academicYear: {
+    type: String,
+    required: true,
+  },
 
   registrationNumber: { type: String, unique: true },
   AdmissionNumber: { type: String, unique: true },
+  studentPhoto: { type: String }, 
   firstName: { type: String, required: true },
   middleName: { type: String },
   lastName: { type: String, required: true },
@@ -48,15 +53,17 @@ const AdmissionFormSchema = new Schema({
     required: true,
     ref: 'Shift'
   },
-  motherLanguage: { type: String },
+  motherTongue: { type: String },
   
 
   currentAddress: { type: String, required: true },
-  cityStateCountry: { type: String, required: true },
+  country: { type: String, required: true },  
+  state: { type: String, required: true },    
+  city: { type: String, required: true },  
   pincode: { type: String, required: true },
   
 
-  previousSchoolName: { type: String },
+  previousSchoolName: { type: String},
   previousSchoolBoard: { type: String },
   addressOfPreviousSchool: { type: String },
   previousSchoolResult: { type: String },
@@ -100,6 +107,20 @@ const AdmissionFormSchema = new Schema({
   
   
   agreementChecked: { type: Boolean, required: true, default: false },
+  admissionFees: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  concessionAmount: {
+    type: Number,
+    default: 0,
+  },
+  finalAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   name: { type: String, required: true },
   paymentMode: {
     type: String,
@@ -110,7 +131,10 @@ const AdmissionFormSchema = new Schema({
   chequeNumber: { type: String },
   bankName: { type: String },
   
-
+  paymentDate: {  
+    type: Date,
+  },
+  
   transactionNumber: {
     type: String,
     unique: true,
@@ -121,9 +145,6 @@ const AdmissionFormSchema = new Schema({
   receiptNumber: {
     type: String,
     unique: true,
-    default: function() {
-      return 'RECN' + Math.floor(10000 + Math.random() * 90000);
-    }
   },
   status: {
     type: String,
@@ -174,6 +195,14 @@ AdmissionFormSchema.pre('save', async function (next) {
       } else {
         this.AdmissionNumber = `REG${10000 + count}`;
       }
+
+      if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque') && !this.paymentDate) {
+        this.paymentDate = new Date();
+      }
+
+      const countDocuments = await this.constructor.countDocuments({});
+      const nextNumber = (countDocuments + 1).toString().padStart(6, '0');
+      this.receiptNumber = `REC/ADM/${nextNumber}`; 
 
       next();
     } catch (err) {

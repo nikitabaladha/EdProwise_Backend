@@ -4,7 +4,12 @@ export const TCFormValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     'any.required': 'School ID is required.'
   }),
+     academicYear: Joi.string().required(),
   AdmissionNumber: Joi.string().optional().allow(''),
+  studentPhoto: Joi.string().allow(null).optional().messages({
+    "any.required": "Student photo is required.",
+  }),
+  
   firstName: Joi.string().required().messages({
     'any.required': 'First name is required.'
   }),
@@ -51,34 +56,45 @@ export const TCFormValidator = Joi.object({
   dateOfLastAttendanceAtSchool: Joi.date().required().messages({
     'any.required': 'Date of last attendance is required.'
   }),
-  reasonForLeaving: Joi.string().optional(),
-  anyRemarks: Joi.string().optional(),
+  reasonForLeaving: Joi.string().allow('').optional(),
+anyRemarks: Joi.string().allow('').optional(),
   agreementChecked: Joi.boolean().required().messages({
     'any.required': 'Agreement confirmation is required.'
+  }),
+  TCfees: Joi.number().required().messages({
+    "number.base": "TC fees must be a valid number.",
+    "any.required": "TC fees is required."
+  }),
+  concessionAmount: Joi.number().messages({
+    "number.base": "Concession amount must be a valid number."
+  }),
+  finalAmount: Joi.number().required().messages({
+    "number.base": "Final amount must be a valid number.",
+    "any.required": "Final amount is required."
   }),
   name: Joi.string().required().messages({
     'any.required': 'Name is required.'
   }),
- paymentMode: Joi.string().valid("Cash", "Cheque", "Online").required().messages({
-     "any.only": "Payment mode must be one of 'Cash', 'Cheque', or 'Online'.",
-     "any.required": "Payment mode is required."
-   }),
-   chequeNumber: Joi.when('paymentMode', {
-     is: 'Cheque',
-     then: Joi.string().required().pattern(/^[0-9]{6,}$/).messages({
-       "string.pattern.base": "Cheque number must be at least 6 digits",
-       "any.required": "Cheque number is required for cheque payments"
-     }),
-     otherwise: Joi.string().allow(null, "").optional()
-   }),
-   bankName: Joi.when('paymentMode', {
-     is: 'Cheque',
-     then: Joi.string().required().min(3).messages({
-       "string.min": "Bank name must be at least 3 characters",
-       "any.required": "Bank name is required for cheque payments"
-     }),
-     otherwise: Joi.string().allow(null, "").optional()
-   }),
+  paymentMode: Joi.string().valid("Cash", "Cheque", "Online").required().messages({
+    "any.only": "Payment mode must be one of 'Cash', 'Cheque', or 'Online'.",
+    "any.required": "Payment mode is required."
+  }),
+  chequeNumber: Joi.when('paymentMode', {
+    is: 'Cheque',
+    then: Joi.string().required().pattern(/^[0-9]{6,}$/).messages({
+      "string.pattern.base": "Cheque number must be at least 6 digits",
+      "any.required": "Cheque number is required for cheque payments"
+    }),
+    otherwise: Joi.string().allow(null, "").optional()
+  }),
+  bankName: Joi.when('paymentMode', {
+    is: 'Cheque',
+    then: Joi.string().required().min(3).messages({
+      "string.min": "Bank name must be at least 3 characters",
+      "any.required": "Bank name is required for cheque payments"
+    }),
+    otherwise: Joi.string().allow(null, "").optional()
+  }),
   transactionNumber: Joi.string().optional(),
   receiptNumber: Joi.string().optional(),
   certificateNumber: Joi.string().optional(),

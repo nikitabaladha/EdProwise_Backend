@@ -2,16 +2,15 @@ import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 
 export const getFeesStructuresBySchoolId = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const { schoolId, academicYear } = req.params;
 
-    if (!schoolId) {
+    if (!schoolId || !academicYear) {
       return res.status(400).json({
         hasError: true,
-        message: "School ID is required.",
+        message: "Both School ID and Academic Year are required.",
       });
     }
-
-    const structures = await FeesStructure.find({ schoolId });
+    const structures = await FeesStructure.find({ schoolId,academicYear });
 
     return res.status(200).json({
       hasError: false,

@@ -9,7 +9,6 @@ const concessionDetailSchema = new Schema({
     feesType: {
         type: Schema.Types.ObjectId,
         ref: 'FeeType',
-        required: true
     },
     totalFees: {
         type: Number,
@@ -40,9 +39,16 @@ const concessionSchema = new Schema({
         required: true,
         ref: 'School'
     },
+    academicYear: {
+        type: String,
+        required: true,
+    },
     AdmissionNumber: {
         type: String,
         required: true
+    },
+    studentPhoto: { 
+        type: String 
     },
     firstName: {
         type: String,
@@ -72,17 +78,39 @@ const concessionSchema = new Schema({
     },
     castOrIncomeCertificate: {
         type: String,
-        // required: true
     },
-    applicableAcademicYear: {
+    receiptNumber: {
         type: String,
-        required: true
+        unique: true,
     },
     concessionDetails: {
         type: [concessionDetailSchema],
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
     }
+}, { timestamps: true });
+
+
+const counterSchema = new Schema({
+    _id: { type: String, required: true },
+    seq: { type: Number, default: 0 }
 });
+const Counter = mongoose.model('Counter', counterSchema);
+
+
+concessionSchema.pre('save', async function(next) {
+    if (!this.receiptNumber) {
+        const counter = await Counter.findByIdAndUpdate(
+            'concessionReceiptNumber',
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        this.receiptNumber = `CON/${counter.seq.toString().padStart(6, '0')}`;
+    }
+    next();
+});
+
+
+concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true });
 
 export default mongoose.model('ConcessionForm', concessionSchema);

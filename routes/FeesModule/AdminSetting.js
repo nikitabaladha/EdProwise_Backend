@@ -33,7 +33,14 @@ import {
 
   createFine,
   getFinesBySchoolId,
-  deleteFineById
+  deleteFineById,
+
+  createOneTimeFees,
+  getOneTimeFeesBySchoolId,
+  deleteOneTimeFees,
+  updateOneTimeFees,
+  getAllBySchoolAndClass,
+  getAllBySchoolClassAndSection
 } from "../../controllers/FeesModule/AdminSetting/index.js";
 // import deletePrefix from "../../controllers/FeesModule/AdminSetting/PrefixSetting/RegistrationPrefix/delete.js";
 
@@ -118,7 +125,7 @@ router.post(
 );
 
 router.get(
-  "/get-fees-structure/:schoolId",
+  "/get-fees-structure/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getFeesStructure
 );
@@ -188,7 +195,7 @@ router.post(
 );
 
 router.get(
-  "/get-fine/:schoolId",
+  "/get-fine/school/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
 getFinesBySchoolId
 );
@@ -198,4 +205,43 @@ router.delete(
   roleBasedMiddleware("Admin","School"),
   deleteFineById
 );
+
+
+//----------------------------------------- One Time Fees---------------------------------------//
+router.post(
+  "/create-one-time-fees",
+  roleBasedMiddleware("Admin","School"),
+  createOneTimeFees
+);
+
+router.get(
+  "/get-one-time-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+   getOneTimeFeesBySchoolId
+);
+
+router.delete(
+  "/delete-one-time-fees/:id",
+  roleBasedMiddleware("Admin","School"),
+  deleteOneTimeFees
+);
+
+router.put(
+  "/update-one-time-fees/:id",
+  roleBasedMiddleware("Admin","School"),
+  updateOneTimeFees
+);
+
+router.get(
+  "/get-one-time-feesbyIds/:schoolId/:classId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+  getAllBySchoolAndClass 
+);
+
+router.get(
+  "/get-one-time-feesBysectionIds/:schoolId/:classId/:sectionId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+  getAllBySchoolClassAndSection
+);
+
 export default router;
