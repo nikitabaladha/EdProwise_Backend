@@ -52,7 +52,7 @@ async function getOneByOrderNumber(req, res) {
               "totalTaxAmount finalPayableAmountWithTDS tDSAmount tdsValue supplierStatus " +
               "edprowiseStatus buyerStatus totalTaxableValueForEdprowise " +
               "totalAmountForEdprowise totalTaxAmountForEdprowise tdsValueForEdprowise " +
-              "finalPayableAmountWithTDSForEdprowise"
+              "finalPayableAmountWithTDSForEdprowise rating feedbackComment "
           )
           .lean(),
         PrepareQuote.findOne({ sellerId, enquiryNumber })
@@ -80,6 +80,8 @@ async function getOneByOrderNumber(req, res) {
       totalAmountForEdprowise: quoteProposal?.totalAmountForEdprowise || 0,
       totalTaxableValue: quoteProposal?.totalTaxableValue || null,
       totalGstAmount: quoteProposal?.totalTaxAmount || null,
+      feedbackComment: quoteProposal?.feedbackComment || null,
+      rating: quoteProposal?.rating || 0,
       totalGstAmountForEdprowise:
         quoteProposal?.totalTaxAmountForEdprowise || 0,
       totalTaxableValueForEdprowise:

@@ -5,6 +5,7 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import mongoose from "mongoose";
 
 async function generateQuoteNumber() {
   const prefix = "QUOTE";
@@ -52,10 +53,15 @@ async function generateQuoteNumber() {
 }
 
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const sellerId = req.user?.id;
 
     if (!sellerId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(401).json({
         hasError: true,
         message: "Access denied: You do not have permission to Prepare quote.",
@@ -65,6 +71,8 @@ async function create(req, res) {
     let { enquiryNumber, products } = req.body;
 
     if (!enquiryNumber) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Enquiry number is required.",
@@ -74,6 +82,8 @@ async function create(req, res) {
     if (typeof products === "string") products = JSON.parse(products);
 
     if (!Array.isArray(products) || products.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "At least one product must be provided.",
@@ -82,12 +92,14 @@ async function create(req, res) {
 
     // Fetch location data for all parties
     const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
-      QuoteRequest.findOne({ enquiryNumber }),
-      SellerProfile.findOne({ sellerId }),
-      EdprowiseProfile.findOne(),
+      QuoteRequest.findOne({ enquiryNumber }).session(session),
+      SellerProfile.findOne({ sellerId }).session(session),
+      EdprowiseProfile.findOne().session(session),
     ]);
 
     if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Required profile data not found.",
@@ -394,17 +406,19 @@ async function create(req, res) {
     const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
       { enquiryNumber },
       { edprowiseStatus: "Quote Received" },
-      { new: true }
+      { new: true, session }
     );
 
     if (!updatedQuoteRequest) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Quote request not found with the given enquiry number.",
       });
     }
 
-    await newQuoteProposal.save();
+    await newQuoteProposal.save({ session });
 
     const newSubmitQuote = new SubmitQuote({
       sellerId,
@@ -413,7 +427,11 @@ async function create(req, res) {
       advanceRequiredAmount: 0,
     });
 
-    await newSubmitQuote.save();
+    await newSubmitQuote.save({ session });
+
+    // If everything succeeds, commit the transaction
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(201).json({
       hasError: false,
@@ -425,6 +443,10 @@ async function create(req, res) {
       },
     });
   } catch (error) {
+    // If any error occurs, abort the transaction
+    await session.abortTransaction();
+    session.endSession();
+
     console.error("Error creating Prepare quotes or Quote Proposal:", error);
     return res.status(500).json({
       hasError: true,

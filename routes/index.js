@@ -31,6 +31,7 @@ import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-selle
 import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
 import UpdateTDSRoutes from "./Procurement/update-tds.js";
 import CancelOrder from "./Procurement/order-cancel.js";
+import FeedBackAndRating from "./Procurement/feedback-and-rating.js";
 
 import GlobalSearchRoutes from "./Procurement/global-search.js";
 
@@ -92,6 +93,8 @@ export default (app) => {
   app.use("/api", OrderProgressStatusRoutes);
   app.use("/api", UpdateTDSRoutes);
   app.use("/api", CancelOrder);
+  app.use("/api", FeedBackAndRating);
+
   app.use("/api", DashboardRoutes);
 
   //=====================Globar search for dashboard routes===============

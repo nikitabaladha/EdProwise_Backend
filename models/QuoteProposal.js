@@ -225,6 +225,12 @@ const QuoteProposalSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+    feedbackComment: { type: String, trim: true, default: "", required: false },
   },
   {
     timestamps: true,

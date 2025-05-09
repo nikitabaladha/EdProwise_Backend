@@ -31,6 +31,30 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       });
     }
 
+    const existingQuoteProposal = await QuoteProposal.findOne({
+      sellerId,
+      enquiryNumber,
+    });
+
+    if (!existingQuoteProposal) {
+      return res.status(404).json({
+        hasError: true,
+        message: `No Quote Proposal  found with ID ${id} for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+      });
+    }
+
+    const createdAt = existingQuoteProposal.createdAt;
+    const currentTime = new Date();
+    const timeDifference = currentTime - createdAt;
+    const fourHoursInMilliseconds = 4 * 60 * 60 * 1000;
+
+    if (timeDifference > fourHoursInMilliseconds) {
+      return res.status(403).json({
+        hasError: true,
+        message: "Update not allowed after 4 hours from creation time.",
+      });
+    }
+
     const {
       quotedAmount,
       description,
@@ -105,7 +129,7 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
 
     const updatedQuote = await existingQuote.save();
 
-    const updatedQuoteProposal = await QuoteProposal.findOneAndUpdate(
+    await QuoteProposal.findOneAndUpdate(
       { enquiryNumber, sellerId },
       {
         supplierStatus: "Quote Submitted",

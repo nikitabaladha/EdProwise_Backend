@@ -1,5 +1,6 @@
 import SellerProfile from "../../models/SellerProfile.js";
 import Seller from "../../models/Seller.js";
+import QuoteProposal from "../../models/QuoteProposal.js";
 
 async function getById(req, res) {
   try {
@@ -33,6 +34,37 @@ async function getById(req, res) {
         message: "Seller not found.",
       });
     }
+
+    const ratingStats = await QuoteProposal.aggregate([
+      {
+        $match: {
+          sellerId: sellerId,
+          rating: { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalCount: { $sum: 1 },
+          totalRating: { $sum: "$rating" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalCount: 1,
+          averageRating: {
+            $cond: [
+              { $eq: ["$totalCount", 0] },
+              0,
+              { $divide: ["$totalRating", "$totalCount"] },
+            ],
+          },
+        },
+      },
+    ]);
+
+    const { totalCount = 0, averageRating = 0 } = ratingStats[0] || {};
 
     const responseData = {
       _id: seller._id,
@@ -69,6 +101,8 @@ async function getById(req, res) {
       ceoName: sellerProfile.ceoName,
       turnover: sellerProfile.turnover,
       dealingProducts: sellerProfile.dealingProducts,
+      totalCount,
+      averageRating: averageRating.toFixed(1),
     };
 
     return res.status(200).json({
