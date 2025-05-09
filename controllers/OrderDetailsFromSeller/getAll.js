@@ -48,12 +48,26 @@ async function getAll(req, res) {
         sellerId: { $in: sellerIds },
       })
         .select(
-          "enquiryNumber sellerId totalAmountBeforeGstAndDiscount totalAmount " +
-            "totalTaxableValue totalTaxAmount tdsValue finalPayableAmountWithTDS " +
-            "tDSAmount supplierStatus edprowiseStatus buyerStatus " +
-            "totalTaxableValueForEdprowise totalAmountForEdprowise " +
-            "totalTaxAmountForEdprowise tdsValueForEdprowise " +
-            "finalPayableAmountWithTDSForEdprowise orderStatus"
+          `enquiryNumber 
+          sellerId 
+          totalAmountBeforeGstAndDiscount 
+          totalAmount 
+          cancelReasonFromBuyer 
+          cancelReasonFromSeller
+          totalTaxableValue 
+          totalTaxAmount
+          tdsValue 
+          finalPayableAmountWithTDS
+          tDSAmount 
+          supplierStatus 
+          edprowiseStatus 
+          buyerStatus 
+          totalTaxableValueForEdprowise 
+          totalAmountForEdprowise 
+          totalTaxAmountForEdprowise 
+          tdsValueForEdprowise 
+          finalPayableAmountWithTDSForEdprowise
+          orderStatus `
         )
         .lean(),
       SubmitQuote.find({
@@ -132,7 +146,8 @@ async function getAll(req, res) {
         tDSAmount: quoteProposal.tDSAmount || 0,
         tdsValue: quoteProposal.tdsValue || 0,
         tdsValueForEdprowise: quoteProposal.tdsValueForEdprowise || 0,
-
+        cancelReasonFromBuyer: quoteProposal.cancelReasonFromBuyer || null,
+        cancelReasonFromSeller: quoteProposal.cancelReasonFromSeller || null,
         cgstRate: prepareQuote.cgstRate || 0,
         sgstRate: prepareQuote.sgstRate || 0,
         igstRate: prepareQuote.igstRate || 0,
