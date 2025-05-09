@@ -41,7 +41,12 @@ const createConcessionForm = async (req, res) => {
   }
 
   try {
-    const existingForm = await ConcessionFormModel.findOne({ AdmissionNumber, schoolId });
+   const existingForm = await ConcessionFormModel.findOne({
+  AdmissionNumber,
+  schoolId,
+  academicYear: req.body.academicYear
+});
+
     if (existingForm) {
       if (castOrIncomeCertificatePath) fs.unlinkSync(castOrIncomeCertificatePath);
       if (studentPhotoFile?.path) fs.unlinkSync(studentPhotoFile.path);

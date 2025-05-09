@@ -17,7 +17,7 @@ export const updateOneTimeFees = async (req, res) => {
             return res.status(400).json({ hasError: true, message: error.message });
         }
 
-        const { classId, sectionIds, oneTimeFees } = value;
+        const { classId, sectionIds, oneTimeFees,academicYear } = value;
 
 
         const existingOneTimeFees = await OneTimeFees.findById(id);
@@ -34,6 +34,7 @@ export const updateOneTimeFees = async (req, res) => {
 
             const conflict = await OneTimeFees.findOne({
                 schoolId,
+                academicYear,
                 classId,
                 sectionIds: { $in: sectionIds },
                 'oneTimeFees.feesTypeId': feesTypeId,

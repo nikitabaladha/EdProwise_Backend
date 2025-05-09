@@ -30,6 +30,10 @@ const feesStructureSchema = new mongoose.Schema({
     type: String, 
     required: true,
   },
+  academicYear: {
+    type: String,
+    required: true,
+  },
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",

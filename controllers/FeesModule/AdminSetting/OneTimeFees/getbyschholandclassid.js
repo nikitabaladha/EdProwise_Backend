@@ -1,18 +1,18 @@
 import Onetimefees from "../../../../models/FeesModule/OneTimeFees.js";
 
-async function getAllBySchoolAndClass(req, res) {
+async function getAllBySchoolClassAndYear(req, res) {
   try {
-    const { schoolId, classId } = req.params;
+    const { schoolId, classId, academicYear } = req.params;
 
-    if (!schoolId || !classId) {
+    if (!schoolId || !classId || !academicYear) {
       return res.status(400).json({
         hasError: true,
-        message: "School ID and Class ID are required.",
+        message: "School ID, Class ID, and Academic Year are required.",
       });
     }
 
-    const oneTimeFees = await Onetimefees.find({ schoolId, classId })
-      .populate('classId', 'name')
+    const oneTimeFees = await Onetimefees.find({ schoolId, classId, academicYear })
+      .populate('classId', 'className')
       .populate('sectionIds', 'name')
       .populate('oneTimeFees.feesTypeId', 'feesTypeName');
 
@@ -31,4 +31,4 @@ async function getAllBySchoolAndClass(req, res) {
   }
 }
 
-export default getAllBySchoolAndClass;
+export default getAllBySchoolClassAndYear;

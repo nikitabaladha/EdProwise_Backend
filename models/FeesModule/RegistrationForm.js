@@ -10,6 +10,10 @@ const studentRegistrationSchema = new Schema({
     required: true,
     ref: 'School'
   },
+  academicYear: {
+    type: String,
+    required: true,
+  },
   firstName: { type: String, required: true },
   middleName: { type: String },
   lastName: { type: String, required: true },

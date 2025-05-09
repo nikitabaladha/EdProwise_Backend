@@ -9,6 +9,10 @@ const AdmissionFormSchema = new Schema({
     required: true,
     ref: 'School'
   },
+  academicYear: {
+    type: String,
+    required: true,
+  },
 
   registrationNumber: { type: String, unique: true },
   AdmissionNumber: { type: String, unique: true },

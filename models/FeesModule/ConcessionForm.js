@@ -9,8 +9,6 @@ const concessionDetailSchema = new Schema({
     feesType: {
         type: Schema.Types.ObjectId,
         ref: 'FeeType',
-        // type: String,
-        // required: true
     },
     totalFees: {
         type: Number,
@@ -41,13 +39,17 @@ const concessionSchema = new Schema({
         required: true,
         ref: 'School'
     },
+    academicYear: {
+        type: String,
+        required: true,
+    },
     AdmissionNumber: {
         type: String,
         required: true
     },
     studentPhoto: { 
         type: String 
-    }, 
+    },
     firstName: {
         type: String,
         required: true
@@ -76,13 +78,7 @@ const concessionSchema = new Schema({
     },
     castOrIncomeCertificate: {
         type: String,
-        // required: true
     },
-    applicableAcademicYear: {
-        type: String,
-        required: true
-    },
-
     receiptNumber: {
         type: String,
         unique: true,
@@ -92,16 +88,29 @@ const concessionSchema = new Schema({
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
     }
-}, { timestamps: true }); 
+}, { timestamps: true });
+
+
+const counterSchema = new Schema({
+    _id: { type: String, required: true },
+    seq: { type: Number, default: 0 }
+});
+const Counter = mongoose.model('Counter', counterSchema);
 
 
 concessionSchema.pre('save', async function(next) {
     if (!this.receiptNumber) {
-        const countDocuments = await this.constructor.countDocuments({});
-        const nextNumber = (countDocuments + 1).toString().padStart(6, '0');
-        this.receiptNumber = `CON/${nextNumber}`;
+        const counter = await Counter.findByIdAndUpdate(
+            'concessionReceiptNumber',
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        this.receiptNumber = `CON/${counter.seq.toString().padStart(6, '0')}`;
     }
     next();
 });
+
+
+concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true });
 
 export default mongoose.model('ConcessionForm', concessionSchema);

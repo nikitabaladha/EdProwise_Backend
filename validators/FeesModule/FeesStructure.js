@@ -7,6 +7,7 @@ const isValidObjectId = (value, helpers, field) =>
     : helpers.message(`Invalid ${field}`);
 
 const createFeesStructureValidator = Joi.object({
+  academicYear: Joi.string().required(),
   classId: Joi.string()
     .custom((value, helpers) => isValidObjectId(value, helpers, "classId"))
     .required(),

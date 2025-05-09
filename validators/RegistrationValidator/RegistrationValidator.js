@@ -1,6 +1,7 @@
 import Joi from 'joi';
 
 export const RegistrationCreateValidator = Joi.object({
+  academicYear: Joi.string().required(),
   firstName: Joi.string().required().messages({
     "string.base": "First name must be a string.",
     "string.empty": "First name cannot be empty.",

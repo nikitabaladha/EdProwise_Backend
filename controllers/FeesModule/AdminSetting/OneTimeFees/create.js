@@ -16,7 +16,7 @@ export const createOneTimeFees = async (req, res) => {
       return res.status(400).json({ hasError: true, message: error.message });
     }
 
-    const { classId, sectionIds, oneTimeFees } = value;
+    const { classId, sectionIds, oneTimeFees, academicYear } = value;
 
 
     for (let fee of oneTimeFees) {
@@ -24,6 +24,7 @@ export const createOneTimeFees = async (req, res) => {
 
       const existingOneTimeFees = await OneTimeFees.findOne({
         schoolId,
+        academicYear,
         classId,
         sectionIds: { $in: sectionIds }, 
         'oneTimeFees.feesTypeId': feesTypeId, 

@@ -19,7 +19,7 @@ export const updateFeesStructure = async (req, res) => {
       return res.status(400).json({ hasError: true, message: error.message });
     }
 
-    const { classId, feesTypeId, installments } = value;
+    const { classId, feesTypeId, academicYear,installments } = value;
 
 
     const duplicate = await FeesStructure.findOne({
@@ -27,6 +27,7 @@ export const updateFeesStructure = async (req, res) => {
       schoolId,
       classId,
       feesTypeId,
+      academicYear
     });
 
     if (duplicate) {
@@ -36,7 +37,7 @@ export const updateFeesStructure = async (req, res) => {
       });
     }
 
-    // Perform the update operation
+    
     const updatedStructure = await FeesStructure.findOneAndUpdate(
       { _id: id, schoolId },
       { 

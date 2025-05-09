@@ -125,7 +125,7 @@ router.post(
 );
 
 router.get(
-  "/get-fees-structure/:schoolId",
+  "/get-fees-structure/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getFeesStructure
 );
@@ -215,7 +215,7 @@ router.post(
 );
 
 router.get(
-  "/get-one-time-fees/:schoolId",
+  "/get-one-time-fees/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
    getOneTimeFeesBySchoolId
 );
@@ -233,13 +233,13 @@ router.put(
 );
 
 router.get(
-  "/get-one-time-feesbyIds/:schoolId/:classId",
+  "/get-one-time-feesbyIds/:schoolId/:classId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getAllBySchoolAndClass 
 );
 
 router.get(
-  "/get-one-time-feesBysectionIds/:schoolId/:classId/:sectionId",
+  "/get-one-time-feesBysectionIds/:schoolId/:classId/:sectionId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getAllBySchoolClassAndSection
 );

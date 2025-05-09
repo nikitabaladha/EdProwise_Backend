@@ -8,6 +8,10 @@ const TCFormSchema = new Schema({
     required: true,
     ref: 'School'
   },
+   academicYear: {
+    type: String,
+    required: true,
+  },
   AdmissionNumber: { type: String, unique: true },
   studentPhoto: { type: String }, 
   firstName: { type: String, required: true },

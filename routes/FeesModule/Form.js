@@ -11,12 +11,14 @@ import {
   getRegistrationsBySchoolId,
   deleteRegistrationbyid,
   updateRegistrationForm,
+   getRegistrationsBySchoolIdandyear,
   downloadreceipts,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
   deleteAdmissionFormById,
   updateAdmissionForm,
+  getbySchoolIdandYear,
 
   createTCForm,
   getTCForm,
@@ -42,9 +44,15 @@ router.post(
 );
 
 router.get(
-    "/get-registartion-form/:schoolId",
+    "/get-registartion-form/:schoolId/:academicYear",
     roleBasedMiddleware("Admin","School"),
-    getRegistrationsBySchoolId
+    getRegistrationsBySchoolIdandyear,
+  );
+
+  router.get(
+    "/get-registartion-formbySchoolId/:schoolId",
+    roleBasedMiddleware("Admin","School"),
+   getRegistrationsBySchoolId
   );
 
 router.delete(
@@ -79,6 +87,12 @@ router.get(
   getAdmissionFormsBySchoolId
 );
 
+router.get(
+  "/get-admission-form-by-year-schoolId/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+ getbySchoolIdandYear
+);
+
 router.delete(
   "/delete-admission-form/:id",
   roleBasedMiddleware("Admin","School"),
@@ -100,7 +114,7 @@ router.post(
 );
 
 router.get(
-  "/get-TC-form/:schoolId",
+  "/get-TC-form/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getTCForm
 );
@@ -127,7 +141,7 @@ createConcessionForm
 );
 
 router.get(
-  "/get-concession-form/:schoolId",
+  "/get-concession-form/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getConcessionFormsBySchoolId
 );

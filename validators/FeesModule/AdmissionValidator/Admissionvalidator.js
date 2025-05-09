@@ -4,6 +4,7 @@ export const AdmissionValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     "any.required": "School ID is required."
   }),
+    academicYear: Joi.string().required(),
 
   registrationNumber: Joi.string().allow(null, ""),
   AdmissionNumber: Joi.string().allow(null, ""),

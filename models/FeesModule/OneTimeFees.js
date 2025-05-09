@@ -7,6 +7,10 @@ const oneTimeFeesSchema = new mongoose.Schema(
       ref: 'School', 
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
     classId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ClassAndSection', 

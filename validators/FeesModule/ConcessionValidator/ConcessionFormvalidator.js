@@ -46,6 +46,7 @@ export const ConcessionFormValidator = Joi.object({
     'any.invalid': 'Invalid School ID.',
     'any.required': 'School ID is required.'
   }),
+  academicYear: Joi.string().required(),
   AdmissionNumber: Joi.string().required().messages({
     'string.base': 'Admission number must be a string.',
     'any.required': 'Admission number is required.'
@@ -82,10 +83,10 @@ export const ConcessionFormValidator = Joi.object({
     .messages({
       'string.base': 'Cast or income certificate must be a string.'
     }),  
-  applicableAcademicYear: Joi.string().required().messages({
-    'string.base': 'Academic year must be a string.',
-    'any.required': 'Applicable academic year is required.'
-  }),
+  // applicableAcademicYear: Joi.string().required().messages({
+  //   'string.base': 'Academic year must be a string.',
+  //   'any.required': 'Applicable academic year is required.'
+  // }),
   concessionDetails: Joi.array().items(concessionDetailSchema).min(1).required().messages({
     'array.min': 'At least one concession detail is required.',
     'any.required': 'Concession details are required.'

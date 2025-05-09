@@ -2,12 +2,12 @@ import Onetimefees from "../../../../models/FeesModule/OneTimeFees.js";
 
 async function getAllBySchoolClassAndSection(req, res) {
   try {
-    const { schoolId, classId, sectionId } = req.params;
+    const { schoolId, classId, sectionId,academicYear } = req.params;
 
-    if (!schoolId || !classId || !sectionId) {
+    if (!schoolId || !classId || !sectionId || !academicYear) {
       return res.status(400).json({
         hasError: true,
-        message: "School ID, Class ID, and Section ID are required.",
+        message: "School ID, Class ID, and Section ID  and Academic Year are required.",
       });
     }
 
@@ -15,6 +15,7 @@ async function getAllBySchoolClassAndSection(req, res) {
       schoolId,
       classId,
       sectionIds: sectionId,
+      academicYear
     })
       .populate('classId', 'name')
       .populate('sectionIds', 'name')

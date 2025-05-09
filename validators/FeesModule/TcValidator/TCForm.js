@@ -4,6 +4,7 @@ export const TCFormValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     'any.required': 'School ID is required.'
   }),
+     academicYear: Joi.string().required(),
   AdmissionNumber: Joi.string().optional().allow(''),
   studentPhoto: Joi.string().allow(null).optional().messages({
     "any.required": "Student photo is required.",
@@ -55,8 +56,8 @@ export const TCFormValidator = Joi.object({
   dateOfLastAttendanceAtSchool: Joi.date().required().messages({
     'any.required': 'Date of last attendance is required.'
   }),
-  reasonForLeaving: Joi.string().optional(),
-  anyRemarks: Joi.string().optional(),
+  reasonForLeaving: Joi.string().allow('').optional(),
+anyRemarks: Joi.string().allow('').optional(),
   agreementChecked: Joi.boolean().required().messages({
     'any.required': 'Agreement confirmation is required.'
   }),
