@@ -1,111 +1,80 @@
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
-import VerificationCode from "../../models/VerificationCode.js";
+import VerificationCodeForEmail from "../../models/VerificationCodeForEmail.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import School from "../../models/School.js";
-import User from "../../models/User.js";
-import Seller from "../../models/Seller.js";
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function generateVerificationCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendVerificationCode(req, res) {
-  const { userId } = req.body;
+async function sendOTPOnEmail(req, res) {
+    const { email } = req.body;
+    try {
+        // Check if email already exists in SellerProfile
+        const sellerProfile = await SellerProfile.findOne({ emailId: email });
 
-  try {
-    let user = await Seller.findOne({ userId });
-    let userEmail = null;
+        // Check if email already exists in School
+        const schoolProfile = await School.findOne({ schoolEmail: email });
 
-    if (user) {
-      const sellerDetails = await SellerProfile.findOne({ sellerId: user._id });
-
-      if (sellerDetails) {
-        userEmail = sellerDetails.emailId;
-        console.log("Seller Email:", userEmail);
-      }
-    } else {
-      user = await User.findOne({ userId });
-
-      if (user) {
-        console.log("School User Found:", user);
-        const schoolDetails = await School.findOne({ schoolId: user.schoolId });
-
-        if (schoolDetails) {
-          userEmail = schoolDetails.schoolEmail;
-          console.log("School Email:", userEmail);
+        if (sellerProfile || schoolProfile) {
+            return res.status(400).json({ hasError: true, message: "Email already in use." });
         }
-      }
-    }
-    console.log("user Details:", user, "Email :", userEmail);
+        
 
-    if (!user || !userEmail) {
-      return res
-        .status(404)
-        .json({ hasError: true, message: "User not found or email missing." });
-    }
+        // Generate a new verification code
+        const verificationCode = generateVerificationCode();
 
-    // Generate a new verification code
-    const verificationCode = generateVerificationCode();
+        const smtpSettings = await SMTPEmailSetting.findOne();
+        if (!smtpSettings) throw new Error("SMTP settings not found");
 
-    const smtpSettings = await SMTPEmailSetting.findOne();
-    if (!smtpSettings) throw new Error("SMTP settings not found");
+        // Create transporter
+        const transporter = nodemailer.createTransport({
+            host: smtpSettings.mailHost,
+            port: smtpSettings.mailPort,
+            secure: smtpSettings.mailEncryption==='SSL',
+            auth: {
+                user: smtpSettings.mailUsername,
+                pass: smtpSettings.mailPassword,
+            },
+            tls: { rejectUnauthorized: false }
+        });
 
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      host: smtpSettings.mailHost,
-      port: smtpSettings.mailPort,
-      secure: smtpSettings.mailEncryption === "SSL",
-      auth: {
-        user: smtpSettings.mailUsername,
-        pass: smtpSettings.mailPassword,
-      },
-      tls: { rejectUnauthorized: false },
-    });
+        const logoImagePath = path.join(__dirname, '../../Images/edprowiseLogoImages/EdProwiseNewLogo.png');
+        if (!fs.existsSync(logoImagePath)) {
+            return { hasError: true, message: "Logo file not found" };
+        }
 
-    const logoImagePath = path.join(
-      __dirname,
-      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
-    );
-   
-    if (!fs.existsSync(logoImagePath)) {
-      return { hasError: true, message: "Logo file not found" };
-    }
+        // Read logo as base64 for fallback
+        const logoBase64 = fs.readFileSync(logoImagePath, { encoding: 'base64' });
+        const base64Src = `data:image/png;base64,${logoBase64}`;
 
-    // Read logo as base64 for fallback
-    const logoBase64 = fs.readFileSync(logoImagePath, { encoding: "base64" });
-    const base64Src = `data:image/png;base64,${logoBase64}`;
+        const attachments = [{
+            filename: 'logo.png',
+            path: logoImagePath,
+            cid: 'edprowiselogo@company', // Unique CID
+            contentDisposition: 'inline',
+            headers: {
+                'Content-ID': '<edprowiselogo@company>'
+            }
+        }];
 
-    const attachments = [
-      {
-        filename: "logo.png",
-        path: logoImagePath,
-        cid: "edprowiselogo@company", // Unique CID
-        contentDisposition: "inline",
-        headers: {
-          "Content-ID": "<edprowiselogo@company>",
-        },
-      },
-    ];
-
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
-
-    // Email content
-
-    const mailOptions = {
-      from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
-      to: userEmail,
-      subject: "Verification Code for Password Change",
-      html: `
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const contactUrl = `${frontendUrl.replace(/\/+$/, '')}/contact-us`;
+       
+        const mailOptions ={
+            from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
+            to: email,
+            subject: "Email Verification Code",
+            html: `
                     <!DOCTYPE html>
                       <html>
                       <head>
@@ -120,9 +89,9 @@ async function sendVerificationCode(req, res) {
                                   line-height: 1.6;
                                   color: #333333;    
                               }
-      
+                                  
                              .outer-div{
-                                                               border: 1px solid transparent;
+                                border: 1px solid transparent;
                                 background-color: #f1f1f1;
                               }
       
@@ -191,16 +160,7 @@ async function sendVerificationCode(req, res) {
                                   margin: 5px 0 20px ;
                                   text-align: center;
                               }
-                              
-                              /* Footer */
-                              .footer {
-                                  text-align: center;
-                                  padding: 20px;
-                                  background: #a9fffd;
-                                  font-size: 14px;
-                                  color: #718096;
-                              }
-                              .note-email{
+                               .note-email{
                                 font-size: 9px;
                                 color: #4a5568;
                                }
@@ -210,6 +170,15 @@ async function sendVerificationCode(req, res) {
                                   text-align: center;
                               }   
                               
+                              /* Footer */
+                              .footer {
+                                  text-align: center;
+                                  padding: 20px;
+                                  background: #a9fffd;
+                                  font-size: 14px;
+                                  color: #718096;
+                              }
+                              
                               .signature {
                                   margin-top: 25px;
                                   padding-top: 25px;
@@ -218,10 +187,9 @@ async function sendVerificationCode(req, res) {
                               .contact-text{
                                 color: #0000FF;
                               }    
-
                               .fw-bold{
-                                font-weight:bold;
-                              }
+                              font-weight: bold;
+                              }  
                               
                               /* Responsive */
                               @media only screen and (max-width: 600px) {
@@ -234,10 +202,10 @@ async function sendVerificationCode(req, res) {
                                   }
                                   .content {
                                       padding: 20px;
-                                  }  
+                                  }    
                                   .note-content{
                                     padding: 0px 20px;
-                                  }      
+                                  }     
                               }
                           </style>
                       </head>
@@ -258,29 +226,25 @@ async function sendVerificationCode(req, res) {
                               
                               <!-- Main Content -->
                               <div class="content">
-                                  <p class="message fw-bold">Dear ${userId},</p>
+                                  <p class="message fw-bold">Dear user,</p>
                                   
-                                  <p class="message">We've received a request to reset your password.</p>
+                                  <p class="message">Thank you for choosing EdProwise. To complete your email verification, please use the code below:</p>
 
-                                  <p class="message">Your verification code is:</p>
-      
                                   <div class="code"> 
                                      ${verificationCode}
                                   </div>
 
                                   <!-- User Details Box -->
-                                  <p class="message">Please enter this code to proceed with the password reset.</p>
+                                  <p class="message">Please enter this code for verification</p>
                                   
-                                  <p class="message"><span class="fw-bold">Note: </span> This code will expire in 1 minute.</p>
+                                  <p class="message"><span class="fw-bold">Note:</span> This code will expire in 1 minute</p>
                       
                                   <!-- Action Button -->
-                                  <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
-                                  <!-- Signature -->
+                                   <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                                 <!-- Signature -->
                                   <div class="signature">
                                       <p>Best regards,</p>
-                                      <p><strong>${
-                                        smtpSettings.mailFromName
-                                      } Team</strong></p>
+                                      <p><strong>${smtpSettings.mailFromName} Team</strong></p>
                                   </div>
                               </div>
                               
@@ -296,30 +260,27 @@ async function sendVerificationCode(req, res) {
                       </body>
                       </html>
                   `,
-      attachments: attachments,
-    };
+                  attachments: attachments 
+          };
+            
+           await transporter.sendMail(mailOptions);
+      
+        console.log(`Verification email sent successfully to ${email}.`);
 
-    await transporter.sendMail(mailOptions);
+        await VerificationCodeForEmail.findOneAndUpdate(
+            { email: email }, // Notice: using email as userId for OTP record since no user exists yet
+            { code: verificationCode, expiresAt: new Date(Date.now() + 1 * 60000) },
+            { upsert: true, new: true }
+        );
 
-    console.log(`Verification email sent successfully to ${userEmail}.`);
+        return res.json({ hasError: false, message: "Verification code sent to email."});
 
-    await VerificationCode.findOneAndUpdate(
-      { userId },
-      { code: verificationCode, expiresAt: new Date(Date.now() + 1 * 60000) },
-      { upsert: true, new: true }
-    );
 
-    return res.json({
-      hasError: false,
-      message: "Verification code sent to registered email.",
-      email: userEmail,
-    });
-  } catch (error) {
-    console.error("Error sending verification email:", error);
-    return res
-      .status(500)
-      .json({ hasError: true, message: "Failed to send verification code." });
-  }
+
+    } catch (error) {
+        console.error("Error sending verification email:", error);
+        return res.status(500).json({ hasError: true, message: "Failed to send verification code." });
+    }
 }
 
-export default sendVerificationCode;
+export default sendOTPOnEmail;

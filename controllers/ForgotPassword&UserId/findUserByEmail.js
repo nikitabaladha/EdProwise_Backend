@@ -98,7 +98,7 @@ async function findUserByEmail(req, res) {
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: userEmail,
-      subject: "UserId Reset Verification Code",
+      subject: "Verification Code for UserID Change",
       html: `
                     <!DOCTYPE html>
                       <html>
@@ -168,6 +168,15 @@ async function findUserByEmail(req, res) {
                                   font-size: 16px;
                                   color: #4a5568;
                               }
+                              .note-email{
+                                font-size: 9px;
+                                color: #4a5568;
+                               }
+                              
+                              .note-content{
+                                  padding: 0px 30px;
+                                  text-align: center;
+                              }
                               
                               /* User Details Box */
                               .center-text {
@@ -204,6 +213,9 @@ async function findUserByEmail(req, res) {
                               .contact-text{
                                 color: #0000FF;
                               }    
+                              .fw-bold{
+                              font-weight:bold;
+                              }  
                               
                               /* Responsive */
                               @media only screen and (max-width: 600px) {
@@ -213,6 +225,9 @@ async function findUserByEmail(req, res) {
                                   }
                                   .logo {
                                       width: 200px;
+                                  }
+                                  .note-content{
+                                    padding: 0px 20px;
                                   }
                                   .content {
                                       padding: 20px;
@@ -237,23 +252,23 @@ async function findUserByEmail(req, res) {
                               
                               <!-- Main Content -->
                               <div class="content">
-                                  <p class="message">Dear ${userId},</p>
+                                  <p class="message fw-bold">Dear ${userId},</p>
                                   
-                                  <p class="message">We've received a request of verification code for reset userId.</p>
+                                  <p class="message">We've received a request to reset your userId.</p>
 
-                                  <p class="message">Here is your Verification code:</p>
+                                  <p class="message">Your verification code is:</p>
       
                                   <div class="code"> 
                                      ${verificationCode}
                                   </div>
 
                                   <!-- User Details Box -->
-                                  <p class="message">Please enter this code for verification</p>
+                                  <p class="message">Please enter this code to proceed with the userId reset.</p>
                                   
-                                  <p class="message">Note: This code will expire in 1 minute</p>
+                                  <p class="message"><span class="fw-bold">Note: </span> This code will expire in 1 minute.</p>
                       
                                   <!-- Action Button -->
-                                   <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                                  <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                                   <!-- Signature -->
                                   <div class="signature">
                                       <p>Best regards,</p>
@@ -266,6 +281,9 @@ async function findUserByEmail(req, res) {
                               <!-- Footer -->
                               <div class="footer">
                                   <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                              </div>
+                              <div class="note-content">
+                                 <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
                               </div>
                           </div>
                         </div>  

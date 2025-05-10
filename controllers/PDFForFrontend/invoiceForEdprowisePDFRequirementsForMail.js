@@ -14,7 +14,7 @@ import GeneratePDFMail from "./generatePDFMail.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-async function invoiceForBuyerPDFRequirementsForEmail(params) {
+async function invoiceForEdprowisePDFRequirementsForEmail(params) {
   try {
     const { sellerId, enquiryNumber, schoolId } = params;
 
@@ -36,17 +36,17 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
       prepareQuotes,
     ] = await Promise.all([
       SchoolRegistration.findOne({ schoolId }).select(
-        "schoolName schoolEmail schoolMobileNo panNo schoolAddress schoolLocation landMark schoolPincode"
+        "schoolName schoolEmail schoolMobileNo panNo schoolAddress city state country landMark schoolPincode"
       ),
       QuoteRequest.findOne({ schoolId, enquiryNumber }).select(
-        "deliveryAddress deliveryLandMark deliveryCountry deliveryState deliveryCity createdAt enquiryNumber"
+        "deliveryAddress deliveryLandMark deliveryCity deliveryState deliveryCountry createdAt enquiryNumber"
       ),
       QuoteProposal.findOne({ enquiryNumber, sellerId }).lean(),
       SubmitQuote.findOne({ enquiryNumber, sellerId }).select(
         "paymentTerms advanceRequiredAmount expectedDeliveryDateBySeller advanceRequiredAmount"
       ),
       SellerProfile.findOne({ sellerId }).select(
-        "companyName address landmark city state country gstin pan contactNo emailId"
+        "companyName address landmark city state country gstin pan contactNo emailId signature"
       ),
       EdprowiseProfile.findOne().select(
         "companyName companyType gstin pan tan cin address city state country landmark pincode contactNo alternateContactNo emailId"
@@ -77,13 +77,14 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
     }));
 
     // Define paths and ensure directory exists
-
-    // Set paths
     const invoicesDir = path.join(__dirname, "../../Documents/Invoices");
-    const templatePath = path.join(__dirname, "PDF-Invoive-Buyer-Format.ejs");
+    const templatePath = path.join(
+      __dirname,
+      "PDF-Invoive-Edprowise-Format.ejs"
+    );
     const outputPath = path.join(
       invoicesDir,
-      `Invoice_${enquiryNumber}_${sellerId}.pdf`
+      `Edprowise_Invoice_${enquiryNumber}_${sellerId}.pdf`
     );
 
     if (!fs.existsSync(invoicesDir)) {
@@ -176,6 +177,29 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
       return words.trim();
     };
 
+    // Handle seller signature
+    let signatureDataURI = "";
+    if (sellerProfile.signature) {
+      try {
+        const signaturePath = path.join(
+          __dirname,
+          "Images",
+          "SellerSignature",
+          path.basename(sellerProfile.signature)
+        );
+        
+        if (fs.existsSync(signaturePath)) {
+          const signatureBuffer = fs.readFileSync(signaturePath);
+          const signatureType = path.extname(signaturePath).replace(".", "");
+          signatureDataURI = `data:image/${signatureType};base64,${signatureBuffer.toString(
+            "base64"
+          )}`;
+        }
+      } catch (error) {
+        console.error("Error processing signature:", error);
+      }
+    }
+
     const dynamicData = {
       prepareQuoteData: prepareQuotesWithStatus,
       quoteProposalData: quoteProposal,
@@ -209,6 +233,7 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
         expectedDeliveryDate: submitQuote?.expectedDeliveryDateBySeller || null,
         // Seller
         sellerCompanyName: sellerProfile.companyName,
+        signature: signatureDataURI,
         sellerAddress: `${sellerProfile.address || ""}${
           sellerProfile.landmark ? `, ${sellerProfile.landmark}` : ""
         }`,
@@ -246,11 +271,6 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
       convertToWords,
     };
 
-    // await GeneratePDF(htmlPath, dynamicData, outputPath);
-
-    // const fileData = fs.readFileSync(outputPath);
-    // fs.unlinkSync(outputPath);
-
     // Generate the PDF
     await GeneratePDFMail(templatePath, dynamicData, outputPath);
 
@@ -269,7 +289,7 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
       pdfPath: outputPath,
     };
   } catch (error) {
-    console.error("Error in InvoicePDFRequirements:", error);
+    console.error("Error in invoiceForEdprowisePDFRequirementsForEmail:", error);
     return {
       hasError: true,
       message: "Internal server error while generating PDF.",
@@ -277,4 +297,4 @@ async function invoiceForBuyerPDFRequirementsForEmail(params) {
   }
 }
 
-export default invoiceForBuyerPDFRequirementsForEmail;
+export default invoiceForEdprowisePDFRequirementsForEmail;

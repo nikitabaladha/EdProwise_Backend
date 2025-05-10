@@ -118,15 +118,20 @@ async function sendSchoolRequestQuoteEmail(
       },
     ];
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const viewQuoteUrl = `${frontendUrl.replace(
-      /\/+$/,
-      ""
-    )}/school-dashboard/procurement-services/track-quote`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
-
     const { enquiryNumber, products, quoteRequest } = usersWithCredentials;
-
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    // const viewQuoteUrl = `${frontendUrl.replace(
+    //   /\/+$/,
+    //   ""
+    // )}/school-dashboard/procurement-services/view-requested-quote`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
+    // const viewQuoteUrl = new URL(
+    //   "/school-dashboard/procurement-services/view-requested-quote",
+    //   frontendUrl
+    // );
+    // viewQuoteUrl.searchParams.append('enquiryNumber', enquiryNumber);
+    const encodedEnquiry = encodeURIComponent(enquiryNumber);
+    const viewQuoteUrl = `${frontendUrl}/school-dashboard/procurement-services/view-requested-quote?enquiryNumber=${encodedEnquiry}`;
     const quoteDetailsHtml = `
       <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
@@ -179,7 +184,7 @@ async function sendSchoolRequestQuoteEmail(
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: "Request For Quote Done",
+      subject: `Your Quote Request Submitted - ${enquiryNumber}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -240,10 +245,7 @@ async function sendSchoolRequestQuoteEmail(
                         .content {
                             padding: 30px;
                         }
-                        .heading{
-                        color: #000000;
-                        font-size: 17px;
-                        }
+                      
                         .message {
                             font-size: 16px;
                             color: #4a5568;
@@ -293,6 +295,18 @@ async function sendSchoolRequestQuoteEmail(
                         .contact-text{
                           color: #0000FF;
                         }    
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
+                        .fw-bold{
+                          font-weight: bold;
+                        }    
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
@@ -305,6 +319,9 @@ async function sendSchoolRequestQuoteEmail(
                             }
                             .content {
                                 padding: 20px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             
                         }
@@ -327,13 +344,14 @@ async function sendSchoolRequestQuoteEmail(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear ${schoolName},</p>
+                            <p class="message fw-bold">Dear ${schoolName},</p>
                             
 
-                            <p class="message">Your request has been received and we are processing it now. </p>
+                            <p class="message">Thank you for your quote request. We have received your quote request and are processing it now.</p>
+                            
                             <p class="message">Your quote requested details are as follow : </p>
 
-                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
+                            <p class="message">Enquiry Number:<span class="fw-bold">${enquiryNumber}</span></p>
 
                             <!-- Quote Details Box -->
                             ${quoteDetailsHtml}
@@ -342,13 +360,13 @@ async function sendSchoolRequestQuoteEmail(
                             ${deliveryDetailsHtml}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view requested quote </p>
+                            <p class="message">To view your requested quote, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-                            <!-- Signature -->
+                           <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                                   <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
                                 <p><strong>${
@@ -361,6 +379,9 @@ async function sendSchoolRequestQuoteEmail(
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>
@@ -431,10 +452,15 @@ async function sendEmailsToSellers({
     ];
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const viewQuoteUrl = `${frontendUrl.replace(
-      /\/+$/,
-      ""
-    )}/seller-dashboard/procurement-services/track-quote`;
+    // const viewQuoteUrl = `${frontendUrl.replace(
+    //   /\/+$/,
+    //   ""
+    // )}/seller-dashboard/procurement-services/track-quote`;
+    const viewQuoteUrl = new URL(
+      "/seller-dashboard/procurement-services/view-requested-quote",
+      frontendUrl
+    );
+    viewQuoteUrl.searchParams.append("enquiryNumber", enquiryNumber);
     const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const sellerMap = new Map();
@@ -472,8 +498,7 @@ async function sendEmailsToSellers({
     for (const [id, { seller, products }] of sellerMap.entries()) {
       try {
         const productHtml = `
-        
-      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+      <table class="lll" border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
         <thead>
           <tr>
             <th>S.No</th>
@@ -497,8 +522,33 @@ async function sendEmailsToSellers({
             .join("")}
         </tbody>
       </table>
-      
       `;
+        const quoteDetailsHtml = `
+      <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products
+            .map(
+              (product, index) => `
+            <tr>
+              <td style="text-align: center;">${index + 1}</td>
+              <td style="text-align: center;">${product.subCategoryName}</td>
+              <td style="text-align: center;">${product.unit}</td>
+              <td style="text-align: center;">${product.quantity}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `;
 
         const deliveryDetailsHtml = `
           <h3>Delivery Information</h3>
@@ -530,7 +580,7 @@ async function sendEmailsToSellers({
         const mailOptions = {
           from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
           to: seller.emailId,
-          subject: "New Quote Request",
+          subject: ` New Quote Request Received – ${enquiryNumber}`,
           html: `
               <!DOCTYPE html>
                 <html>
@@ -561,6 +611,10 @@ async function sendEmailsToSellers({
                             border-radius: 8px;
                             overflow: hidden;
                             box-shadow: rgba(0, 0, 0, 0.15) 2.4px 2.4px 3.2px;    
+                        }
+
+                        .lll{
+                          display: none;
                         }
                         
                         /* Header Section */
@@ -643,7 +697,19 @@ async function sendEmailsToSellers({
                         }
                         .contact-text{
                           color: #0000FF;
-                        }    
+                        }   
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        } 
+                         .fw-bold{
+                         font-weight: bold;
+                         }   
                         
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
@@ -656,6 +722,9 @@ async function sendEmailsToSellers({
                             }
                             .content {
                                 padding: 20px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             
                         }
@@ -678,27 +747,26 @@ async function sendEmailsToSellers({
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear Seller,</p>
+                            <p class="message fw-bold">Dear Seller,</p>
                             
-
-                            <p class="message">New quote request has been received, pls submit now.. Hurry Up !!! </p>
+                            <p class="message">New quote request has been received, Prepared your quote and please Submit Now. Hurry Up !!!</p>
                             <p class="message">Quote requested details are as follow : </p>
 
-                            <h3>Enquiry Number : ${enquiryNumber}</h3>
-
+                        
+<h3 class="message">Enquiry Number:<span class="fw-bold">${enquiryNumber}</span></h3>
                             <!-- Quote Details Box -->
                             ${productHtml}
-
+                            ${quoteDetailsHtml}
                             
                             ${deliveryDetailsHtml}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view quote </p>
+                            <p class="message">To view the full quote, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -712,6 +780,9 @@ async function sendEmailsToSellers({
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>

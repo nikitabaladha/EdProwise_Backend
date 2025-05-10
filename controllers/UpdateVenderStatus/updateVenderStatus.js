@@ -573,7 +573,7 @@ async function updateVenderStatus(req, res) {
       }
 
       const schoolName = school.schoolName;
-
+      const schoolId = school.schoolId;
       const schoolEmail = school.schoolEmail;
 
       const quoteDetails = await PrepareQuote.find({
@@ -621,11 +621,12 @@ async function updateVenderStatus(req, res) {
 
       const sellerCompanyName = sellerDetails.companyName;
 
-      await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
+      await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, schoolId, {
         enquiryNumber,
         products,
         sellerCompanyName,
         quoteDetails,
+        sellerId,
       });
     }
     return res.status(200).json({

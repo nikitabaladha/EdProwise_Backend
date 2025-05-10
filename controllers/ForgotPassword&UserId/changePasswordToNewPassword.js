@@ -68,7 +68,7 @@ const sendPasswordUpdateEmail = async (
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: email,
-      subject: "Password Changed",
+      subject: "Your Password Has Been Successfully Changed",
       html: `
           <!DOCTYPE html>
 <html>
@@ -130,7 +130,15 @@ const sendPasswordUpdateEmail = async (
         .center-text {
           text-align: center;
         }
-      
+        .note-email{
+          font-size: 9px;
+          color: #4a5568;
+         }
+        
+        .note-content{
+            padding: 0px 30px;
+            text-align: center;
+        }
         /* Action Button */
         .action-button {
             display: inline-block;
@@ -161,6 +169,9 @@ const sendPasswordUpdateEmail = async (
         .contact-text{
           color: #0000FF;
         }    
+        .fw-bold{
+          font-weight: bold;
+        }  
         
         /* Responsive */
         @media only screen and (max-width: 600px) {
@@ -169,6 +180,9 @@ const sendPasswordUpdateEmail = async (
             }
             .logo {
                 width: 200px;
+            }
+            .note-content{
+              padding: 0px 20px;
             }
             .content {
                 padding: 20px;
@@ -192,10 +206,10 @@ const sendPasswordUpdateEmail = async (
         
         <!-- Main Content -->
         <div class="content">
-            <p class="message">Dear ${companyName},</p>
+            <p class="message fw-bold">Dear ${companyName},</p>
             
-            <p class="message">We wanted to let you know that your password was successfully reset.</p>
-            <p class="message">Know your new login details are:</p>
+            <p class="message">We wanted to inform you that your password has been successfully changed.</p>
+            <p class="message">Here are your updated login details:</p>
             <!-- User Details Box -->
               <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                 <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
@@ -214,15 +228,15 @@ const sendPasswordUpdateEmail = async (
 
             <!-- Action Button -->
 
-            <p class="message">Please click below button for login </p>
+            <p class="message">To access your account, please click the button below: </p>
               <div style="text-align: center;">
                   <a href="${loginUrl}" class="action-button">Login</a>
               </div>
 
-              <p class="message">If you did not perform this action, please contact our team immediately.</p>
+              <p class="message">If you did not request this change, please contact our team immediately.</p>
 
-             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-            <!-- Signature -->
+              <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>                    
+             <!-- Signature -->
             <div class="signature">
                 <p>Best regards,</p>
                 <p><strong>${smtpSettings.mailFromName} Team</strong></p>
@@ -232,6 +246,9 @@ const sendPasswordUpdateEmail = async (
         <!-- Footer -->
         <div class="footer">
             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+        </div>
+        <div class="note-content">
+            <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
         </div>
     </div>
   </div>  

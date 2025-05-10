@@ -52,6 +52,8 @@ import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplat
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
+import sitemap from "./sitemap.js";
+
 export default (app) => {
   // PDF Routes
   app.use("/api", PDFRoutes);
@@ -110,4 +112,6 @@ export default (app) => {
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
+
+  app.use("/", sitemap);
 };

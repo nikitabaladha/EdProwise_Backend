@@ -168,7 +168,9 @@ async function sendSchoolRequestQuoteEmail(
     const viewQuoteUrl = `${frontendUrl.replace(
       /\/+$/,
       ""
-    )}/school-dashboard/procurement-services/track-order-history`;
+    )}/school-dashboard/procurement-services/view-order-history?orderNumber=${encodeURIComponent(
+      orderNumber
+    )}`;
     const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const quoteDetailsHtml = `
@@ -203,7 +205,7 @@ async function sendSchoolRequestQuoteEmail(
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: `Order Place Successfully For #${enquiryNumber}`,
+      subject: `Your Order Has Been Placed –${orderNumber}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -226,7 +228,7 @@ async function sendSchoolRequestQuoteEmail(
                           background-color: #f1f1f1;
                         }
 
-                        /* Email Container */
+                       /* Email Container */
                         .email-container {
                             max-width: 600px;
                             margin: 30px auto;
@@ -277,7 +279,15 @@ async function sendSchoolRequestQuoteEmail(
                         .center-text {
                           text-align: center;
                         }
-
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
                         .detail-item {
                             margin-bottom: 12px;
                             display: flex;
@@ -299,6 +309,9 @@ async function sendSchoolRequestQuoteEmail(
                             margin: 5px 0 20px ;
                             text-align: center;
                         }
+                         .fw-bold{
+                         font-weight: bold;
+                         }   
                         
                         /* Footer */
                         .footer {
@@ -327,6 +340,9 @@ async function sendSchoolRequestQuoteEmail(
                             .logo {
                                 width: 200px;
                             }
+                            .note-content{
+                               padding: 0px 20px;
+                            }
                             .content {
                                 padding: 20px;
                             }
@@ -351,25 +367,25 @@ async function sendSchoolRequestQuoteEmail(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear ${schoolName},</p>
+                            <p class="message fw-bold">Dear ${schoolName},</p>
                             
 
-                            <p class="message">This Email confirm that your order, has been placed and is being processed.</p>
+                            <p class="message">We’re pleased to confirm that your order has been successfully placed and is now being processed.</p>
                             
-                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
-                            <h3 class="heading">Order Number : ${orderNumber}</h3>
+                            <p class="message">Enquiry Number :<span class="fw-bold"> ${enquiryNumber}</span></p>
+                            <p class="message">Order Number :  <span class="fw-bold">${orderNumber}</span></p>
 
                             <!-- Quote Details Box -->
                             ${quoteDetailsHtml}
 
                 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view quote proposal </p>
+                            <p class="message">To view your order details and track its status,please click the button below:</p>
                             <div style="text-align: center;">
-                                <a href="${viewQuoteUrl}" class="action-button">View Quote</a>
+                                <a href="${viewQuoteUrl}" class="action-button">View Order</a>
                             </div>
                             
-                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                             
                             <!-- Signature -->
                             <div class="signature">
@@ -384,6 +400,9 @@ async function sendSchoolRequestQuoteEmail(
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>
@@ -454,13 +473,6 @@ async function sendEmailsToSellers(
       },
     ];
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const sellerDashboardUrl = `${frontendUrl.replace(
-      /\/+$/,
-      ""
-    )}/seller-dashboard/procurement-services/track-order-history`;
-    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
-
     const {
       orderNumber,
       products,
@@ -470,6 +482,15 @@ async function sendEmailsToSellers(
       deliveryPincode,
       expectedDeliveryDate,
     } = orderDetails;
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const sellerDashboardUrl = `${frontendUrl.replace(
+      /\/+$/,
+      ""
+    )}/seller-dashboard/procurement-services/view-order-history?orderNumber=${encodeURIComponent(
+      orderNumber
+    )}`;
+    const contactUrl = `${frontendUrl.replace(/\/+$/, "")}/contact-us`;
 
     const enquiryNumber =
       products.length > 0 ? products[0].enquiryNumber : "N/A";
@@ -521,7 +542,7 @@ async function sendEmailsToSellers(
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: sellerEmail,
-      subject: `Order Received for Enquiry #${enquiryNumber}`,
+      subject: `New Order Received - ${orderNumber}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -577,10 +598,20 @@ async function sendEmailsToSellers(
                             margin: 0;
                             color: black;
                         }
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
+                        
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }    
                         
                         /* Content Section */
                         .content {
                             padding: 30px;
+
                         }
                         .heading{
                         color: #000000;
@@ -604,6 +635,9 @@ async function sendEmailsToSellers(
                         .detail-value {
                             color: #4a5568;
                         }
+                        .fw-bold{
+                        font-weight: bold;
+                        }    
                         
                         /* Action Button */
                         .action-button {
@@ -648,6 +682,9 @@ async function sendEmailsToSellers(
                             .content {
                                 padding: 20px;
                             }
+                             .note-content{
+                            padding: 0px 20px;
+                            } 
                             
                         }
                     </style>
@@ -669,25 +706,24 @@ async function sendEmailsToSellers(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear ${sellerName},</p>
+                            <p class="message fw-bold">Dear ${sellerName},</p>
                             
-
-                            <p class="message">We are pleased to inform you that ${schoolName} has responded to your quote proposal with order. Below are the key details of their order</p>
+                            <p class="message">We’re delighted to inform you that ${schoolName}  has accepted your quote proposal and placed an order. Below are the details:</p>
                             
-                            <h3 class="heading">Enquiry Number : ${enquiryNumber}</h3>
-                            <h3 class="heading">Order Number : ${orderNumber}</h3>
+                            <p class="message">Enquiry Number : <span class="fw-bold">${enquiryNumber}</span></p>
+                            <p class="message">Order Number :   <span class="fw-bold"> ${orderNumber}</span></p>
 
                             <!-- Quote Details Box -->
                             ${orderDetailsTable}
 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for view order details </p>
+                            <p class="message">To view the full order details, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${sellerDashboardUrl}" class="action-button">View order</a>
                             </div>
                             
-                            <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
-                            
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                                  
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -701,6 +737,9 @@ async function sendEmailsToSellers(
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
                         </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
+                      </div>
                     </div>
                   </div>  
                 </body>

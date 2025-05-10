@@ -120,7 +120,7 @@ async function sendSchoolRegistrationEmail(
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: schoolEmail,
-      subject: `${schoolName} Registration Done`,
+      subject: `Registration Successfull - ${schoolName}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -230,7 +230,19 @@ async function sendSchoolRegistrationEmail(
                         .contact-text{
                           color: #0000FF;
                         }    
+
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
                         
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
+                         .fw-bold{
+                           font-weight:bold;
+                         }   
                         /* Responsive */
                         @media only screen and (max-width: 600px) {
                             .email-container {
@@ -242,6 +254,9 @@ async function sendSchoolRegistrationEmail(
                             }
                             .content {
                                 padding: 20px;
+                            }
+                            .note-content{
+                               padding: 0px 20px;
                             }
                             
                         }
@@ -264,12 +279,12 @@ async function sendSchoolRegistrationEmail(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear School,</p>
+                            <p class="message fw-bold">Dear ${schoolName},</p>
                             
                             <p class="message">Welcome to the ${
                               smtpSettings.mailFromName
                             },</p>
-                            <p class="message">${schoolName}, school account has been successfully created.</p>
+                            <p class="message">We’re pleased to inform you that the school account for ${schoolName} has been successfully created.</p>
 
                             <!-- User Details Box -->
                             <p class="message">The login details for ${schoolName} are: </p>
@@ -287,12 +302,12 @@ async function sendSchoolRegistrationEmail(
                             
                             
                             <!-- Action Button -->
-                            <p class="message">Please click below button for login </p>
+                            <p class="message">To access your account, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${loginUrl}" class="action-button">Login</a>
                             </div>
                             
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+                             <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -305,6 +320,9 @@ async function sendSchoolRegistrationEmail(
                         <!-- Footer -->
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
                         </div>
                     </div>
                   </div>  
@@ -332,7 +350,6 @@ async function sendSchoolRegistrationEmail(
     };
   }
 }
-
 async function create(req, res) {
   try {
     const { schoolId } = req.params;

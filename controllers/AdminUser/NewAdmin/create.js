@@ -77,7 +77,7 @@ async function sendAdminRegistrationEmail(
     const mailOptions = {
       from: `"${smtpSettings.mailFromName}" <${smtpSettings.mailFromAddress}>`,
       to: email,
-      subject: "Admin Registration Done",
+      subject: `Welcome to EdProwise – ${adminFullName}`,
       html: `
               <!DOCTYPE html>
                 <html>
@@ -137,7 +137,15 @@ async function sendAdminRegistrationEmail(
                         .content {
                             padding: 30px;
                         }
+                        .note-email{
+                          font-size: 9px;
+                          color: #4a5568;
+                         }
                         
+                        .note-content{
+                            padding: 0px 30px;
+                            text-align: center;
+                        }
                         .message {
                             font-size: 16px;
                             color: #4a5568;
@@ -178,6 +186,9 @@ async function sendAdminRegistrationEmail(
                             font-size: 14px;
                             color: #718096;
                         }
+                        .fw-bold{
+                        font-weight: bold;
+                        }    
                         
                         .signature {
                             margin-top: 25px;
@@ -197,6 +208,11 @@ async function sendAdminRegistrationEmail(
                             .logo {
                                 width: 200px;
                             }
+                                
+                            .note-content{
+                               padding: 0px 20px;
+                            }
+
                             .content {
                                 padding: 20px;
                             }
@@ -221,15 +237,14 @@ async function sendAdminRegistrationEmail(
                         
                         <!-- Main Content -->
                         <div class="content">
-                            <p class="message">Dear Admin,</p>
+                            <p class="message fw-bold">Dear ${adminFullName},</p>
                             
-                            <p class="message">Welcome to the ${
+                            <p class="message">Welcome to ${
                               smtpSettings.mailFromName
-                            },</p>
-                            <p class="message">Admin ${adminFullName}, account has been successfully created.</p>
+                            }, We’re excited to have you on board.</p>
+                            <p class="message">Your admin account has been successfully created. Below are your login credentials:</p>
 
                             <!-- User Details Box -->
-                            <p class="message">The login details for Admin ${adminFullName} are: </p>
                             <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
                               <thead><tr><th>Role</th><th>UserID</th><th>Password</th></tr></thead>
                               <tbody>
@@ -247,12 +262,13 @@ async function sendAdminRegistrationEmail(
                             
                 
                             <!-- Action Button -->
-                            <p class="message">Please click below button for login </p>
+                            <p class="message">To access your account, please click the button below: </p>
                             <div style="text-align: center;">
                                 <a href="${loginUrl}" class="action-button">Login</a>
                             </div>
-                            
-                             <p class="message">Please <a href="${contactUrl}" class="contact-text">contact us</a> in case you have to ask or tell us something </p>
+
+                            <p class="message">If you have any questions or need assistance, feel free to <a href="${contactUrl}" class="contact-text">contact us.</a> We're here to help.  </p>
+                        
                             <!-- Signature -->
                             <div class="signature">
                                 <p>Best regards,</p>
@@ -265,6 +281,9 @@ async function sendAdminRegistrationEmail(
                         <!-- Footer -->
                         <div class="footer">
                             <p>All Copyright © ${new Date().getFullYear()} EdProwise Tech PVT LTD. All Rights Reserved.</p>
+                        </div>
+                        <div class="note-content">
+                          <p class="note-email">This e-mail was sent from a notification-only address that can't accept incoming e-mail. Please don't reply to this message.</p>
                         </div>
                     </div>
                   </div>  
