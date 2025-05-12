@@ -321,106 +321,15 @@
         </tr>
         <% }) %>
         <tr class="bold">
-          <td>Sub Total</td>
+          <td>Total</td>
           <td><%=formatCost( quoteProposalData.totalTaxableValue) %></td>
           <td></td>
           <td><%=formatCost( quoteProposalData.totalCgstAmount) %></td>
           <td></td>
           <td><%=formatCost( quoteProposalData.totalSgstAmount)%></td>
           <td></td>
-          <td><%= formatCost(quoteProposalData.totalIgstAmount)%></td>
+          <td><%= formatCost(quoteProposalData.totalIgstAmount )%></td>
           <td><%= formatCost(quoteProposalData.totalTaxAmount) %></td>
-        </tr>
-
-        <tr>
-          <td>996793</td>
-          <td><%= formatCost(profileData.deliveryCharges) %></td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalCgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
-            %> <% } else { %> - <% } %>
-          </td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalSgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
-            %> <% } else { %> - <% } %>
-          </td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalIgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise) %>
-            <% } else { %> - <% } %>
-          </td>
-          <td>
-            <%= formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise)
-            %>
-          </td>
-        </tr>
-
-        <tr>
-          <td>997136</td>
-          <td>
-            <%= formatCost(quoteProposalData.totalTaxableInsuranceCharges) %>
-          </td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalCgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalInsuranceGstAmount / 2) %> <% }
-            else { %> - <% } %>
-          </td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalSgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalInsuranceGstAmount / 2) %> <% }
-            else { %> - <% } %>
-          </td>
-          <td></td>
-          <td>
-            <% if (quoteProposalData.totalIgstAmount > 0) { %> <%=
-            formatCost(quoteProposalData.totalInsuranceGstAmount) %> <% } else {
-            %> - <% } %>
-          </td>
-          <td><%= formatCost(quoteProposalData.totalInsuranceGstAmount) %></td>
-        </tr>
-
-        <tr class="bold">
-          <td>Total</td>
-          <td>
-            <%= formatCost(quoteProposalData.totalTaxableValue +
-            profileData.deliveryCharges +
-            quoteProposalData.totalTaxableInsuranceCharges) %>
-          </td>
-          <td></td>
-          <td>
-            <%= formatCost(quoteProposalData.totalCgstAmount +
-            (quoteProposalData.totalCgstAmount > 0 ?
-            quoteProposalData.totalDeliveryGstAmountForEdprowise / 2 : 0) +
-            (quoteProposalData.totalCgstAmount > 0 ?
-            quoteProposalData.totalInsuranceGstAmount / 2 : 0)) %>
-          </td>
-          <td></td>
-          <td>
-            <%= formatCost(quoteProposalData.totalSgstAmount +
-            (quoteProposalData.totalSgstAmount > 0 ?
-            quoteProposalData.totalDeliveryGstAmountForEdprowise / 2 : 0) +
-            (quoteProposalData.totalSgstAmount > 0 ?
-            quoteProposalData.totalInsuranceGstAmount / 2 : 0)) %>
-          </td>
-          <td></td>
-          <td>
-            <%= formatCost(quoteProposalData.totalIgstAmount +
-            (quoteProposalData.totalIgstAmount > 0 ?
-            quoteProposalData.totalDeliveryGstAmountForEdprowise : 0) +
-            (quoteProposalData.totalIgstAmount > 0 ?
-            quoteProposalData.totalInsuranceGstAmount : 0)) %>
-          </td>
-          <td>
-            <%= formatCost(quoteProposalData.totalTaxAmount +
-            quoteProposalData.totalDeliveryGstAmountForEdprowise +
-            quoteProposalData.totalInsuranceGstAmount) %>
-          </td>
         </tr>
       </tbody>
     </table>

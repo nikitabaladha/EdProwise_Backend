@@ -335,19 +335,28 @@
         <tr>
           <td>996793</td>
           <td><%= formatCost(profileData.deliveryCharges) %></td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalCgstAmount > 0) { %> <%= item.cgstRate
+            || 0 %> <% } else { %> 0 <% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalCgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
             %> <% } else { %> - <% } %>
           </td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalSgstAmount > 0) { %> <%= item.sgstRate
+            || 0 %> <% } else { %> 0 <% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalSgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
             %> <% } else { %> - <% } %>
           </td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalIgstAmount > 0) { %> <%= item.igstRate
+            || 0 %> <% } else { %> 0 <% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalIgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise) %>
@@ -364,19 +373,28 @@
           <td>
             <%= formatCost(quoteProposalData.totalTaxableInsuranceCharges) %>
           </td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalCgstAmount > 0) { %> <%= item.cgstRate
+            || 0 %> <% } else { %> 0 <% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalCgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalInsuranceGstAmount / 2) %> <% }
             else { %> - <% } %>
           </td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalSgstAmount > 0) { %> <%= item.sgstRate
+            || 9 %> <% } else { %> 0<% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalSgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalInsuranceGstAmount / 2) %> <% }
             else { %> - <% } %>
           </td>
-          <td></td>
+          <td>
+            <!-- <% if (quoteProposalData.totalIgstAmount > 0) { %> <%= item.igstRate
+            || 0 %> <% } else { %> 0 <% } %> -->
+          </td>
           <td>
             <% if (quoteProposalData.totalIgstAmount > 0) { %> <%=
             formatCost(quoteProposalData.totalInsuranceGstAmount) %> <% } else {

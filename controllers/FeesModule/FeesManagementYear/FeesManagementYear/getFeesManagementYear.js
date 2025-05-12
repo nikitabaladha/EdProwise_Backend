@@ -1,4 +1,4 @@
-import FeesManagementYear from '../../../../models/FeesModule/FeesManagementYear.js';
+import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js";
 
 export const getAcademicYearsBySchoolId = async (req, res) => {
   const { schoolId } = req.params;
@@ -11,7 +11,25 @@ export const getAcademicYearsBySchoolId = async (req, res) => {
   }
 
   try {
-    const academicYears = await FeesManagementYear.find({ schoolId }).sort({ academicYear: 1 });
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const currentAcademicYear = `${currentYear}-${nextYear}`;
+
+    const existing = await FeesManagementYear.findOne({
+      schoolId,
+      academicYear: currentAcademicYear,
+    });
+
+    if (!existing) {
+      await FeesManagementYear.create({
+        schoolId,
+        academicYear: currentAcademicYear,
+      });
+    }
+
+    const academicYears = await FeesManagementYear.find({ schoolId }).sort({
+      academicYear: 1,
+    });
 
     res.status(200).json({
       hasError: false,
