@@ -47,7 +47,7 @@ async function invoiceForBuyerPDFRequirements(req, res) {
         "companyName address landmark city state country gstin pan contactNo emailId"
       ),
       EdprowiseProfile.findOne().select(
-        "companyName companyType gstin pan tan cin address city state country landmark pincode contactNo alternateContactNo emailId insuranceCharges"
+        "companyName companyType gstin pan tan cin address city state country landmark pincode contactNo alternateContactNo emailId"
       ),
       OrderDetailsFromSeller.findOne({ schoolId, sellerId }).select(
         "invoiceDate invoiceForSchool invoiceForEdprowise orderNumber"
@@ -227,7 +227,6 @@ async function invoiceForBuyerPDFRequirements(req, res) {
         edprowiseContactNo: edprowiseProfile.contactNo,
         edprowiseAlternateContactNo: edprowiseProfile.alternateContactNo,
         edprowiseEmailId: edprowiseProfile.emailId,
-        insuranceCharges: edprowiseProfile.insuranceCharges,
 
         // Invoice
         invoiceDate: orderDetails?.invoiceDate || null,

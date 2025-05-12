@@ -132,8 +132,6 @@ async function create(req, res) {
     let totalDiscountAmount = 0;
     let totalAmount = 0;
     let totalFinalRate = 0;
-    let totalTaxableInsuranceCharges = 0;
-    let totalInsuranceGstAmount = 0;
 
     let totalFinalRateBeforeDiscountForEdprowise = 0;
     let totalTaxableValueForEdprowise = 0;
@@ -143,8 +141,6 @@ async function create(req, res) {
     let totalTaxAmountForEdprowise = 0;
     let totalAmountForEdprowise = 0;
     let totalFinalRateForEdprowise = 0;
-    let totalTaxableInsuranceChargesForEdprowise = 0;
-    let totalInsuranceGstAmountForEdprowise = 0;
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -355,19 +351,6 @@ async function create(req, res) {
 
     const quoteNumber = await generateQuoteNumber();
 
-    const insuranceCharges = edprowiseProfile.insuranceCharges || 0;
-    totalTaxableInsuranceCharges = (totalTaxableValue * insuranceCharges) / 100;
-    totalTaxableInsuranceChargesForEdprowise =
-      (totalTaxableValueForEdprowise * insuranceCharges) / 100;
-
-    totalInsuranceGstAmount =
-      (totalTaxAmount / totalTaxableValue) * totalTaxableInsuranceCharges;
-    totalInsuranceGstAmountForEdprowise =
-      (totalTaxAmountForEdprowise / totalTaxableValueForEdprowise) *
-      totalTaxableInsuranceChargesForEdprowise;
-
-    // totalInsuranceGstAmount;
-
     // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({
       quoteNumber,
@@ -384,8 +367,6 @@ async function create(req, res) {
       totalIgstAmount,
       totalTaxAmount,
       totalFinalRate,
-      totalTaxableInsuranceCharges,
-      totalInsuranceGstAmount,
       // For Edprowise
       totalFinalRateBeforeDiscountForEdprowise,
       totalTaxableValueForEdprowise,
@@ -395,8 +376,6 @@ async function create(req, res) {
       totalTaxAmountForEdprowise,
       totalAmountForEdprowise,
       totalFinalRateForEdprowise,
-      totalTaxableInsuranceChargesForEdprowise,
-      totalInsuranceGstAmountForEdprowise,
       supplierStatus: "Quote Submitted",
       edprowiseStatus: "Quote Received",
       buyerStatus: "Quote Requested",

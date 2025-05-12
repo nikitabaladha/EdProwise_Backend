@@ -24,22 +24,6 @@ const QuoteProposalSchema = new mongoose.Schema(
       required: true,
       set: roundToTwo,
     },
-    totalTaxableInsuranceCharges: {
-      type: Number,
-      required: true,
-      set: roundToTwo,
-    },
-    totalTaxableInsuranceChargesForEdprowise: {
-      type: Number,
-      required: true,
-      set: roundToTwo,
-    },
-    totalInsuranceGstAmount: { type: Number, required: true, set: roundToTwo },
-    totalInsuranceGstAmountForEdprowise: {
-      type: Number,
-      required: true,
-      set: roundToTwo,
-    },
     totalDeliveryGstAmount: { type: Number, required: false, set: roundToTwo },
     totalDeliveryGstAmountForEdprowise: {
       type: Number,
@@ -161,6 +145,24 @@ const QuoteProposalSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       set: roundToTwo,
+    },
+    deliveryCgstRate: {
+      type: Number,
+      set: roundToTwo,
+      required: false,
+      default: 0,
+    },
+    deliverySgstRate: {
+      type: Number,
+      set: roundToTwo,
+      required: false,
+      default: 0,
+    },
+    deliveryIgstRate: {
+      type: Number,
+      set: roundToTwo,
+      required: false,
+      default: 0,
     },
     buyerStatus: {
       type: String,

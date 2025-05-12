@@ -10,7 +10,6 @@ async function updateSingleProduct(req, res) {
   try {
     const { sellerId, enquiryNumber, id } = req.query;
     const productData = req.body;
-    const uploadedImage = req.file;
 
     if (!sellerId || !enquiryNumber || !id) {
       return res.status(400).json({
@@ -153,11 +152,6 @@ async function updateSingleProduct(req, res) {
     existingQuote.sgstRateForEdprowise = sgstRateForEdprowise;
     existingQuote.igstRateForEdprowise = igstRateForEdprowise;
 
-    // Update image if uploaded
-    if (uploadedImage) {
-      existingQuote.prepareQuoteImage = `/Images/PrepareQuoteImage/${uploadedImage.filename}`;
-    }
-
     // Perform calculations with updated or existing values
     const listingRate = existingQuote.listingRate;
     const edprowiseMargin = existingQuote.edprowiseMargin;
@@ -230,7 +224,6 @@ async function updateSingleProduct(req, res) {
     let totalSgstAmount = 0;
     let totalIgstAmount = 0;
     let totalTaxAmount = 0;
-    let totalTaxableInsuranceCharges = 0;
 
     let totalFinalRateBeforeDiscountForEdprowise = 0;
     let totalTaxableValueForEdprowise = 0;
@@ -239,7 +232,6 @@ async function updateSingleProduct(req, res) {
     let totalIgstAmountForEdprowise = 0;
     let totalTaxAmountForEdprowise = 0;
     let totalAmountForEdprowise = 0;
-    let totalTaxableInsuranceChargesForEdprowise = 0;
 
     allPrepareQuotes.forEach((quote) => {
       totalQuantity += quote.quantity;
@@ -343,19 +335,6 @@ async function updateSingleProduct(req, res) {
     existingQuoteProposal.finalPayableAmountWithTDS = finalPayableAmountWithTDS;
     existingQuoteProposal.finalPayableAmountWithTDSForEdprowise =
       finalPayableAmountWithTDSForEdprowise;
-
-    const insuranceCharges = edprowiseProfile.insuranceCharges || 0;
-
-    existingQuoteProposal.totalTaxableInsuranceCharges =
-      (totalTaxableValue * insuranceCharges) / 100;
-    existingQuoteProposal.totalTaxableInsuranceChargesForEdprowise =
-      (totalTaxableValueForEdprowise * insuranceCharges) / 100;
-
-    existingQuoteProposal.totalInsuranceGstAmount =
-      (totalTaxAmount / totalTaxableValue) * totalTaxableInsuranceCharges;
-    existingQuoteProposal.totalInsuranceGstAmountForEdprowise =
-      (totalTaxAmountForEdprowise / totalTaxableValueForEdprowise) *
-      totalTaxableInsuranceChargesForEdprowise;
 
     // Save the updated QuoteProposal
     await existingQuoteProposal.save();
