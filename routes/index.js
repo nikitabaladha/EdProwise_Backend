@@ -54,6 +54,8 @@ import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js
 
 import sitemap from "./sitemap.js";
 
+import Notification from "./Procurement/notification.js";
+
 export default (app) => {
   // PDF Routes
   app.use("/api", PDFRoutes);
@@ -98,6 +100,8 @@ export default (app) => {
   app.use("/api", FeedBackAndRating);
 
   app.use("/api", DashboardRoutes);
+
+  app.use("/api", Notification);
 
   //=====================Globar search for dashboard routes===============
   app.use("/api", GlobalSearchRoutes);

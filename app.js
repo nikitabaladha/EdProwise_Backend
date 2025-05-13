@@ -9,9 +9,13 @@ import https from "https";
 import fs from "fs";
 import { constants } from "crypto";
 
+import { initializeSocket } from "./socket.js";
+import http from "http";
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -23,8 +27,13 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
+
+const io = initializeSocket(server);
+
+app.set("io==========================================", io);
 
 app.use("/Images", express.static(path.resolve("Images")));
 app.use("/Documents", express.static(path.resolve("Documents")));

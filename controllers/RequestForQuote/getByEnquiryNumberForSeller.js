@@ -142,11 +142,6 @@ import Product from "../../models/Product.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 
-// This api works fine but i want that for that enquiryNumber, categoryId and subcategoryId with other seller's
-// sellerId (not his own) found combinely that is there any entry with all together
-// if yes then exclude that perticular thing or filterout that and dont send that data in response
-// other remaining thing must be send in response
-
 async function getByEnquiryNumberForSeller(req, res) {
   try {
     const sellerId = req.user?.id;

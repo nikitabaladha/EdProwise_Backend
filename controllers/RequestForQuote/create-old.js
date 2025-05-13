@@ -3,8 +3,6 @@ import QuoteRequest from "../../models/QuoteRequest.js";
 import ProductValidator from "../../validators/Product.js";
 import mongoose from "mongoose";
 
-import { NotificationService } from "../../notificationService.js";
-
 import School from "../../models/School.js";
 import Category from "../../models/Category.js";
 import SubCategory from "../../models/SubCategory.js";
@@ -1002,62 +1000,6 @@ async function create(req, res) {
       enquiryNumber,
     });
 
-    // Find relevant sellers for each product category/subcategory
-    const categoryIds = [...new Set(products.map((p) => p.categoryId))];
-    const subCategoryIds = [
-      ...new Set(products.flatMap((p) => p.subCategoryId)),
-    ];
-
-    const relevantSellers = await SellerProfile.find({
-      "dealingProducts.categoryId": { $in: categoryIds },
-      "dealingProducts.subCategoryIds": { $in: subCategoryIds },
-    }).populate("dealingProducts.categoryId dealingProducts.subCategoryIds");
-
-    // Send notifications to relevant sellers
-    await NotificationService.sendNotification(
-      "SCHOOL_QUOTE_REQUESTED",
-      [
-        {
-          id: schoolId,
-          type: "school",
-        },
-      ],
-      {
-        schoolName,
-        enquiryNumber,
-        entityId: newQuoteRequest._id,
-        entityType: "QuoteRequest",
-        senderType: "school",
-        senderId: schoolId,
-        metadata: {
-          enquiryNumber: enquiryNumber,
-          type: "quote_requested",
-        },
-      }
-    );
-
-    // Send notifications to relevant sellers
-
-    await NotificationService.sendNotification(
-      "SELLER_QUOTE_RECEIVED",
-      relevantSellers.map((seller) => ({
-        id: seller.sellerId.toString(),
-        type: "seller",
-      })),
-      {
-        schoolName,
-        enquiryNumber,
-        entityId: newQuoteRequest._id,
-        entityType: "QuoteRequest",
-        senderType: "school",
-        senderId: schoolId,
-        metadata: {
-          enquiryNumber: enquiryNumber,
-          type: "quote_received",
-        },
-      }
-    );
-
     return res.status(201).json({
       hasError: false,
       message: "Quotes and Quote Proposal created successfully.",
@@ -1067,11 +1009,7 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    // Only abort transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-
+    await session.abortTransaction();
     session.endSession();
     console.error("Error creating Product:", error.message);
     console.error(error.stack);
