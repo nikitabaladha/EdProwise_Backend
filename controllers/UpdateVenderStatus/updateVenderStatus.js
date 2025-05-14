@@ -567,7 +567,6 @@ async function updateVenderStatus(req, res) {
       if (!school) {
         return res.status(404).json({
           hasError: true,
-
           message: "School not found for this quote request.",
         });
       }
@@ -583,37 +582,25 @@ async function updateVenderStatus(req, res) {
 
       const sellerSubmittedQuotes = await SubmitQuote.find({
         enquiryNumber,
-
         sellerId,
       });
 
       const products = sellerSubmittedQuotes.map((item) => ({
         quotedAmount: item.quotedAmount,
-
         remarksFromSupplier: item.remarksFromSupplier,
-
         description: item.description,
-
         paymentTerms: item.paymentTerms,
-
         advanceRequiredAmount: item.advanceRequiredAmount,
-
         expectedDeliveryDateBySeller: new Date(
           item.expectedDeliveryDateBySeller
         )
-
           .toLocaleDateString("en-GB", {
             weekday: "short",
-
             day: "2-digit",
-
             month: "short",
-
             year: "numeric",
           })
-
           .replace(/ /g, " ")
-
           .replace(",", ","),
       }));
 

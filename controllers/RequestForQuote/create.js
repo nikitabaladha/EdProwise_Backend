@@ -1,6 +1,7 @@
 import Product from "../../models/Product.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import ProductValidator from "../../validators/Product.js";
+import AdminUser from "../../models/AdminUser.js";
 import mongoose from "mongoose";
 
 import { NotificationService } from "../../notificationService.js";
@@ -1013,7 +1014,8 @@ async function create(req, res) {
       "dealingProducts.subCategoryIds": { $in: subCategoryIds },
     }).populate("dealingProducts.categoryId dealingProducts.subCategoryIds");
 
-    // Send notifications to relevant sellers
+    // Send notifications to relevant school
+
     await NotificationService.sendNotification(
       "SCHOOL_QUOTE_REQUESTED",
       [
@@ -1043,6 +1045,30 @@ async function create(req, res) {
       relevantSellers.map((seller) => ({
         id: seller.sellerId.toString(),
         type: "seller",
+      })),
+      {
+        schoolName,
+        enquiryNumber,
+        entityId: newQuoteRequest._id,
+        entityType: "QuoteRequest",
+        senderType: "school",
+        senderId: schoolId,
+        metadata: {
+          enquiryNumber: enquiryNumber,
+          type: "quote_received",
+        },
+      }
+    );
+
+    // Send notifications to edprowise
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_QUOTE_REQUESTED_FROM_SCHOOL",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
       })),
       {
         schoolName,

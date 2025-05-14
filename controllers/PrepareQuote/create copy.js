@@ -5,6 +5,10 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import AdminUser from "../../models/AdminUser.js";
+
+import { NotificationService } from "../../notificationService.js";
+
 import mongoose from "mongoose";
 
 async function generateQuoteNumber() {
@@ -132,8 +136,6 @@ async function create(req, res) {
     let totalDiscountAmount = 0;
     let totalAmount = 0;
     let totalFinalRate = 0;
-    let totalTaxableInsuranceCharges = 0;
-    let totalInsuranceGstAmount = 0;
 
     let totalFinalRateBeforeDiscountForEdprowise = 0;
     let totalTaxableValueForEdprowise = 0;
@@ -143,8 +145,6 @@ async function create(req, res) {
     let totalTaxAmountForEdprowise = 0;
     let totalAmountForEdprowise = 0;
     let totalFinalRateForEdprowise = 0;
-    let totalTaxableInsuranceChargesForEdprowise = 0;
-    let totalInsuranceGstAmountForEdprowise = 0;
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -349,24 +349,16 @@ async function create(req, res) {
       });
 
       // Save the entry
-      const savedEntry = await newPrepareQuote.save();
+      const savedEntry = await newPrepareQuote.save({ session });
       createdEntries.push(savedEntry);
     }
 
     const quoteNumber = await generateQuoteNumber();
 
-    const insuranceCharges = edprowiseProfile.insuranceCharges || 0;
-    totalTaxableInsuranceCharges = (totalTaxableValue * insuranceCharges) / 100;
-    totalTaxableInsuranceChargesForEdprowise =
-      (totalTaxableValueForEdprowise * insuranceCharges) / 100;
-
-    totalInsuranceGstAmount =
-      (totalTaxAmount / totalTaxableValue) * totalTaxableInsuranceCharges;
-    totalInsuranceGstAmountForEdprowise =
-      (totalTaxAmountForEdprowise / totalTaxableValueForEdprowise) *
-      totalTaxableInsuranceChargesForEdprowise;
-
-    // totalInsuranceGstAmount;
+    console.log(
+      "Generated Quote Number:============================================",
+      quoteNumber
+    );
 
     // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({
@@ -384,8 +376,6 @@ async function create(req, res) {
       totalIgstAmount,
       totalTaxAmount,
       totalFinalRate,
-      totalTaxableInsuranceCharges,
-      totalInsuranceGstAmount,
       // For Edprowise
       totalFinalRateBeforeDiscountForEdprowise,
       totalTaxableValueForEdprowise,
@@ -395,13 +385,13 @@ async function create(req, res) {
       totalTaxAmountForEdprowise,
       totalAmountForEdprowise,
       totalFinalRateForEdprowise,
-      totalTaxableInsuranceChargesForEdprowise,
-      totalInsuranceGstAmountForEdprowise,
       supplierStatus: "Quote Submitted",
       edprowiseStatus: "Quote Received",
       buyerStatus: "Quote Requested",
       orderStatus: "Pending",
     });
+
+    await newQuoteProposal.save({ session });
 
     const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
       { enquiryNumber },
@@ -418,8 +408,6 @@ async function create(req, res) {
       });
     }
 
-    await newQuoteProposal.save({ session });
-
     const newSubmitQuote = new SubmitQuote({
       sellerId,
       enquiryNumber,
@@ -429,9 +417,52 @@ async function create(req, res) {
 
     await newSubmitQuote.save({ session });
 
-    // If everything succeeds, commit the transaction
     await session.commitTransaction();
     session.endSession();
+
+    // Send notifications to relevant sellers
+
+    await Promise.all([
+      NotificationService.sendNotification(
+        "SELLER_QUOTE_PREPARED",
+        [{ id: sellerId.toString(), type: "seller" }],
+        {
+          quoteNumber,
+          entityId: newQuoteProposal._id,
+          entityType: "QuoteProposal",
+          senderType: "seller",
+          senderId: sellerId,
+          metadata: {
+            quoteNumber: quoteNumber,
+            type: "quote_prepared",
+          },
+        }
+      ),
+      (async () => {
+        const relevantEdprowise = await AdminUser.find({});
+        await NotificationService.sendNotification(
+          "EDPROWISE_QUOTE_RECEIVED_FROM_SELLER",
+          relevantEdprowise.map((admin) => ({
+            id: admin._id.toString(),
+            type: "edprowise",
+          })),
+          {
+            companyName: sellerProfile.companyName,
+            quoteNumber,
+            entityId: newQuoteProposal._id,
+            entityType: "QuoteProposal",
+            senderType: "seller",
+            senderId: sellerId,
+            metadata: {
+              quoteNumber: quoteNumber,
+              type: "quote_received_from_seller",
+            },
+          }
+        );
+      })(),
+    ]);
+
+    // If everything succeeds, commit the transaction
 
     return res.status(201).json({
       hasError: false,
@@ -443,11 +474,14 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    // If any error occurs, abort the transaction
-    await session.abortTransaction();
-    session.endSession();
+    // Only abort transaction if it hasn't been committed yet
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
 
-    console.error("Error creating Prepare quotes or Quote Proposal:", error);
+    session.endSession();
+    console.error("Error creating Prepare Quote:", error.message);
+    console.error(error.stack);
     return res.status(500).json({
       hasError: true,
       message: "Internal server error.",

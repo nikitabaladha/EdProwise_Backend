@@ -19,6 +19,11 @@ const SubmitQuoteSchema = new mongoose.Schema(
       required: true,
       ref: "QuoteRequest",
     },
+    quoteNumber: {
+      type: String,
+      required: true,
+      ref: "QuoteProposal",
+    },
     quotedAmount: {
       type: Number,
       required: true,

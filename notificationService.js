@@ -8,10 +8,7 @@ export class NotificationService {
     const notifications = [];
 
     for (const recipient of recipients) {
-      const message = this.formatMessage(
-        template.message(context.schoolName, context.enquiryNumber),
-        context
-      );
+      const message = template.message(context);
 
       const notification = new Notification({
         recipientType: template.recipientType,
@@ -38,10 +35,6 @@ export class NotificationService {
     }
 
     return notifications;
-  }
-
-  static formatMessage(message, context) {
-    return message.replace(/{(\w+)}/g, (match, key) => context[key] || match);
   }
 
   static async getNotifications(userType, userId) {

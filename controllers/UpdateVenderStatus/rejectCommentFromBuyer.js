@@ -1,5 +1,9 @@
 import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
+import AdminUser from "../../models/AdminUser.js";
+import School from "../../models/School.js";
+import SellerProfile from "../../models/SellerProfile.js";
+import { NotificationService } from "../../notificationService.js";
 
 async function rejectCommentFromBuyer(req, res) {
   try {
@@ -51,6 +55,55 @@ async function rejectCommentFromBuyer(req, res) {
           "Quote Proposal not found for the given enquiryNumber and sellerId.",
       });
     }
+
+    const senderId = req.user.schoolId;
+
+    // i want to find company name on the basis of sellerId
+    const sellerProfile = await SellerProfile.findOne({ sellerId });
+
+    await NotificationService.sendNotification(
+      "SCHOOL_REJECTED_QUOTE",
+      senderId ? [{ id: senderId.toString(), type: "school" }] : [],
+      {
+        companyName: sellerProfile.companyName,
+        quoteNumber: updatedQuoteProposal.quoteNumber,
+        enquiryNumber: updatedQuoteProposal.enquiryNumber,
+        entityId: updatedQuoteProposal._id,
+        entityType: "QuoteProposal Reject",
+        senderType: "school",
+        senderId: senderId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_rejected_by_school",
+        },
+      }
+    );
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    const schoolProfile = await School.findOne({ schoolId: senderId });
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_RECEIVE_REJECTED_QUOTE_FROM_SCHOOL",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        quoteNumber: updatedQuoteProposal.quoteNumber,
+        enquiryNumber: updatedQuoteProposal.enquiryNumber,
+        entityId: updatedQuoteProposal._id,
+        entityType: "QuoteProposal Reject",
+        senderType: "school",
+        senderId: senderId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_rejected_by_school",
+        },
+      }
+    );
 
     return res.status(200).json({
       hasError: false,

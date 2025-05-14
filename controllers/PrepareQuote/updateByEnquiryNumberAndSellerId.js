@@ -5,6 +5,9 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import AdminUser from "../../models/AdminUser.js";
+
+import { NotificationService } from "../../notificationService.js";
 
 async function updateSingleProduct(req, res) {
   try {
@@ -326,6 +329,73 @@ async function updateSingleProduct(req, res) {
     existingSubmitted.rejectCommentFromBuyer = "";
 
     await existingSubmitted.save();
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    const senderId = req.user.id;
+
+    if (!senderId) {
+      return res.status(401).json({
+        hasError: true,
+        message: "Edprowise not authenticated.",
+      });
+    }
+
+    await NotificationService.sendNotification(
+      "SCHOOL_RECEIVED_UPDATED_QUOTE_FROM_EDPROWISE",
+      [{ id: quoteRequest.schoolId, type: "school" }],
+      {
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal From Edprowise",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          enquiryNumber,
+          sellerId: existingQuoteProposal.sellerId,
+          type: "quote_updated_from_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SELLER_RECEIVED_UPDATED_QUOTE_FROM_EDPROWISE",
+      [{ id: existingQuoteProposal.sellerId, type: "seller" }],
+      {
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_updated_from_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_UPDATED_QUOTE",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal From Edprowise",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          enquiryNumber,
+          sellerId: existingQuoteProposal.sellerId,
+          type: "quote_updated_from_edprowise",
+        },
+      }
+    );
 
     return res.status(200).json({
       hasError: false,

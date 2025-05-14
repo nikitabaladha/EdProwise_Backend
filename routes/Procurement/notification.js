@@ -5,6 +5,7 @@ import roleBasedMiddleware from "../../middleware/index.js";
 import {
   getNotificationForSeller,
   getNotificationForSchool,
+  getNotificationForEdprowise,
   notificationPatchForSeller,
   markAllReadForSeller,
 } from "../../controllers/Notification/index.js";
@@ -19,6 +20,12 @@ router.get(
   "/school-notifications",
   roleBasedMiddleware("School"),
   getNotificationForSchool
+);
+
+router.get(
+  "/edprowise-notifications",
+  roleBasedMiddleware("Admin"),
+  getNotificationForEdprowise
 );
 
 router.put(
