@@ -11,12 +11,12 @@ export const getAllFeesInstallments = async (req, res) => {
       });
     }
 
-    // Ensure sectionIds is an array
+  
     const sectionIdArray = Array.isArray(sectionIds)
       ? sectionIds
       : [sectionIds];
 
-    // Fetch matching fee structures
+
     const feesStructures = await FeesStructure.find({
       schoolId,
       classId,
@@ -31,14 +31,14 @@ export const getAllFeesInstallments = async (req, res) => {
       });
     }
 
-    // Determine maximum number of installments across structures
+
     const maxInstallments = Math.max(
       ...feesStructures.map((structure) => structure.installments?.length || 0)
     );
 
     const response = [];
 
-    // Flatten and push each installment with academicYear info
+
     for (let i = 0; i < maxInstallments; i++) {
       for (const structure of feesStructures) {
         const inst = structure.installments?.[i];

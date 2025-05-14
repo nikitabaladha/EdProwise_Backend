@@ -8,9 +8,13 @@ const schoolFeesSchema = new mongoose.Schema({
   className: { type: String, required: true },
   section: { type: String, required: true },
   receiptNumber: { type: String, required: true },
-  transactionNumber: { type: String, required: true },
+  transactionNumber: { type: String},
   paymentMode: { type: String, required: true },
   collectorName: { type: String, required: true },
+  bankName: {
+    type: String,
+    required: false 
+  },
   academicYear: { type: String, default: 'N/A' },
   date: { type: Date, default: Date.now },
   installments: [
@@ -30,7 +34,25 @@ const schoolFeesSchema = new mongoose.Schema({
     }
   ]
 });
+schoolFeesSchema.pre('save', function (next) {
+  this.installments.forEach((installment) => {
+    const seenFeeTypeIds = new Set();
+    const uniqueFeeItems = [];
 
+    installment.feeItems.forEach((feeItem) => {
+      if (!seenFeeTypeIds.has(feeItem.feeTypeId)) {
+        seenFeeTypeIds.add(feeItem.feeTypeId);
+        uniqueFeeItems.push(feeItem);
+      } else {
+        console.warn(`Duplicate feeTypeId ${feeItem.feeTypeId} removed in installment ${installment.number}`);
+      }
+    });
+
+    installment.feeItems = uniqueFeeItems;
+  });
+
+  next();
+});
 const SchoolFees = mongoose.model('SchoolFees', schoolFeesSchema);
 
 export default SchoolFees;
