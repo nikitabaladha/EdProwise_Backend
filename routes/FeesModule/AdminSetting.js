@@ -40,7 +40,17 @@ import {
   deleteOneTimeFees,
   updateOneTimeFees,
   getAllBySchoolAndClass,
-  getAllBySchoolClassAndSection
+  getAllBySchoolClassAndSection,
+
+  createBoardRegistrationFees,
+  getBoardRegistrationFees,
+  deleteBoardRegistrationFees,
+  updateBoardRegistrationFees,
+
+  createBoardExamFees,
+  getBoardExamFees,
+  deleteBoardExamFees,
+  updateBoardExamFees,
 } from "../../controllers/FeesModule/AdminSetting/index.js";
 // import deletePrefix from "../../controllers/FeesModule/AdminSetting/PrefixSetting/RegistrationPrefix/delete.js";
 
@@ -243,5 +253,57 @@ router.get(
   roleBasedMiddleware("Admin","School"),
   getAllBySchoolClassAndSection
 );
+
+
+//------------------------------------------board-registration-fees----------------------------------//
+router.post(
+  "/create-board-registration-fees",
+  roleBasedMiddleware("Admin", "School"),
+  createBoardRegistrationFees
+);
+
+router.get(
+  "/get-board-registration-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getBoardRegistrationFees
+);
+
+router.delete(
+  "/delete-board-registration-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardRegistrationFees
+);
+
+router.put(
+  "/update-board-registration-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  updateBoardRegistrationFees
+);
+
+//------------------------------------------board-exam-fees----------------------------------//
+router.post(
+  "/create-board-exam-fees",
+  roleBasedMiddleware("Admin", "School"),
+  createBoardExamFees
+);
+
+router.get(
+  "/get-board-exam-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getBoardExamFees
+);
+
+router.delete(
+  "/delete-board-exam-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardExamFees
+);
+
+router.put(
+  "/update-board-exam-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  updateBoardExamFees
+);
+
 
 export default router;

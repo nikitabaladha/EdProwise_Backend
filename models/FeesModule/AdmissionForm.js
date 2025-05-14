@@ -41,11 +41,11 @@ const AdmissionFormSchema = new Schema({
   masterDefineClass: {
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'Class'
+    ref: 'ClassAndSection'
   },
   section: {
     type: Schema.Types.ObjectId,
-    ref: 'Section',
+     ref: 'ClassAndSection',
     required: true
 },
   masterDefineShift: {
