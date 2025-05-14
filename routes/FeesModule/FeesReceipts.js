@@ -6,7 +6,10 @@ createSchoolFees,
 
 
 getAdmissionForms,
-createBoardRegistrationFeesPayment
+createBoardRegistrationFeesPayment,
+
+getAdmissionFormsBordExam ,
+createBoardExamFeesPayment
 
 } from "../../controllers/FeesModule/FeeReceipts/index.js";
 
@@ -33,5 +36,19 @@ router.post(
   "/submit-board-registration-fees-payment",
   roleBasedMiddleware("Admin","School"),
 createBoardRegistrationFeesPayment
+);
+
+//----------------------BoardExamFees--------------------//
+
+router.get(
+  "/admission-forms-board-exam/:schoolId/:academicYear/:masterDefineClass/:section",
+  roleBasedMiddleware("Admin","School"),
+getAdmissionFormsBordExam ,
+);
+
+router.post(
+  "/submit-board-exam-fees-payment",
+  roleBasedMiddleware("Admin","School"),
+createBoardExamFeesPayment
 );
 export default router;
