@@ -5,28 +5,22 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import mongoose from "mongoose";
+import { NotificationService } from "../../notificationService.js";
 import AdminUser from "../../models/AdminUser.js";
 
-import { NotificationService } from "../../notificationService.js";
-
-import mongoose from "mongoose";
-
-async function generateQuoteNumber() {
+// Generate Quote Number
+async function generateQuoteNumber(session) {
   const prefix = "QUOTE";
-
-  // Get current date
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
+  const currentMonth = now.getMonth() + 1;
 
-  // Determine financial year (April to March)
   let financialYearStart, financialYearEnd;
   if (currentMonth >= 4) {
-    // April or later - current year to next year (2024-25)
     financialYearStart = currentYear;
     financialYearEnd = currentYear + 1;
   } else {
-    // January-March - previous year to current year (2023-24)
     financialYearStart = currentYear - 1;
     financialYearEnd = currentYear;
   }
@@ -35,66 +29,41 @@ async function generateQuoteNumber() {
     .toString()
     .slice(-2)}`;
 
-  // Find the last enquiry number for this financial year
+  // IMPORTANT: use the session in findOne
   const lastQuote = await QuoteProposal.findOne({
-    quoteNumber: new RegExp(`^${prefix}/${financialYear}/`),
-  }).sort({ createdAt: -1 });
+    quoteNumber: new RegExp(`^QUOTE/${financialYear}/`),
+  })
+    .sort({ createdAt: -1 })
+    .session(session); // <- here
 
-  let sequenceNumber;
-  if (lastQuote) {
-    // Extract the sequence number from the last enquiry
-    const lastSequence = parseInt(lastQuote.quoteNumber.split("/")[2]);
-    sequenceNumber = lastSequence + 1;
-  } else {
-    // First enquiry of this financial year
-    sequenceNumber = 1;
-  }
-
-  // Format the sequence number with leading zeros
+  let sequenceNumber = lastQuote
+    ? parseInt(lastQuote.quoteNumber.split("/")[2]) + 1
+    : 1;
   const formattedSequence = String(sequenceNumber).padStart(4, "0");
 
   return `${prefix}/${financialYear}/${formattedSequence}`;
 }
 
+// Create function
 async function create(req, res) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let quoteNumber;
+  let session;
 
   try {
-    const sellerId = req.user?.id;
+    session = await mongoose.startSession();
 
-    if (!sellerId) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(401).json({
-        hasError: true,
-        message: "Access denied: You do not have permission to Prepare quote.",
-      });
-    }
+    session.startTransaction();
+
+    const sellerId = req.user?.id;
+    if (!sellerId) throw new Error("Unauthorized");
 
     let { enquiryNumber, products } = req.body;
-
-    if (!enquiryNumber) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        hasError: true,
-        message: "Enquiry number is required.",
-      });
-    }
-
+    if (!enquiryNumber) throw new Error("Enquiry number is required.");
     if (typeof products === "string") products = JSON.parse(products);
-
     if (!Array.isArray(products) || products.length === 0) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        hasError: true,
-        message: "At least one product must be provided.",
-      });
+      throw new Error("At least one product must be provided.");
     }
 
-    // Fetch location data for all parties
     const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
       QuoteRequest.findOne({ enquiryNumber }).session(session),
       SellerProfile.findOne({ sellerId }).session(session),
@@ -102,49 +71,39 @@ async function create(req, res) {
     ]);
 
     if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({
-        hasError: true,
-        message: "Required profile data not found.",
-      });
+      throw new Error("Required profile data not found.");
     }
 
-    // Extract states from location strings
     const schoolState = quoteRequest.deliveryState;
     const sellerState = sellerProfile.state;
     const edprowiseState = edprowiseProfile.state;
 
     if (!schoolState || !sellerState || !edprowiseState) {
-      return res.status(400).json({
-        hasError: true,
-        message: "Location data is incomplete.",
-      });
+      throw new Error("Location data is incomplete.");
     }
 
     const uploadedImages = req.files || [];
     const createdEntries = [];
 
-    let totalQuantity = 0;
-    let totalFinalRateBeforeDiscount = 0;
-    let totalTaxableValue = 0;
-    let totalCgstAmount = 0;
-    let totalSgstAmount = 0;
-    let totalIgstAmount = 0;
-    let totalTaxAmount = 0;
-    let totalAmountBeforeGstAndDiscount = 0;
-    let totalDiscountAmount = 0;
-    let totalAmount = 0;
-    let totalFinalRate = 0;
-
-    let totalFinalRateBeforeDiscountForEdprowise = 0;
-    let totalTaxableValueForEdprowise = 0;
-    let totalCgstAmountForEdprowise = 0;
-    let totalSgstAmountForEdprowise = 0;
-    let totalIgstAmountForEdprowise = 0;
-    let totalTaxAmountForEdprowise = 0;
-    let totalAmountForEdprowise = 0;
-    let totalFinalRateForEdprowise = 0;
+    let totalQuantity = 0,
+      totalFinalRateBeforeDiscount = 0,
+      totalTaxableValue = 0,
+      totalCgstAmount = 0,
+      totalSgstAmount = 0,
+      totalIgstAmount = 0,
+      totalTaxAmount = 0,
+      totalAmountBeforeGstAndDiscount = 0,
+      totalDiscountAmount = 0,
+      totalAmount = 0,
+      totalFinalRate = 0,
+      totalFinalRateBeforeDiscountForEdprowise = 0,
+      totalTaxableValueForEdprowise = 0,
+      totalCgstAmountForEdprowise = 0,
+      totalSgstAmountForEdprowise = 0,
+      totalIgstAmountForEdprowise = 0,
+      totalTaxAmountForEdprowise = 0,
+      totalAmountForEdprowise = 0,
+      totalFinalRateForEdprowise = 0;
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -154,12 +113,8 @@ async function create(req, res) {
         enquiryNumber,
         ...product,
       });
-
       if (error?.details?.length) {
-        const errorMessages = error.details
-          .map((err) => err.message)
-          .join(", ");
-        return res.status(400).json({ hasError: true, message: errorMessages });
+        throw new Error(error.details.map((err) => err.message).join(", "));
       }
 
       const requiredFields = [
@@ -168,99 +123,68 @@ async function create(req, res) {
         "quantity",
         "discount",
       ];
-
       for (const field of requiredFields) {
         if (product[field] === undefined || product[field] === null) {
-          return res.status(400).json({
-            hasError: true,
-            message: `Field '${field}' is required for calculations.`,
-          });
+          throw new Error(`Field '${field}' is required for calculations.`);
         }
       }
 
       const prepareQuoteImages = [];
-      if (req.files) {
-        const imageKeys = Object.keys(req.files).filter((key) => {
-          for (let j = 0; j <= 4; j++) {
-            if (key.startsWith(`products[${i}][prepareQuoteImages][${j}]`))
-              return true;
-          }
-          return false;
-        });
-        imageKeys.forEach((key) => {
-          req.files[key].forEach((file) => {
-            prepareQuoteImages.push(
-              `/Images/PrepareQuoteImage/${file.filename}`
-            );
-          });
-        });
-      }
+      const imageKeys = Object.keys(req.files || {}).filter((key) =>
+        new RegExp(`^products\\[${i}\\]\\[prepareQuoteImages\\]\\[\\d\\]`).test(
+          key
+        )
+      );
 
-      // Perform calculations
+      imageKeys.forEach((key) => {
+        req.files[key].forEach((file) => {
+          prepareQuoteImages.push(`/Images/PrepareQuoteImage/${file.filename}`);
+        });
+      });
+
       const listingRate = parseFloat(product.listingRate);
       const edprowiseMargin = parseFloat(product.edprowiseMargin);
       const quantity = parseFloat(product.quantity);
       const discount = parseFloat(product.discount);
-
-      // Original GST rates from product
       const cgstRate = parseFloat(product.cgstRate) || 0;
       const sgstRate = parseFloat(product.sgstRate) || 0;
       const igstRate = parseFloat(product.igstRate) || 0;
 
-      // Determine GST rates for Edprowise based on location scenarios
-      let cgstRateForEdprowise = 0;
-      let sgstRateForEdprowise = 0;
-      let igstRateForEdprowise = 0;
+      let cgstRateForEdprowise = 0,
+        sgstRateForEdprowise = 0,
+        igstRateForEdprowise = 0;
 
-      // Scenario 1: All locations match
       if (schoolState === edprowiseState && edprowiseState === sellerState) {
         cgstRateForEdprowise = cgstRate;
         sgstRateForEdprowise = sgstRate;
         igstRateForEdprowise = igstRate;
-      }
-      // Scenario 2: School ≠ Edprowise = Seller
-      else if (
+      } else if (
         schoolState !== edprowiseState &&
         edprowiseState === sellerState
       ) {
         cgstRateForEdprowise = igstRate / 2;
         sgstRateForEdprowise = igstRate / 2;
-        igstRateForEdprowise = 0;
-      }
-      // Scenario 3: All locations different
-      else if (
+      } else if (
         schoolState !== edprowiseState &&
         edprowiseState !== sellerState
       ) {
-        cgstRateForEdprowise = 0;
-        sgstRateForEdprowise = 0;
         igstRateForEdprowise = igstRate;
-      }
-      // Scenario 4: School = Edprowise ≠ Seller
-      else if (
+      } else if (
         schoolState === edprowiseState &&
         edprowiseState !== sellerState
       ) {
-        cgstRateForEdprowise = 0;
-        sgstRateForEdprowise = 0;
         igstRateForEdprowise = cgstRate + sgstRate;
       }
 
-      // Calculate finalRateBeforeDiscount
       const finalRateBeforeDiscount =
         listingRate + (listingRate * edprowiseMargin) / 100;
-
-      // Calculate finalRate
       const finalRate =
         finalRateBeforeDiscount - (finalRateBeforeDiscount * discount) / 100;
-
       const finalRateForEdprowise = (finalRate / (edprowiseMargin + 100)) * 100;
 
-      // Calculate taxableValue
       const taxableValue = finalRate * quantity;
       const taxableValueForEdprowise = finalRateForEdprowise * quantity;
 
-      // Calculate GST amounts using the determined rates
       const cgstAmount = (taxableValue * cgstRate) / 100;
       const sgstAmount = (taxableValue * sgstRate) / 100;
       const igstAmount = (taxableValue * igstRate) / 100;
@@ -272,35 +196,30 @@ async function create(req, res) {
       const igstAmountForEdprowise =
         (taxableValueForEdprowise * igstRateForEdprowise) / 100;
 
-      // Calculate amountBeforeGstAndDiscount
       const amountBeforeGstAndDiscount = finalRateBeforeDiscount * quantity;
-
-      // Calculate discountAmount
       const discountAmount = (amountBeforeGstAndDiscount * discount) / 100;
-
-      // Calculate gstAmount
       const gstAmount = cgstAmount + sgstAmount + igstAmount;
       const gstAmountForEdprowise =
         cgstAmountForEdprowise +
         sgstAmountForEdprowise +
         igstAmountForEdprowise;
 
-      // Calculate totalAmount
       const totalAmountForProduct =
         amountBeforeGstAndDiscount - discountAmount + gstAmount;
       const totalAmountForProductForEdprowise =
         taxableValueForEdprowise + gstAmountForEdprowise;
 
+      // Accumulate totals
       totalQuantity += quantity;
-      totalFinalRateBeforeDiscount += finalRateBeforeDiscount;
-      totalAmountBeforeGstAndDiscount += amountBeforeGstAndDiscount;
-      totalDiscountAmount += discountAmount;
       totalAmount += totalAmountForProduct;
+      totalFinalRateBeforeDiscount += finalRateBeforeDiscount;
+      totalDiscountAmount += discountAmount;
       totalTaxableValue += taxableValue;
       totalCgstAmount += cgstAmount;
       totalSgstAmount += sgstAmount;
       totalIgstAmount += igstAmount;
       totalTaxAmount += gstAmount;
+      totalAmountBeforeGstAndDiscount += amountBeforeGstAndDiscount;
       totalFinalRate += finalRate;
 
       totalFinalRateBeforeDiscountForEdprowise += finalRateBeforeDiscount;
@@ -316,9 +235,7 @@ async function create(req, res) {
         sellerId,
         enquiryNumber,
         prepareQuoteImages,
-        subcategoryName: product.subcategoryName,
-        subCategoryId: product.subCategoryId,
-        hsnSacc: product.hsnSacc,
+        ...product,
         listingRate,
         edprowiseMargin,
         quantity,
@@ -348,19 +265,12 @@ async function create(req, res) {
         totalAmountForEdprowise: totalAmountForProductForEdprowise,
       });
 
-      // Save the entry
       const savedEntry = await newPrepareQuote.save({ session });
       createdEntries.push(savedEntry);
     }
 
-    const quoteNumber = await generateQuoteNumber();
+    quoteNumber = await generateQuoteNumber(session);
 
-    console.log(
-      "Generated Quote Number:============================================",
-      quoteNumber
-    );
-
-    // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({
       quoteNumber,
       sellerId,
@@ -376,7 +286,6 @@ async function create(req, res) {
       totalIgstAmount,
       totalTaxAmount,
       totalFinalRate,
-      // For Edprowise
       totalFinalRateBeforeDiscountForEdprowise,
       totalTaxableValueForEdprowise,
       totalCgstAmountForEdprowise,
@@ -393,24 +302,16 @@ async function create(req, res) {
 
     await newQuoteProposal.save({ session });
 
-    const updatedQuoteRequest = await QuoteRequest.findOneAndUpdate(
+    await QuoteRequest.findOneAndUpdate(
       { enquiryNumber },
       { edprowiseStatus: "Quote Received" },
       { new: true, session }
     );
 
-    if (!updatedQuoteRequest) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).json({
-        hasError: true,
-        message: "Quote request not found with the given enquiry number.",
-      });
-    }
-
     const newSubmitQuote = new SubmitQuote({
       sellerId,
       enquiryNumber,
+      quoteNumber,
       quotedAmount: totalAmount,
       advanceRequiredAmount: 0,
     });
@@ -418,51 +319,49 @@ async function create(req, res) {
     await newSubmitQuote.save({ session });
 
     await session.commitTransaction();
+
     session.endSession();
 
-    // Send notifications to relevant sellers
+    // Send notification after transaction committed
+    await NotificationService.sendNotification(
+      "SELLER_QUOTE_PREPARED",
+      [{ id: sellerId, type: "seller" }],
+      {
+        enquiryNumber: enquiryNumber,
+        quoteNumber: newQuoteProposal.quoteNumber,
+        entityId: newQuoteProposal._id,
+        entityType: "QuoteProposal",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_prepared",
+        },
+      }
+    );
 
-    await Promise.all([
-      NotificationService.sendNotification(
-        "SELLER_QUOTE_PREPARED",
-        [{ id: sellerId.toString(), type: "seller" }],
-        {
-          quoteNumber,
-          entityId: newQuoteProposal._id,
-          entityType: "QuoteProposal",
-          senderType: "seller",
-          senderId: sellerId,
-          metadata: {
-            quoteNumber: quoteNumber,
-            type: "quote_prepared",
-          },
-        }
-      ),
-      (async () => {
-        const relevantEdprowise = await AdminUser.find({});
-        await NotificationService.sendNotification(
-          "EDPROWISE_QUOTE_RECEIVED_FROM_SELLER",
-          relevantEdprowise.map((admin) => ({
-            id: admin._id.toString(),
-            type: "edprowise",
-          })),
-          {
-            companyName: sellerProfile.companyName,
-            quoteNumber,
-            entityId: newQuoteProposal._id,
-            entityType: "QuoteProposal",
-            senderType: "seller",
-            senderId: sellerId,
-            metadata: {
-              quoteNumber: quoteNumber,
-              type: "quote_received_from_seller",
-            },
-          }
-        );
-      })(),
-    ]);
+    const relevantEdprowise = await AdminUser.find({});
 
-    // If everything succeeds, commit the transaction
+    await NotificationService.sendNotification(
+      "EDPROWISE_QUOTE_RECEIVED_FROM_SELLER",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        enquiryNumber: enquiryNumber,
+        quoteNumber: newQuoteProposal.quoteNumber,
+        entityId: newQuoteProposal._id,
+        entityType: "QuoteProposal From Seller",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_received_from_seller",
+        },
+      }
+    );
 
     return res.status(201).json({
       hasError: false,
@@ -474,17 +373,14 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    // Only abort transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
+    if (session) {
       await session.abortTransaction();
+      session.endSession();
     }
-
-    session.endSession();
-    console.error("Error creating Prepare Quote:", error.message);
-    console.error(error.stack);
+    console.error("Error creating Prepare quotes or Quote Proposal:", error);
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error.",
+      message: error.message || "Internal server error.",
     });
   }
 }

@@ -836,7 +836,6 @@ async function create(req, res) {
     if (typeof products === "string") {
       try {
         products = JSON.parse(products);
-
         console.log("Number of products:", products.length);
       } catch (error) {
         return res.status(400).json({
