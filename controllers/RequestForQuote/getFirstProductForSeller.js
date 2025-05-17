@@ -28,7 +28,7 @@ async function getProductsForSeller(req, res) {
       });
     }
 
-    // Create an array of conditions that require BOTH category and subcategory to match
+    // Create an array of conditions for category and subcategory matches
     const productMatchConditions = sellerProfile.dealingProducts.flatMap(
       (product) => {
         return product.subCategoryIds.map((subCategoryId) => ({
@@ -38,7 +38,7 @@ async function getProductsForSeller(req, res) {
       }
     );
 
-    // Build the query conditions
+    // Build the query
     const queryConditions = {
       $or: productMatchConditions.map((condition) => ({
         categoryId: condition.categoryId,
@@ -46,30 +46,30 @@ async function getProductsForSeller(req, res) {
       })),
     };
 
-    // Find all products that match the seller's dealing products
+    // Find all products matching the seller's profile
     const products = await Product.find(queryConditions)
       .sort({ createdAt: -1 })
       .populate("categoryId", "categoryName")
       .populate("subCategoryId", "subCategoryName");
 
-    // Get all enquiry numbers from the products
     const enquiryNumbers = [...new Set(products.map((p) => p.enquiryNumber))];
 
-    // Fetch all orders that match these enquiry numbers
+    // Fetch all orders for these enquiry numbers
     const orders = await OrderFromBuyer.find({
       enquiryNumber: { $in: enquiryNumbers },
     }).populate("subCategoryId");
 
-    // Create a set of excluded product keys (enquiryNumber + categoryId + subCategoryId)
-    const excludedProducts = new Set();
+    // Create a map: key -> (enquiryNumber-subCategoryId), value -> Set of sellerIds
+    const orderMap = new Map();
     orders.forEach((order) => {
-      if (order.sellerId.toString() !== sellerId.toString()) {
-        const key = `${order.enquiryNumber}-${order.subCategoryId._id}`;
-        excludedProducts.add(key);
+      const key = `${order.enquiryNumber}-${order.subCategoryId._id}`;
+      if (!orderMap.has(key)) {
+        orderMap.set(key, new Set());
       }
+      orderMap.get(key).add(order.sellerId.toString());
     });
 
-    // Fetch quote requests
+    // Fetch all quote requests
     const quoteRequests = await QuoteRequest.find();
     const quoteRequestsMap = quoteRequests.reduce((acc, quoteRequest) => {
       acc[quoteRequest.enquiryNumber] = {
@@ -89,18 +89,18 @@ async function getProductsForSeller(req, res) {
       return acc;
     }, {});
 
-    // Filter out products that have orders from other sellers
     const filteredProducts = [];
     const seenEnquiryNumbers = new Set();
 
     for (const product of products) {
       const key = `${product.enquiryNumber}-${product.subCategoryId._id}`;
+      const sellerIdsForKey = orderMap.get(key) || new Set();
 
-      // Only include if not excluded and we haven't seen this enquiry number yet
-      if (
-        !excludedProducts.has(key) &&
-        !seenEnquiryNumbers.has(product.enquiryNumber)
-      ) {
+      // Exclude only if someone else placed an order AND this seller did not
+      const isExcluded =
+        sellerIdsForKey.size > 0 && !sellerIdsForKey.has(sellerId.toString());
+
+      if (!isExcluded && !seenEnquiryNumbers.has(product.enquiryNumber)) {
         seenEnquiryNumbers.add(product.enquiryNumber);
 
         const existingSubmittedQuote = await SubmitQuote.findOne({

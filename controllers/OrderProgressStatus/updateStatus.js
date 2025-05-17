@@ -1,4 +1,3 @@
-import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import OrderFromBuyer from "../../models/OrderFromBuyer.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
@@ -12,7 +11,10 @@ import path from "path";
 import fs from "fs";
 import invoiceForBuyerPDFRequirementsForEmail from "../PDFForFrontend/invoiceForBuyerPDFRequirementsForEmail.js";
 
-// import axios from 'axios';
+import AdminUser from "../../models/AdminUser.js";
+import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import { NotificationService } from "../../notificationService.js";
+
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -987,12 +989,238 @@ async function sendEmailsToSellers({
   }
 }
 
+// async function updateStatus(req, res) {
+//   try {
+//     const { enquiryNumber, sellerId } = req.query;
+//     const { supplierStatus } = req.body;
+
+//     if (!enquiryNumber) {
+//       return res.status(400).json({
+//         hasError: true,
+//         message: "enquiryNumber is required",
+//       });
+//     }
+
+//     if (!sellerId) {
+//       return res.status(400).json({
+//         hasError: true,
+//         message: "SellerId is required",
+//       });
+//     }
+
+//     const allowedStatuses = [
+//       "Work In Progress",
+//       "Ready For Transit",
+//       "In-Transit",
+//       "Delivered",
+//     ];
+
+//     if (!allowedStatuses.includes(supplierStatus)) {
+//       return res.status(400).json({
+//         hasError: true,
+//         message: `Invalid Supplier Status. Allowed values: ${allowedStatuses.join(
+//           ", "
+//         )}`,
+//       });
+//     }
+
+//     // Find and update all related documents in a transaction
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     try {
+//       const existingOrder = await QuoteProposal.findOneAndUpdate(
+//         { sellerId, enquiryNumber },
+//         {
+//           supplierStatus,
+//           edprowiseStatus: supplierStatus,
+//           buyerStatus: supplierStatus,
+//         },
+//         { new: true, session }
+//       );
+
+//       if (!existingOrder) {
+//         await session.abortTransaction();
+//         session.endSession();
+//         return res.status(404).json({
+//           hasError: true,
+//           message: "Order not found for the given enquiryNumber",
+//         });
+//       }
+
+//       const existingSubmitQuote = await SubmitQuote.findOneAndUpdate(
+//         { sellerId, enquiryNumber },
+//         { venderStatusFromBuyer: supplierStatus },
+//         { new: true, session }
+//       );
+
+//       if (!existingSubmitQuote) {
+//         await session.abortTransaction();
+//         session.endSession();
+//         return res.status(404).json({
+//           hasError: true,
+//           message: "Submit Quote not found for the given enquiryNumber",
+//         });
+//       }
+
+//       if (supplierStatus === "Ready For Transit") {
+//         await OrderDetailsFromSeller.findOneAndUpdate(
+//           { enquiryNumber, sellerId },
+//           { invoiceDate: new Date() },
+//           { new: true, session }
+//         );
+//       }
+
+//       if (supplierStatus === "Delivered") {
+//         const productDetails = await OrderFromBuyer.find({
+//           enquiryNumber,
+//           sellerId,
+//         });
+
+//         const schoolId = productDetails[0].schoolId;
+//         const deliveryDetails = await QuoteRequest.findOne({
+//           enquiryNumber,
+//           $or: [{ schoolId: schoolId }, { sellerId: sellerId }],
+//         });
+
+//         const sellerDetails = await SellerProfile.findOne({ sellerId });
+//         const schoolDetails = await School.findOne({ schoolId });
+//         console.log("school Details are", schoolDetails);
+
+//         await sendSchooldeliverdEmail({
+//           schoolDetails,
+//           productDetails,
+//           deliveryDetails,
+//           sellerId,
+//         });
+
+//         await sendEmailsToSellers({
+//           sellerDetails,
+//           productDetails,
+//           deliveryDetails,
+//         });
+//       }
+
+//       await session.commitTransaction();
+//       session.endSession();
+
+//       const existingOrderDetailsFromSeller =
+//         await OrderDetailsFromSeller.findOne({
+//           sellerId,
+//           enquiryNumber,
+//         });
+
+//       if (!existingOrderDetailsFromSeller) {
+//         return res.status(404).json({
+//           hasError: true,
+//           message: `No Order details found for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+//         });
+//       }
+
+//       const senderId = req.user.id;
+
+//       const relevantEdprowise = await AdminUser.find({});
+
+//       await NotificationService.sendNotification(
+//         "ORDER_PROGRESS_BY_SELLER_FOR_EDPROWISE",
+//         relevantEdprowise.map((admin) => ({
+//           id: admin._id.toString(),
+//           type: "edprowise",
+//         })),
+//         {
+//           companyName: sellerDetails.companyName,
+//           schoolName: schoolDetails.schoolName,
+//           orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//           enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+//           entityId: existingOrderDetailsFromSeller._id,
+//           entityType: "Order Progress",
+//           senderType: "seller",
+//           senderId: senderId,
+//           metadata: {
+//             orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//             type: "order_progress_by_seller",
+//           },
+//         }
+//       );
+
+//       await NotificationService.sendNotification(
+//         "ORDER_PROGRESS_BY_SELLER_FOR_SCHOOL",
+//         [
+//           {
+//             id: schoolDetails.schoolId.toString(),
+//             type: "school",
+//           },
+//         ],
+//         {
+//           companyName: sellerDetails.companyName,
+//           schoolName: schoolDetails.schoolName,
+//           orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//           enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+//           entityId: existingOrderDetailsFromSeller._id,
+//           entityType: "Order Progress",
+//           senderType: "seller",
+//           senderId: senderId,
+//           metadata: {
+//             orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//             type: "order_progress_by_seller",
+//           },
+//         }
+//       );
+
+//       await NotificationService.sendNotification(
+//         "ORDER_PROGRESS_BY_SELLER_FOR_SELLER",
+//         [
+//           {
+//             id: sellerId.toString(),
+//             type: "seller",
+//           },
+//         ],
+//         {
+//           companyName: sellerDetails.companyName,
+//           schoolName: schoolDetails.schoolName,
+//           orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//           enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+//           entityId: existingOrderDetailsFromSeller._id,
+//           entityType: "Order Progress",
+//           senderType: "seller",
+//           senderId: senderId,
+//           metadata: {
+//             orderNumber: existingOrderDetailsFromSeller.orderNumber,
+//             type: "order_progress_by_seller",
+//           },
+//         }
+//       );
+
+//       return res.status(200).json({
+//         hasError: false,
+//         message: "Order status updated successfully.",
+//         data: existingOrder,
+//       });
+//     } catch (error) {
+//       await session.abortTransaction();
+//       session.endSession();
+//       throw error;
+//     }
+//   } catch (error) {
+//     console.error("Error updating Order Status:", error);
+//     return res.status(500).json({
+//       hasError: true,
+//       message: "Internal server error.",
+//     });
+//   }
+// }
+
 async function updateStatus(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { enquiryNumber, sellerId } = req.query;
     const { supplierStatus } = req.body;
 
     if (!enquiryNumber) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "enquiryNumber is required",
@@ -1000,6 +1228,8 @@ async function updateStatus(req, res) {
     }
 
     if (!sellerId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "SellerId is required",
@@ -1014,6 +1244,8 @@ async function updateStatus(req, res) {
     ];
 
     if (!allowedStatuses.includes(supplierStatus)) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: `Invalid Supplier Status. Allowed values: ${allowedStatuses.join(
@@ -1022,97 +1254,208 @@ async function updateStatus(req, res) {
       });
     }
 
-    // Find and update all related documents in a transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const existingOrder = await QuoteProposal.findOneAndUpdate(
+      { sellerId, enquiryNumber },
+      {
+        supplierStatus,
+        edprowiseStatus: supplierStatus,
+        buyerStatus: supplierStatus,
+      },
+      { new: true, session }
+    );
 
-    try {
-      const existingOrder = await QuoteProposal.findOneAndUpdate(
-        { sellerId, enquiryNumber },
-        {
-          supplierStatus,
-          edprowiseStatus: supplierStatus,
-          buyerStatus: supplierStatus,
-        },
-        { new: true, session }
-      );
-
-      if (!existingOrder) {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(404).json({
-          hasError: true,
-          message: "Order not found for the given enquiryNumber",
-        });
-      }
-
-      const existingSubmitQuote = await SubmitQuote.findOneAndUpdate(
-        { sellerId, enquiryNumber },
-        { venderStatusFromBuyer: supplierStatus },
-        { new: true, session }
-      );
-
-      if (!existingSubmitQuote) {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(404).json({
-          hasError: true,
-          message: "Submit Quote not found for the given enquiryNumber",
-        });
-      }
-
-      if (supplierStatus === "Ready For Transit") {
-        await OrderDetailsFromSeller.findOneAndUpdate(
-          { enquiryNumber, sellerId },
-          { invoiceDate: new Date() },
-          { new: true, session }
-        );
-      }
-
-      if (supplierStatus === "Delivered") {
-        const productDetails = await OrderFromBuyer.find({
-          enquiryNumber,
-          sellerId,
-        });
-
-        const schoolId = productDetails[0].schoolId;
-        const deliveryDetails = await QuoteRequest.findOne({
-          enquiryNumber,
-          $or: [{ schoolId: schoolId }, { sellerId: sellerId }],
-        });
-
-        const sellerDetails = await SellerProfile.findOne({ sellerId });
-        const schoolDetails = await School.findOne({ schoolId });
-        console.log("school Details are", schoolDetails);
-
-        await sendSchooldeliverdEmail({
-          schoolDetails,
-          productDetails,
-          deliveryDetails,
-          sellerId,
-        });
-
-        await sendEmailsToSellers({
-          sellerDetails,
-          productDetails,
-          deliveryDetails,
-        });
-      }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      return res.status(200).json({
-        hasError: false,
-        message: "Order status updated successfully.",
-        data: existingOrder,
-      });
-    } catch (error) {
+    if (!existingOrder) {
       await session.abortTransaction();
       session.endSession();
-      throw error;
+      return res.status(404).json({
+        hasError: true,
+        message: "Order not found for the given enquiryNumber",
+      });
     }
+
+    const existingSubmitQuote = await SubmitQuote.findOneAndUpdate(
+      { sellerId, enquiryNumber },
+      { venderStatusFromBuyer: supplierStatus },
+      { new: true, session }
+    );
+
+    if (!existingSubmitQuote) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        hasError: true,
+        message: "Submit Quote not found for the given enquiryNumber",
+      });
+    }
+
+    if (supplierStatus === "Ready For Transit") {
+      await OrderDetailsFromSeller.findOneAndUpdate(
+        { enquiryNumber, sellerId },
+        { invoiceDate: new Date() },
+        { new: true, session }
+      );
+    }
+
+    let schoolDetails, sellerDetails, productDetails, deliveryDetails;
+
+    if (supplierStatus === "Delivered") {
+      productDetails = await OrderFromBuyer.find({
+        enquiryNumber,
+        sellerId,
+      });
+
+      const schoolId = productDetails[0]?.schoolId;
+
+      deliveryDetails = await QuoteRequest.findOne({
+        enquiryNumber,
+        $or: [{ schoolId }, { sellerId }],
+      });
+
+      sellerDetails = await SellerProfile.findOne({ sellerId });
+      schoolDetails = await School.findOne({ schoolId });
+
+      await sendSchooldeliverdEmail({
+        schoolDetails,
+        productDetails,
+        deliveryDetails,
+        sellerId,
+      });
+
+      await sendEmailsToSellers({
+        sellerDetails,
+        productDetails,
+        deliveryDetails,
+      });
+    }
+
+    const existingOrderDetailsFromSeller = await OrderDetailsFromSeller.findOne(
+      {
+        sellerId,
+        enquiryNumber,
+      }
+    );
+
+    if (!existingOrderDetailsFromSeller) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        hasError: true,
+        message: `No Order details found for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+      });
+    }
+
+    const schoolId = existingOrderDetailsFromSeller.schoolId;
+
+    const schoolProfile = await School.findOne({
+      schoolId,
+    });
+
+    if (!schoolProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `School not found for given school ID ${schoolId}.`,
+      });
+    }
+
+    const sellerProfile = await SellerProfile.findOne({
+      sellerId,
+    });
+
+    if (!sellerProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `Seller not found for given seller ID ${sellerId}.`,
+      });
+    }
+
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "ORDER_PROGRESS_BY_SELLER_FOR_EDPROWISE",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        status: supplierStatus,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Progress",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_progress_by_seller",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "ORDER_PROGRESS_BY_SELLER_FOR_SCHOOL",
+      [
+        {
+          id: schoolId?.toString(),
+          type: "school",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        status: supplierStatus,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Progress",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_progress_by_seller",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "ORDER_PROGRESS_BY_SELLER_FOR_SELLER",
+      [
+        {
+          id: sellerId.toString(),
+          type: "seller",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        status: supplierStatus,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Progress",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_progress_by_seller",
+        },
+      }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      hasError: false,
+      message: "Order status updated successfully.",
+      data: existingOrder,
+    });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error updating Order Status:", error);
     return res.status(500).json({
       hasError: true,

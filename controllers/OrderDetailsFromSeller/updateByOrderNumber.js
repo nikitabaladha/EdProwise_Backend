@@ -1,6 +1,11 @@
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import OrderDetailsFromSellerValidator from "../../validators/OrderDetailsFromSeller.js";
 
+import AdminUser from "../../models/AdminUser.js";
+import School from "../../models/School.js";
+import Seller from "../../models/SellerProfile.js";
+import { NotificationService } from "../../notificationService.js";
+
 async function updateByOrderNumber(req, res) {
   try {
     const { orderNumber } = req.query;
@@ -52,7 +57,7 @@ async function updateByOrderNumber(req, res) {
       { sellerId, orderNumber },
       { $set: updatedData },
       { new: true }
-    ).select("sellerId enquiryNumber actualDeliveryDate");
+    ).select("sellerId enquiryNumber actualDeliveryDate schoolId orderNumber");
 
     if (!updatedOrderDetails) {
       return res.status(500).json({
@@ -60,6 +65,103 @@ async function updateByOrderNumber(req, res) {
         message: "Failed to update order details.",
       });
     }
+    const schoolId = updatedOrderDetails.schoolId;
+
+    const schoolProfile = await School.findOne({
+      schoolId,
+    });
+
+    if (!schoolProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `School not found for given school ID ${schoolId}.`,
+      });
+    }
+
+    const sellerProfile = await Seller.findOne({
+      sellerId,
+    });
+
+    if (!sellerProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `Seller not found for given seller ID ${sellerId}.`,
+      });
+    }
+
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "SELLER_DELIVERY_DATE_CHANGED_FOR_EDPROWISE",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: updatedOrderDetails.orderNumber,
+        enquiryNumber: updatedOrderDetails.enquiryNumber,
+        entityId: updatedOrderDetails._id,
+        entityType: "Delivery Date Changed",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: updatedOrderDetails.orderNumber,
+          type: "delivery_date_changed_by_seller",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SELLER_DELIVERY_DATE_CHANGED_FOR_SCHOOL",
+      [
+        {
+          id: schoolId.toString(),
+          type: "school",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: updatedOrderDetails.orderNumber,
+        enquiryNumber: updatedOrderDetails.enquiryNumber,
+        entityId: updatedOrderDetails._id,
+        entityType: "Delivery Date Changed",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: updatedOrderDetails.orderNumber,
+          type: "delivery_date_changed_by_seller",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SELLER_DELIVERY_DATE_CHANGED_FOR_SELLER",
+      [
+        {
+          id: sellerId.toString(),
+          type: "seller",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: updatedOrderDetails.orderNumber,
+        enquiryNumber: updatedOrderDetails.enquiryNumber,
+        entityId: updatedOrderDetails._id,
+        entityType: "Delivery Date Changed",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          orderNumber: updatedOrderDetails.orderNumber,
+          type: "delivery_date_changed_by_seller",
+        },
+      }
+    );
 
     return res.status(200).json({
       message: "Order details updated successfully!",

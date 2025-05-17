@@ -50,7 +50,7 @@ export const NOTIFICATION_TEMPLATES = {
 
   SCHOOL_TDS_UPDATED: {
     type: "tds_updated_by_edprowise",
-    title: "TDS UPDATED",
+    title: "TDS Updated",
     message: (context) =>
       `TDS has been updated for Order Number ${context.orderNumber} from Edprowise.`,
     recipientType: "school",
@@ -58,9 +58,49 @@ export const NOTIFICATION_TEMPLATES = {
 
   EDPROWISE_CANCELLED_ORDER_FOR_SCHOOL: {
     type: "order_cancelled_by_edprowise",
-    title: "EDPROWISE_CANCELLED_ORDER",
+    title: "Edprowise Cancelled Order",
     message: (context) =>
-      `Your Order has beed cancelled for ${context.companyName} for Order Number ${context.orderNumber} by Edprowise.`,
+      `Your order has beed cancelled for ${context.companyName} for Order Number ${context.orderNumber} by Edprowise.`,
+    recipientType: "school",
+  },
+
+  SCHOOL_CANCELLED_ORDER_FOR_SCHOOL: {
+    type: "order_cancelled_by_school",
+    title: "School Cancelled Order",
+    message: (context) =>
+      `You have cancelled order from ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "school",
+  },
+
+  SCHOOL_REQUESTED_FOR_ORDER_CANCELL_FOR_SCHOOL: {
+    type: "order_cancel_request_by_school",
+    title: "School Order Cancel Request",
+    message: (context) =>
+      `You have requested for order cancellation from ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "school",
+  },
+
+  SELLER_REQUESTED_FOR_ORDER_CANCEL_FOR_SCHOOL: {
+    type: "order_cancel_request_by_seller",
+    title: "Seller Order Cancel Request",
+    message: (context) =>
+      `Your order has been requested for cancellation from ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "school",
+  },
+
+  SELLER_DELIVERY_DATE_CHANGED_FOR_SCHOOL: {
+    type: "delivery_date_changed_by_seller",
+    title: "Delivery Date Changed",
+    message: (context) =>
+      `Delivery date has been changed for Order Number ${context.orderNumber} from ${context.companyName}.`,
+    recipientType: "school",
+  },
+
+  ORDER_PROGRESS_BY_SELLER_FOR_SCHOOL: {
+    type: "order_progress_by_seller",
+    title: "Order Progress",
+    message: (context) =>
+      `Order progressed status is changed to ${context.status} by ${context.companyName} for Order Number ${context.orderNumber}.`,
     recipientType: "school",
   },
 
@@ -121,6 +161,45 @@ export const NOTIFICATION_TEMPLATES = {
     recipientType: "seller",
   },
 
+  SCHOOL_CANCELLED_ORDER_FOR_SELLER: {
+    type: "order_cancelled_by_school",
+    title: "School Cancelled Order",
+    message: (context) =>
+      `Your order has been cancelled by ${context.schoolName} for Order Number ${context.orderNumber}.`,
+    recipientType: "seller",
+  },
+
+  SCHOOL_REQUESTED_FOR_ORDER_CANCELL_FOR_SELLER: {
+    type: "order_cancel_request_by_school",
+    title: "School Order Cancel Request",
+    message: (context) =>
+      `Your order has been requested for cancellation from ${context.schoolName} for Order Number ${context.orderNumber}.`,
+    recipientType: "seller",
+  },
+
+  SELLER_REQUESTED_FOR_ORDER_CANCEL_FOR_SELLER: {
+    type: "order_cancel_request_by_seller",
+    title: "Seller Order Cancel Request",
+    message: (context) =>
+      `You have requested for order cancellation for ${context.schoolName} for Order Number ${context.orderNumber}.`,
+    recipientType: "seller",
+  },
+
+  SELLER_DELIVERY_DATE_CHANGED_FOR_SELLER: {
+    type: "delivery_date_changed_by_seller",
+    title: "Delivery Date Changed",
+    message: (context) =>
+      `You have changed delivery date for Order Number ${context.orderNumber} for ${context.schoolName}.`,
+    recipientType: "seller",
+  },
+
+  ORDER_PROGRESS_BY_SELLER_FOR_SELLER: {
+    type: "order_progress_by_seller",
+    title: "Order Progress",
+    message: (context) =>
+      `Order progressed status is changed to ${context.status} for Order Number ${context.orderNumber} for ${context.schoolName}.`,
+    recipientType: "seller",
+  },
   //Edprowise Notifications
   EDPROWISE_QUOTE_REQUESTED_FROM_SCHOOL: {
     type: "quote_received",
@@ -191,6 +270,45 @@ export const NOTIFICATION_TEMPLATES = {
     title: "Edprowise Cancelled Order",
     message: (context) =>
       `You has cancelled order of ${context.companyName} for  ${context.schoolName} of Order Number ${context.orderNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  SCHOOL_CANCELLED_ORDER_FOR_EDPROWISE: {
+    type: "order_cancelled_by_school",
+    title: "School Cancelled Order",
+    message: (context) =>
+      `The order has been cancelled by School ${context.schoolName} from Seller ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  SCHOOL_REQUESTED_FOR_ORDER_CANCELL_FOR_EDPROWISE: {
+    type: "order_cancel_request_by_school",
+    title: "School Order Cancel Request",
+    message: (context) =>
+      `The order has been requested cancellation from ${context.schoolName} from ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  SELLER_REQUESTED_FOR_ORDER_CANCEL_FOR_EDPROWISE: {
+    type: "order_cancel_request_by_seller",
+    title: "Seller Order Cancel Request",
+    message: (context) =>
+      `The order has been requested cancellation from ${context.companyName} for ${context.companyName} for Order Number ${context.orderNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  SELLER_DELIVERY_DATE_CHANGED_FOR_EDPROWISE: {
+    type: "delivery_date_changed_by_seller",
+    title: "Delivery Date Changed",
+    message: (context) =>
+      `Delivery date has been changed for Order Number ${context.orderNumber} from ${context.companyName}.`,
+    recipientType: "edprowise",
+  },
+  ORDER_PROGRESS_BY_SELLER_FOR_EDPROWISE: {
+    type: "order_progress_by_seller",
+    title: "Order Progress",
+    message: (context) =>
+      `Order progressed status is changed to ${context.status} for Order Number ${context.orderNumber} from ${context.companyName}.`,
     recipientType: "edprowise",
   },
 };

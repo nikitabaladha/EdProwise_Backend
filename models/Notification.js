@@ -38,6 +38,11 @@ const NotificationSchema = new mongoose.Schema(
         "edprowise_received_order",
         "tds_updated_by_edprowise",
         "order_cancelled_by_edprowise",
+        "order_cancelled_by_school",
+        "order_cancel_request_by_school",
+        "order_cancel_request_by_seller",
+        "delivery_date_changed_by_seller",
+        "order_progress_by_seller",
       ],
     },
     title: {
@@ -65,6 +70,8 @@ const NotificationSchema = new mongoose.Schema(
         "Order From Buyer",
         "TDS Update",
         "Order Cancel",
+        "Delivery Date Changed",
+        "Order Progress",
       ],
     },
     read: {
