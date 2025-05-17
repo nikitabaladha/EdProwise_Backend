@@ -6,6 +6,9 @@ import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 
+import AdminUser from "../../models/AdminUser.js";
+import { NotificationService } from "../../notificationService.js";
+
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
 import School from "../../models/School.js";
@@ -17,92 +20,6 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-async function generateOrderNumber(sequenceNumber) {
-  const prefix = "ORD";
-
-  // Get current date
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
-
-  // Determine financial year (April to March)
-  let financialYearStart, financialYearEnd;
-  if (currentMonth >= 4) {
-    // April or later - current year to next year (2024-25)
-    financialYearStart = currentYear;
-    financialYearEnd = currentYear + 1;
-  } else {
-    // January-March - previous year to current year (2023-24)
-    financialYearStart = currentYear - 1;
-    financialYearEnd = currentYear;
-  }
-
-  const financialYear = `${financialYearStart}-${financialYearEnd
-    .toString()
-    .slice(-2)}`;
-
-  // Format the sequence number with leading zeros
-  const formattedSequence = String(sequenceNumber).padStart(4, "0");
-
-  return `${prefix}/${financialYear}/${formattedSequence}`;
-}
-
-async function generateInvoiceNumberForEdprowise(sequenceNumber) {
-  const prefix = "EINV";
-
-  // Get current date
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  // Determine financial year (April to March)
-  let financialYearStart, financialYearEnd;
-  if (currentMonth >= 4) {
-    financialYearStart = currentYear;
-    financialYearEnd = currentYear + 1;
-  } else {
-    financialYearStart = currentYear - 1;
-    financialYearEnd = currentYear;
-  }
-
-  const financialYear = `${financialYearStart}-${financialYearEnd
-    .toString()
-    .slice(-2)}`;
-
-  // Format the sequence number with leading zeros
-  const formattedSequence = String(sequenceNumber).padStart(4, "0");
-
-  return `${prefix}/${financialYear}/${formattedSequence}`;
-}
-
-async function generateInvoiceNumberForSchool(sequenceNumber) {
-  const prefix = "SINV";
-
-  // Get current date
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  // Determine financial year (April to March)
-  let financialYearStart, financialYearEnd;
-  if (currentMonth >= 4) {
-    financialYearStart = currentYear;
-    financialYearEnd = currentYear + 1;
-  } else {
-    financialYearStart = currentYear - 1;
-    financialYearEnd = currentYear;
-  }
-
-  const financialYear = `${financialYearStart}-${financialYearEnd
-    .toString()
-    .slice(-2)}`;
-
-  // Format the sequence number with leading zeros
-  const formattedSequence = String(sequenceNumber).padStart(4, "0");
-
-  return `${prefix}/${financialYear}/${formattedSequence}`;
-}
 
 async function sendSchoolRequestQuoteEmail(
   schoolName,
@@ -757,6 +674,138 @@ async function sendEmailsToSellers(
   }
 }
 
+async function generateOrderNumber(sequenceNumber) {
+  const prefix = "ORD";
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // Months are 0-indexed
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    // April or later - current year to next year (2024-25)
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    // January-March - previous year to current year (2023-24)
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
+}
+
+async function generateInvoiceNumberForEdprowise(sequenceNumber) {
+  const prefix = "EINV";
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  // Format the sequence number with leading zeros
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
+}
+
+async function generateInvoiceNumberForSchool(sequenceNumber) {
+  const prefix = "SINV";
+
+  // Get current date
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  // Determine financial year (April to March)
+  let financialYearStart, financialYearEnd;
+  if (currentMonth >= 4) {
+    financialYearStart = currentYear;
+    financialYearEnd = currentYear + 1;
+  } else {
+    financialYearStart = currentYear - 1;
+    financialYearEnd = currentYear;
+  }
+
+  const financialYear = `${financialYearStart}-${financialYearEnd
+    .toString()
+    .slice(-2)}`;
+
+  const formattedSequence = String(sequenceNumber).padStart(4, "0");
+
+  return `${prefix}/${financialYear}/${formattedSequence}`;
+}
+
+async function getNextOrderSequence(financialYear) {
+  // Find all orders for this financial year
+  const orders = await OrderDetailsFromSeller.find({
+    orderNumber: new RegExp(`^ORD/${financialYear}/`),
+  }).sort({ createdAt: -1 });
+
+  if (orders.length === 0) {
+    return 1;
+  }
+
+  // Get the highest sequence number
+  const maxSequence = Math.max(
+    ...orders.map((order) => {
+      const parts = order.orderNumber.split("/");
+      return parseInt(parts[2]);
+    })
+  );
+
+  return maxSequence + 1;
+}
+
+async function getNextInvoiceSequence(financialYear, type) {
+  const prefix = type === "edprowise" ? "EINV" : "SINV";
+
+  const invoices = await OrderDetailsFromSeller.find({
+    [type === "edprowise" ? "invoiceForEdprowise" : "invoiceForSchool"]:
+      new RegExp(`^${prefix}/${financialYear}/`),
+  }).sort({ createdAt: -1 });
+
+  if (invoices.length === 0) {
+    return 1;
+  }
+
+  const maxSequence = Math.max(
+    ...invoices.map((invoice) => {
+      const invoiceNumber =
+        type === "edprowise"
+          ? invoice.invoiceForEdprowise
+          : invoice.invoiceForSchool;
+      const parts = invoiceNumber.split("/");
+      return parseInt(parts[2]);
+    })
+  );
+
+  return maxSequence + 1;
+}
+
 async function create(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -833,63 +882,40 @@ async function create(req, res) {
       .toString()
       .slice(-2)}`;
 
-    // Find the last order number to determine the starting sequence
-    const lastOrder = await OrderFromBuyer.findOne({
-      orderNumber: new RegExp(`^ORD/${financialYear}/`),
-    }).sort({ createdAt: -1 });
+    const orderSequence = await getNextOrderSequence(financialYear);
+    const edprowiseSequence = await getNextInvoiceSequence(
+      financialYear,
+      "edprowise"
+    );
+    const schoolSequence = await getNextInvoiceSequence(
+      financialYear,
+      "school"
+    );
 
-    let orderSequence;
-    if (lastOrder) {
-      const lastSequence = parseInt(lastOrder.orderNumber.split("/")[2]);
-      orderSequence = lastSequence + 1;
-    } else {
-      orderSequence = 1;
-    }
-
-    // Find the last invoice numbers to determine starting sequences
-    const lastEdprowiseInvoice = await OrderDetailsFromSeller.findOne({
-      invoiceForEdprowise: new RegExp(`^EINV/${financialYear}/`),
-    }).sort({ createdAt: -1 });
-
-    const lastSchoolInvoice = await OrderDetailsFromSeller.findOne({
-      invoiceForSchool: new RegExp(`^SINV/${financialYear}/`),
-    }).sort({ createdAt: -1 });
-
-    let edprowiseSequence = lastEdprowiseInvoice
-      ? parseInt(lastEdprowiseInvoice.invoiceForEdprowise.split("/")[2]) + 1
-      : 1;
-    let schoolSequence = lastSchoolInvoice
-      ? parseInt(lastSchoolInvoice.invoiceForSchool.split("/")[2]) + 1
-      : 1;
-
-    const sellerIds = [
-      ...new Set(
-        products.map((p) => cartMap.get(p.cartId)?.sellerId).filter(Boolean)
-      ),
-    ];
+    const sellerIds = Array.from(
+      new Set(
+        products
+          .map((p) => cartMap.get(p.cartId)?.sellerId?.toString())
+          .filter(Boolean)
+      )
+    );
 
     const sellerOrderNumbers = new Map();
     const sellerInvoiceNumbers = new Map();
 
-    // Assign incrementing order numbers to each seller
-    // for (const sellerId of sellerIds) {
-    //   sellerOrderNumbers.set(
-    //     sellerId.toString(),
-    //     await generateOrderNumber(sequenceNumber)
-    //   );
-    //   sequenceNumber++; // Increment for next seller
-    // }
+    let currentOrderSequence = orderSequence;
+    let currentEdprowiseSequence = edprowiseSequence;
+    let currentSchoolSequence = schoolSequence;
 
     for (const sellerId of sellerIds) {
-      const orderNumber = await generateOrderNumber(orderSequence++);
+      const orderNumber = await generateOrderNumber(currentOrderSequence++);
       sellerOrderNumbers.set(sellerId.toString(), orderNumber);
 
-      // Generate unique invoice numbers for this seller
       const invoiceForEdprowise = await generateInvoiceNumberForEdprowise(
-        edprowiseSequence++
+        currentEdprowiseSequence++
       );
       const invoiceForSchool = await generateInvoiceNumberForSchool(
-        schoolSequence++
+        currentSchoolSequence++
       );
 
       sellerInvoiceNumbers.set(sellerId.toString(), {
@@ -916,10 +942,6 @@ async function create(req, res) {
           message: `Cart with ID ${product.cartId} is missing a sellerId.`,
         });
       }
-
-      // const sellerOrderNumber = sellerOrderNumbers.get(
-      //   cartEntry.sellerId.toString()
-      // );
 
       const sellerIdStr = cartEntry.sellerId.toString();
       const orderNumber = sellerOrderNumbers.get(sellerIdStr);
@@ -955,9 +977,6 @@ async function create(req, res) {
         totalAmount: cartEntry.totalAmount || 0,
       });
 
-      // const invoiceForSchool = await generateInvoiceNumberForSchool();
-      // const invoiceForEdprowise = await generateInvoiceNumberForEdprowise();
-
       const quoteProposal = await QuoteProposal.findOne({
         sellerId: cartEntry.sellerId,
         enquiryNumber: enquiryNumber,
@@ -985,15 +1004,16 @@ async function create(req, res) {
       });
     }
 
-    // Insert OrderFromBuyer entries
     const savedEntries = await OrderFromBuyer.insertMany(
       orderFromBuyerEntries,
       { session }
     );
 
-    // Insert OrderDetailsFromSeller entries
     const orderDetailsList = Array.from(orderDetailsFromSellerEntries.values());
-    await OrderDetailsFromSeller.insertMany(orderDetailsList, { session });
+    const savedOrderDetails = await OrderDetailsFromSeller.insertMany(
+      orderDetailsList,
+      { session }
+    );
 
     await QuoteRequest.findOneAndUpdate(
       { schoolId, enquiryNumber },
@@ -1055,7 +1075,6 @@ async function create(req, res) {
     const schoolEmail = schoolDetail.schoolEmail;
     const schoolName = schoolDetail.schoolName;
 
-    // Send email to school with all orders
     await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
       orders: await Promise.all(
         Array.from(sellerOrderNumbers.entries()).map(
@@ -1070,7 +1089,6 @@ async function create(req, res) {
       ),
     });
 
-    // Send emails to sellers
     for (const [sellerId, orderNumber] of sellerOrderNumbers.entries()) {
       const sellerDetails = await SellerProfile.findById(sellerId);
 
@@ -1098,6 +1116,88 @@ async function create(req, res) {
           expectedDeliveryDate,
         }
       );
+    }
+
+    const schoolProfile = await School.findOne({ schoolId });
+
+    for (const savedEntry of savedOrderDetails) {
+      const sellerId = savedEntry.sellerId.toString();
+      const orderNumber = savedEntry.orderNumber;
+
+      await NotificationService.sendNotification(
+        "SELLER_RECEIVED_ORDER",
+        [{ id: sellerId, type: "seller" }],
+        {
+          schoolName: schoolProfile?.schoolName || "Unknown School",
+          enquiryNumber: enquiryNumber,
+          orderNumber: orderNumber,
+          entityId: savedEntry._id,
+          entityType: "Order From Buyer",
+          senderType: "school",
+          senderId: schoolId,
+          metadata: {
+            enquiryNumber,
+            orderNumber,
+            type: "seller_received_order",
+          },
+        }
+      );
+    }
+
+    for (const savedEntry of savedOrderDetails) {
+      const orderNumber = savedEntry.orderNumber;
+      const sellerProfile = await SellerProfile.findOne({
+        sellerId: savedEntry.sellerId,
+      }).session(session);
+
+      await NotificationService.sendNotification(
+        "SCHOOL_PLACED_ORDER",
+        [{ id: schoolId, type: "school" }],
+        {
+          schoolName: schoolProfile?.schoolName || "Unknown School",
+          companyName: sellerProfile?.companyName || "Unknown Company",
+          enquiryNumber: enquiryNumber,
+          orderNumber: orderNumber,
+          entityId: savedEntry._id,
+          entityType: "Order From Buyer",
+          senderType: "school",
+          senderId: schoolId,
+          metadata: {
+            enquiryNumber,
+            orderNumber,
+            type: "school_placed_order",
+          },
+        }
+      );
+    }
+
+    const relevantAdmins = await AdminUser.find({}).session(session);
+    for (const savedEntry of savedOrderDetails) {
+      const sellerProfile = await SellerProfile.findOne({
+        sellerId: savedEntry.sellerId,
+      }).session(session);
+
+      for (const admin of relevantAdmins) {
+        await NotificationService.sendNotification(
+          "EDPROWISE_RECEIVED_ORDER",
+          [{ id: admin._id.toString(), type: "edprowise" }],
+          {
+            schoolName: schoolProfile?.schoolName || "Unknown School",
+            companyName: sellerProfile?.companyName || "Unknown Company",
+            enquiryNumber: enquiryNumber,
+            orderNumber: savedEntry.orderNumber,
+            entityId: savedEntry._id,
+            entityType: "Order From Buyer",
+            senderType: "school",
+            senderId: schoolId,
+            metadata: {
+              enquiryNumber,
+              orderNumber: savedEntry.orderNumber,
+              type: "edprowise_received_order",
+            },
+          }
+        );
+      }
     }
 
     await session.commitTransaction();

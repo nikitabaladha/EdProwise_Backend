@@ -1,6 +1,7 @@
 import Joi from "joi";
 
 export const RegistrationCreateValidator = Joi.object({
+  academicYear: Joi.string().required(),
   firstName: Joi.string().required().messages({
     "string.base": "First name must be a string.",
     "string.empty": "First name cannot be empty.",
@@ -76,9 +77,17 @@ export const RegistrationCreateValidator = Joi.object({
     "string.base": "Current address must be a string.",
     "any.required": "Current address is required.",
   }),
-  cityStateCountry: Joi.string().required().messages({
-    "string.base": "City, State and Country must be a string.",
-    "any.required": "City, State and Country is required.",
+  country: Joi.string().required().messages({
+    "string.base": " Country must be a string.",
+    "any.required": " Country is required.",
+  }),
+  state: Joi.string().required().messages({
+    "string.base": " State must be a string.",
+    "any.required": " State  is required.",
+  }),
+  city: Joi.string().required().messages({
+    "string.base": "City must be a string.",
+    "any.required": "City is required.",
   }),
   pincode: Joi.string()
     .pattern(/^[0-9]{6}$/)
@@ -140,6 +149,17 @@ export const RegistrationCreateValidator = Joi.object({
   agreementChecked: Joi.boolean().valid(true).required().messages({
     "any.only": "Agreement must be checked.",
     "any.required": "Agreement is required.",
+  }),
+  registrationFee: Joi.number().required().messages({
+    "number.base": "Registration fee must be a valid number.",
+    "any.required": "Registration fee is required.",
+  }),
+  concessionAmount: Joi.number().messages({
+    "number.base": "Concession amount must be a valid number.",
+  }),
+  finalAmount: Joi.number().required().messages({
+    "number.base": "Final amount must be a valid number.",
+    "any.required": "Final amount is required.",
   }),
   name: Joi.string().required().messages({
     "string.base": "Name must be a string.",

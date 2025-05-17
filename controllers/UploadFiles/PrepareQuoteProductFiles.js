@@ -42,11 +42,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// const fields = Array.from({ length: 1000 }, (_, i) => ({
-//   name: `products[${i}][prepareQuoteImage]`,
-//   maxCount: 1,
-// }));
-
 const fields = Array.from({ length: 100 }).flatMap((_, prepareQuoteIndex) =>
   Array.from({ length: 4 }, (_, imageIndex) => ({
     name: `products[${prepareQuoteIndex}][prepareQuoteImages][${imageIndex}]`,

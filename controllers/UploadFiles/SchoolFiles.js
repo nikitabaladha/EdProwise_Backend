@@ -89,19 +89,19 @@ export default (req, res, next) => {
 
         // Check which file exceeded the limit
         if (req.files?.profileImage) {
-          errorMessage = "Profile image must be less than 3 KB";
+          errorMessage = "Profile image must be less than 300 KB";
         } else if (req.files?.affiliationCertificate) {
           const file = req.files.affiliationCertificate[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "Affiliation certificate PDF must be less than 100 KB"
-              : "Affiliation certificate image must be less than 3 KB";
+              ? "Affiliation certificate PDF must be less than 2 MB"
+              : "Affiliation certificate image must be less than 300 KB";
         } else if (req.files?.panFile) {
           const file = req.files.panFile[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "PAN file PDF must be less than 100 KB"
-              : "PAN file image must be less than 3 KB";
+              ? "PAN file PDF must be less than 2 MB"
+              : "PAN file image must be less than 300 KB";
         } else {
           errorMessage = "File size exceeds the limit";
         }
@@ -123,11 +123,11 @@ export default (req, res, next) => {
     const files = req.files || {};
     const sizeErrors = [];
 
-    // Check profile image (always 3KB limit)
+    // Check profile image (always 300KB limit)
     if (files.profileImage) {
       const file = files.profileImage[0];
       if (file.size > 3 * 100 * 1024) {
-        sizeErrors.push("Profile image must be less than 3 KB");
+        sizeErrors.push("Profile image must be less than 300 KB");
       }
     }
 
@@ -146,7 +146,7 @@ export default (req, res, next) => {
 
         if (file.size > maxSize) {
           const fileType = isPdf ? "PDF" : "image";
-          const maxSizeMB = isPdf ? "100 KB" : "3 KB";
+          const maxSizeMB = isPdf ? "2 MB" : "300 KB";
           const displayName = fieldDisplayNames[field] || field;
           sizeErrors.push(
             `${displayName} ${fileType} must be less than ${maxSizeMB}`

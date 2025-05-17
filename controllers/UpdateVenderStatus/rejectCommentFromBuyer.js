@@ -58,7 +58,6 @@ async function rejectCommentFromBuyer(req, res) {
 
     const senderId = req.user.schoolId;
 
-    // i want to find company name on the basis of sellerId
     const sellerProfile = await SellerProfile.findOne({ sellerId });
 
     await NotificationService.sendNotification(

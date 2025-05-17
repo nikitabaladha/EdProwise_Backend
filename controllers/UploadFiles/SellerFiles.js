@@ -120,33 +120,33 @@ export default (req, res, next) => {
 
         // Check which file exceeded the limit
         if (req.files?.sellerProfile) {
-          errorMessage = "Profile image must be less than 3 KB";
+          errorMessage = "Profile image must be less than 300 KB";
         } else if (req.files?.signature) {
-          errorMessage = "Signature image must be less than 3 KB";
+          errorMessage = "Signature image must be less than 300 KB";
         } else if (req.files?.panFile) {
           const file = req.files.panFile[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "PAN file PDF must be less than 100 KB"
-              : "PAN file image must be less than 3 KB";
+              ? "PAN file PDF must be less than 2 MB"
+              : "PAN file image must be less than 300 KB";
         } else if (req.files?.gstFile) {
           const file = req.files.gstFile[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "GST file PDF must be less than 100 KB"
-              : "GST file image must be less than 3 KB";
+              ? "GST file PDF must be less than 2 MB"
+              : "GST file image must be less than 300 KB";
         } else if (req.files?.tanFile) {
           const file = req.files.tanFile[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "TAN file PDF must be less than 100 KB"
-              : "TAN file image must be less than 3 KB";
+              ? "TAN file PDF must be less than 2 KB"
+              : "TAN file image must be less than 300 KB";
         } else if (req.files?.cinFile) {
           const file = req.files.cinFile[0];
           errorMessage =
             file.mimetype === "application/pdf"
-              ? "CIN file PDF must be less than 100 KB"
-              : "CIN file image must be less than 3 KB";
+              ? "CIN file PDF must be less than 2 MB"
+              : "CIN file image must be less than 300 KB";
         } else {
           errorMessage = "File size exceeds the limit";
         }
@@ -172,14 +172,14 @@ export default (req, res, next) => {
     if (files.sellerProfile) {
       const file = files.sellerProfile[0];
       if (file.size > 3 * 100 * 1024) {
-        sizeErrors.push("Profile image must be less than 3 KB");
+        sizeErrors.push("Profile image must be less than 300 KB");
       }
     }
 
     if (files.signature) {
       const file = files.signature[0];
       if (file.size > 3 * 100 * 1024) {
-        sizeErrors.push("Signature image must be less than 3 KB");
+        sizeErrors.push("Signature image must be less than 300 KB");
       }
     }
 
@@ -202,7 +202,7 @@ export default (req, res, next) => {
 
         if (file.size > maxSize) {
           const fileType = isPdf ? "PDF" : "image";
-          const maxSizeMB = isPdf ? "100 KB" : "3 KB";
+          const maxSizeMB = isPdf ? "2 MB" : "300 KB";
 
           const displayName = fieldDisplayNames[field] || field;
           sizeErrors.push(

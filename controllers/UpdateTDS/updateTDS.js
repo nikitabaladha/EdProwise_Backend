@@ -1,6 +1,9 @@
 import QuoteProposal from "../../models/QuoteProposal.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
 import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import AdminUser from "../../models/AdminUser.js";
+
+import { NotificationService } from "../../notificationService.js";
 
 async function updateTDS(req, res) {
   try {
@@ -80,6 +83,74 @@ async function updateTDS(req, res) {
 
     // Save the updated QuoteProposal
     await existingQuoteProposal.save();
+
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_TDS_UPDATED",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "TDS Update",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "tds_updated_by_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SCHOOL_TDS_UPDATED",
+      [
+        {
+          id: existingOrderDetailsFromSeller.schoolId.toString(),
+          type: "school",
+        },
+      ],
+      {
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "TDS Update",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "tds_updated_by_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SELLER_TDS_UPDATED",
+      [
+        {
+          id: existingOrderDetailsFromSeller.sellerId.toString(),
+          type: "seller",
+        },
+      ],
+      {
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "TDS Update",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "tds_updated_by_edprowise",
+        },
+      }
+    );
 
     return res.status(200).json({
       hasError: false,

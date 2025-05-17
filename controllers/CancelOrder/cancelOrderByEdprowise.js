@@ -1,4 +1,9 @@
 import QuoteProposal from "../../models/QuoteProposal.js";
+import AdminUser from "../../models/AdminUser.js";
+import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import School from "../../models/School.js";
+import Seller from "../../models/SellerProfile.js";
+import { NotificationService } from "../../notificationService.js";
 
 async function CancelOrderByEdprowise(req, res) {
   try {
@@ -36,6 +41,42 @@ async function CancelOrderByEdprowise(req, res) {
       });
     }
 
+    const existingOrderDetailsFromSeller = await OrderDetailsFromSeller.findOne(
+      {
+        sellerId,
+        enquiryNumber,
+      }
+    );
+
+    if (!existingOrderDetailsFromSeller) {
+      return res.status(404).json({
+        hasError: true,
+        message: `No Order details found for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+      });
+    }
+
+    const schoolProfile = await School.findOne({
+      schoolId,
+    });
+
+    if (!schoolProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `School not found for given school ID ${schoolId}.`,
+      });
+    }
+
+    const sellerProfile = await Seller.findOne({
+      sellerId,
+    });
+
+    if (!sellerProfile) {
+      return res.status(404).json({
+        hasError: true,
+        message: `Seller not found for given seller ID ${sellerId}.`,
+      });
+    }
+
     // Update the orderStatus
     existingQuote.buyerStatus = edprowiseStatus;
     existingQuote.supplierStatus = edprowiseStatus;
@@ -43,6 +84,80 @@ async function CancelOrderByEdprowise(req, res) {
 
     // Save the updated QuoteProposal
     const updatedQuote = await existingQuote.save();
+
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_CANCELLED_ORDER",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Cancel",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_cancelled_by_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_CANCELLED_ORDER_FOR_SCHOOL",
+      [
+        {
+          id: existingOrderDetailsFromSeller.schoolId.toString(),
+          type: "school",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Cancel",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_cancelled_by_edprowise",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_CANCELLED_ORDER_FOR_SELLER",
+      [
+        {
+          id: existingOrderDetailsFromSeller.sellerId.toString(),
+          type: "seller",
+        },
+      ],
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        orderNumber: existingOrderDetailsFromSeller.orderNumber,
+        enquiryNumber: existingOrderDetailsFromSeller.enquiryNumber,
+        entityId: existingOrderDetailsFromSeller._id,
+        entityType: "Order Cancel",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          orderNumber: existingOrderDetailsFromSeller.orderNumber,
+          type: "order_cancelled_by_edprowise",
+        },
+      }
+    );
 
     return res.status(200).json({
       hasError: false,

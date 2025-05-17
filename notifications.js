@@ -32,6 +32,38 @@ export const NOTIFICATION_TEMPLATES = {
     recipientType: "school",
   },
 
+  SCHOOL_RECEIVED_UPDATED_QUOTE_FROM_SELLER: {
+    type: "quote_updated_from_seller",
+    title: "Updated Quote From Seller",
+    message: (context) =>
+      `You have received updated Quote Proposal from ${context.companyName} for Enquiry Number ${context.enquiryNumber} which has Quote Number ${context.quoteNumber}.`,
+    recipientType: "school",
+  },
+
+  SCHOOL_PLACED_ORDER: {
+    type: "school_placed_order",
+    title: "Order Placed",
+    message: (context) =>
+      `You have placed order from ${context.companyName} for Enquiry Number ${context.enquiryNumber} which has Order Number ${context.orderNumber}.`,
+    recipientType: "school",
+  },
+
+  SCHOOL_TDS_UPDATED: {
+    type: "tds_updated_by_edprowise",
+    title: "TDS UPDATED",
+    message: (context) =>
+      `TDS has been updated for Order Number ${context.orderNumber} from Edprowise.`,
+    recipientType: "school",
+  },
+
+  EDPROWISE_CANCELLED_ORDER_FOR_SCHOOL: {
+    type: "order_cancelled_by_edprowise",
+    title: "EDPROWISE_CANCELLED_ORDER",
+    message: (context) =>
+      `Your Order has beed cancelled for ${context.companyName} for Order Number ${context.orderNumber} by Edprowise.`,
+    recipientType: "school",
+  },
+
   // Seller Notifications
   SELLER_QUOTE_RECEIVED: {
     type: "quote_received",
@@ -54,6 +86,38 @@ export const NOTIFICATION_TEMPLATES = {
     title: "Updated Quote From Edprowise",
     message: (context) =>
       `Your Quote Proposal has beed updated by Edprowise for Enquiry Number ${context.enquiryNumber} which has Quote Number ${context.quoteNumber}`,
+    recipientType: "seller",
+  },
+
+  SELLER_RECEIVED_UPDATED_QUOTE_BY_OWN: {
+    type: "quote_updated_from_seller",
+    title: "Updated Quote By Own",
+    message: (context) =>
+      `Your have updated Quote Proposal for ${context.schoolName} for Enquiry Number ${context.enquiryNumber} which has Quote Number ${context.quoteNumber}`,
+    recipientType: "seller",
+  },
+
+  SELLER_RECEIVED_ORDER: {
+    type: "seller_received_order",
+    title: "Order Received",
+    message: (context) =>
+      `You have received order from ${context.schoolName} for Enquiry Number ${context.enquiryNumber} which has Order Number ${context.orderNumber}.`,
+    recipientType: "seller",
+  },
+
+  SELLER_TDS_UPDATED: {
+    type: "tds_updated_by_edprowise",
+    title: "TDS UPDATED",
+    message: (context) =>
+      `TDS has been updated for Order Number ${context.orderNumber} from Edprowise.`,
+    recipientType: "seller",
+  },
+
+  EDPROWISE_CANCELLED_ORDER_FOR_SELLER: {
+    type: "order_cancelled_by_edprowise",
+    title: "Edprowise Cancelled Order",
+    message: (context) =>
+      `Your Order has beed cancelled for ${context.schoolName} for Order Number ${context.orderNumber} by Edprowise.`,
     recipientType: "seller",
   },
 
@@ -95,6 +159,38 @@ export const NOTIFICATION_TEMPLATES = {
     title: "Updated Quote From Edprowise",
     message: (context) =>
       `You have updated Quote Proposal for Enquiry Number ${context.enquiryNumber} which has Quote Number ${context.quoteNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  EDPROWISE_RECEIVED_UPDATED_QUOTE: {
+    type: "quote_updated_from_seller",
+    title: "Updated Quote From Seller",
+    message: (context) =>
+      `You have received updated Quote Proposal from ${context.companyName} for ${context.schoolName} for Enquiry Number ${context.enquiryNumber} which has Quote Number ${context.quoteNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  EDPROWISE_RECEIVED_ORDER: {
+    type: "edprowise_received_order",
+    title: "Order Placed",
+    message: (context) =>
+      `${context.schoolName} has placed order from ${context.companyName} for Enquiry Number ${context.enquiryNumber} which has Order Number ${context.orderNumber}.`,
+    recipientType: "edprowise",
+  },
+
+  EDPROWISE_TDS_UPDATED: {
+    type: "tds_updated_by_edprowise",
+    title: "TDS UPDATED",
+    message: (context) =>
+      `TDS has been updated for Order Number ${context.orderNumber} from Edprowise.`,
+    recipientType: "edprowise",
+  },
+
+  EDPROWISE_CANCELLED_ORDER: {
+    type: "order_cancelled_by_edprowise",
+    title: "Edprowise Cancelled Order",
+    message: (context) =>
+      `You has cancelled order of ${context.companyName} for  ${context.schoolName} of Order Number ${context.orderNumber}.`,
     recipientType: "edprowise",
   },
 };

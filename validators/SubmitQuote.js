@@ -84,10 +84,10 @@ const SubmitQuoteUpdate = Joi.object({
 });
 
 const SubmitQuoteUpdateDeliveryCharges = Joi.object({
-  deliveryCharges: Joi.number().positive().required().messages({
-    "any.required": "DeliveryCharges is required.",
+  deliveryCharges: Joi.number().min(0).required().messages({
+    "any.required": "Delivery Charges is required.",
     "number.base": "Delivery Charges must be a number.",
-    "number.positive": "Delivery Charges must be a positive number.",
+    "number.min": "Delivery Charges cannot be negative.",
   }),
 });
 

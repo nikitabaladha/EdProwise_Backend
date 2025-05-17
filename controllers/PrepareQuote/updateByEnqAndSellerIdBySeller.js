@@ -5,7 +5,10 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import QuoteRequest from "../../models/QuoteRequest.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import School from "../../models/School.js";
+import AdminUser from "../../models/AdminUser.js";
 
+import { NotificationService } from "../../notificationService.js";
 async function updateSingleProduct(req, res) {
   try {
     const { sellerId, enquiryNumber, id } = req.query;
@@ -342,6 +345,71 @@ async function updateSingleProduct(req, res) {
     // Update the quoted amount in SubmitQuote
     existingSubmitted.quotedAmount = totalAmount;
     await existingSubmitted.save();
+
+    await NotificationService.sendNotification(
+      "SCHOOL_RECEIVED_UPDATED_QUOTE_FROM_SELLER",
+      [{ id: quoteRequest.schoolId, type: "school" }],
+      {
+        companyName: sellerProfile.companyName,
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal From Seller",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          sellerId: sellerId,
+          type: "quote_updated_from_seller",
+        },
+      }
+    );
+    const schoolId = quoteRequest.schoolId;
+
+    const schoolProfile = await School.findOne({ schoolId });
+
+    await NotificationService.sendNotification(
+      "SELLER_RECEIVED_UPDATED_QUOTE_BY_OWN",
+      [{ id: sellerId, type: "seller" }],
+      {
+        schoolName: schoolProfile.schoolName,
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_updated_from_seller",
+        },
+      }
+    );
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_RECEIVED_UPDATED_QUOTE",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        schoolName: schoolProfile.schoolName,
+        quoteNumber: existingQuoteProposal.quoteNumber,
+        enquiryNumber: existingQuoteProposal.enquiryNumber,
+        entityId: existingQuoteProposal._id,
+        entityType: "QuoteProposal From Seller",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          sellerId: sellerId,
+          type: "quote_updated_from_edprowise",
+        },
+      }
+    );
 
     return res.status(200).json({
       hasError: false,

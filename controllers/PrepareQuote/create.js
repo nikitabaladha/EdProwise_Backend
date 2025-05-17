@@ -11,7 +11,7 @@ import { NotificationService } from "../../notificationService.js";
 
 import mongoose from "mongoose";
 
-async function generateQuoteNumber() {
+async function generateQuoteNumber(session) {
   const prefix = "QUOTE";
 
   // Get current date
@@ -38,7 +38,9 @@ async function generateQuoteNumber() {
   // Find the last enquiry number for this financial year
   const lastQuote = await QuoteProposal.findOne({
     quoteNumber: new RegExp(`^${prefix}/${financialYear}/`),
-  }).sort({ createdAt: -1 });
+  })
+    .sort({ createdAt: -1 })
+    .session(session);
 
   let sequenceNumber;
   if (lastQuote) {
@@ -83,7 +85,16 @@ async function create(req, res) {
       });
     }
 
-    if (typeof products === "string") products = JSON.parse(products);
+    try {
+      if (typeof products === "string") products = JSON.parse(products);
+    } catch (e) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        hasError: true,
+        message: "Invalid products format.",
+      });
+    }
 
     if (!Array.isArray(products) || products.length === 0) {
       await session.abortTransaction();
@@ -94,7 +105,6 @@ async function create(req, res) {
       });
     }
 
-    // Fetch location data for all parties
     const [quoteRequest, sellerProfile, edprowiseProfile] = await Promise.all([
       QuoteRequest.findOne({ enquiryNumber }).session(session),
       SellerProfile.findOne({ sellerId }).session(session),
@@ -110,7 +120,6 @@ async function create(req, res) {
       });
     }
 
-    // Extract states from location strings
     const schoolState = quoteRequest.deliveryState;
     const sellerState = sellerProfile.state;
     const edprowiseState = edprowiseProfile.state;
@@ -357,12 +366,7 @@ async function create(req, res) {
       createdEntries.push(savedEntry);
     }
 
-    const quoteNumber = await generateQuoteNumber();
-
-    console.log(
-      "Generated Quote Number:============================================",
-      quoteNumber
-    );
+    const quoteNumber = await generateQuoteNumber(session);
 
     // Create QuoteProposal entry
     const newQuoteProposal = new QuoteProposal({
@@ -466,8 +470,6 @@ async function create(req, res) {
       }
     );
 
-    // If everything succeeds, commit the transaction
-
     return res.status(201).json({
       hasError: false,
       message: "Quotes and Quote Proposal created successfully.",
@@ -478,17 +480,52 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    // Only abort transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
-      await session.abortTransaction();
+    console.error("Error in create prepare quote:", error);
+
+    // Handle transaction cleanup safely
+    try {
+      if (session.inTransaction()) {
+        await session.abortTransaction().catch((e) => {
+          console.error("Error aborting transaction:", e);
+        });
+      }
+      session.endSession().catch((e) => {
+        console.error("Error ending session:", e);
+      });
+    } catch (e) {
+      console.error("Error in transaction cleanup:", e);
     }
 
-    session.endSession();
-    console.error("Error creating Prepare Quote:", error.message);
-    console.error(error.stack);
+    // Specific error handling
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        hasError: true,
+        message: error.message,
+      });
+    }
+
+    if (error.name === "MongoServerError") {
+      if (error.code === 251) {
+        // NoSuchTransaction
+        return res.status(500).json({
+          hasError: true,
+          message: "Transaction error occurred. Please try again.",
+        });
+      }
+      if (error.code === 112) {
+        // WriteConflict
+        return res.status(500).json({
+          hasError: true,
+          message: "Conflict detected. Please retry your request.",
+        });
+      }
+    }
+
+    // General error response
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error.",
+      message: "An unexpected error occurred. Please try again later.",
+      error: error.message, // Only show in development
     });
   }
 }

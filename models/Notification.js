@@ -32,6 +32,12 @@ const NotificationSchema = new mongoose.Schema(
         "quote_accepted_from_edprowise",
         "quote_rejected_by_school",
         "quote_updated_from_edprowise",
+        "quote_updated_from_seller",
+        "seller_received_order",
+        "school_placed_order",
+        "edprowise_received_order",
+        "tds_updated_by_edprowise",
+        "order_cancelled_by_edprowise",
       ],
     },
     title: {
@@ -56,6 +62,9 @@ const NotificationSchema = new mongoose.Schema(
         "QuoteProposal From Seller",
         "QuoteProposal From Edprowise",
         "QuoteProposal Reject",
+        "Order From Buyer",
+        "TDS Update",
+        "Order Cancel",
       ],
     },
     read: {

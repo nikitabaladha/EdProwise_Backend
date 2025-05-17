@@ -62,7 +62,7 @@ export default (req, res, next) => {
       if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({
           hasError: true,
-          message: "Product image must be less than 3 KB",
+          message: "Product image must be less than 300 KB",
         });
       }
       return res.status(400).json({

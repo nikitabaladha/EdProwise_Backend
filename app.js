@@ -37,6 +37,7 @@ app.set("io==========================================", io);
 
 app.use("/Images", express.static(path.resolve("Images")));
 app.use("/Documents", express.static(path.resolve("Documents")));
+app.use("/DummyImages", express.static(path.resolve("DummyImages")));
 
 routes(app);
 

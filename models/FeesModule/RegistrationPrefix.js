@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const RegistartionPrefixSchema = new mongoose.Schema(
   {
@@ -8,17 +8,17 @@ const RegistartionPrefixSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['numeric', 'alphanumeric'],
+      enum: ["numeric", "alphanumeric"],
       required: true,
     },
     value: {
       type: String,
     },
     prefix: {
-      type: String, 
+      type: String,
     },
     number: {
-      type: Number, 
+      type: Number,
     },
   },
   {
@@ -26,4 +26,4 @@ const RegistartionPrefixSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('RegistartionPrefix', RegistartionPrefixSchema);
+export default mongoose.model("RegistartionPrefix", RegistartionPrefixSchema);
