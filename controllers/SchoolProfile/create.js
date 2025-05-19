@@ -13,6 +13,11 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+import AdminUser from "../../models/AdminUser.js";
+import { NotificationService } from "../../notificationService.js";
+
+import mongoose from "mongoose";
+
 async function sendSchoolRegistrationEmail(
   schoolName,
   schoolEmail,
@@ -351,10 +356,14 @@ async function sendSchoolRegistrationEmail(
   }
 }
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { schoolId } = req.params;
 
     if (!schoolId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "School ID is required.",
@@ -366,6 +375,8 @@ async function create(req, res) {
         req.body
       );
     if (error) {
+      await session.abortTransaction();
+      session.endSession();
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
@@ -397,6 +408,8 @@ async function create(req, res) {
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
     if (!affiliationCertificate?.[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Affiliation Certificate is required.",
@@ -404,6 +417,8 @@ async function create(req, res) {
     }
 
     if (!panFile?.[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "PAN File is required.",
@@ -452,18 +467,59 @@ async function create(req, res) {
       status: "Completed",
     });
 
-    await newSchoolRegistration.save();
+    await newSchoolRegistration.save({ session });
 
-    const schoolDetails = await User.findOne({ schoolId });
+    const schoolDetails = await User.findOne({ schoolId }).session(session);
     const userId = schoolDetails.userId;
 
-    await sendSchoolRegistrationEmail(schoolName, schoolEmail, { userId });
+    const emailSent = await sendSchoolRegistrationEmail(
+      schoolName,
+      schoolEmail,
+      { userId }
+    );
+
+    if (!emailSent) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({
+        hasError: true,
+        message: "Failed to send registration email.",
+      });
+    }
 
     await User.findOneAndUpdate(
       { schoolId, role: "School" },
       { status: "Completed" },
-      { new: true }
+      { new: true, session }
     );
+
+    const senderId = req.user.schoolId;
+
+    const relevantEdprowise = await AdminUser.find({}).session(session);
+
+    await NotificationService.sendNotification(
+      "NEW_SCHOOL_REGISTERED",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        schoolName: newSchoolRegistration.schoolName,
+        schoolId: schoolId,
+
+        entityId: newSchoolRegistration._id,
+        entityType: "School Registred",
+        senderType: "school",
+        senderId: senderId,
+        metadata: {
+          schoolId: schoolId,
+          type: "school_registered",
+        },
+      }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(201).json({
       message: "School Registration created successfully!",
@@ -471,6 +527,9 @@ async function create(req, res) {
       hasError: false,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
     console.error("Error creating School Profile:", error.message);
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];

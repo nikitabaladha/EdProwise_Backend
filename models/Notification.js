@@ -43,6 +43,9 @@ const NotificationSchema = new mongoose.Schema(
         "order_cancel_request_by_seller",
         "delivery_date_changed_by_seller",
         "order_progress_by_seller",
+        "school_registered",
+        "seller_registered",
+        "school_subscription",
       ],
     },
     title: {
@@ -72,6 +75,9 @@ const NotificationSchema = new mongoose.Schema(
         "Order Cancel",
         "Delivery Date Changed",
         "Order Progress",
+        "School Registred",
+        "Seller Registred",
+        "School Subscription",
       ],
     },
     read: {

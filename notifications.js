@@ -104,6 +104,14 @@ export const NOTIFICATION_TEMPLATES = {
     recipientType: "school",
   },
 
+  SCHOOL_SUbCRPTION: {
+    type: "school_subscription",
+    title: "Subscription Added",
+    message: (context) =>
+      `You subscription has been added by Edprowise for ${context.subscriptionFor} which is starting from ${context.subscriptionStartDate} till ${context.subscriptionEndDate}.`,
+    recipientType: "school",
+  },
+
   // Seller Notifications
   SELLER_QUOTE_RECEIVED: {
     type: "quote_received",
@@ -309,6 +317,30 @@ export const NOTIFICATION_TEMPLATES = {
     title: "Order Progress",
     message: (context) =>
       `Order progressed status is changed to ${context.status} for Order Number ${context.orderNumber} from ${context.companyName}.`,
+    recipientType: "edprowise",
+  },
+
+  NEW_SCHOOL_REGISTERED: {
+    type: "school_registered",
+    title: "School Registered",
+    message: (context) =>
+      `New school ${context.schoolName} has been registered which has SchoolId ${context.schoolId}.`,
+    recipientType: "edprowise",
+  },
+
+  NEW_SELLER_REGISTERED: {
+    type: "seller_registered",
+    title: "Seller Registered",
+    message: (context) =>
+      `New seller ${context.companyName} has been registered which has SellerlId ${context.randomId}.`,
+    recipientType: "edprowise",
+  },
+
+  SCHOOL_SUbCRPTION_BY_EDPROWISE: {
+    type: "school_subscription",
+    title: "Subscription Added",
+    message: (context) =>
+      `You have added subscription for ${context.schoolName} for ${context.subscriptionFor} whose schoolId is ${context.schoolId} which is starting from ${context.subscriptionStartDate} till ${context.subscriptionEndDate}.`,
     recipientType: "edprowise",
   },
 };

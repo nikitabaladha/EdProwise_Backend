@@ -1,193 +1,23 @@
-// import Subscription from "../../../models/Subscription.js";
-// import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
-// import School from "../../../models/School.js";
-
-// async function create(req, res) {
-//   try {
-// const { error } =
-//   SubscriptionValidator.SubscriptionCreateValidator.validate(req.body);
-
-// if (error) {
-//   const errorMessages = error.details.map((err) => err.message).join(", ");
-//   return res.status(400).json({
-//     hasError: true,
-//     message: "id ",
-//     errorMessages,
-//   });
-// }
-
-//     const {
-//       schoolId,
-//       subscriptionFor,
-//       subscriptionStartDate,
-//       subscriptionNoOfMonth,
-//       monthlyRate,
-//     } = req.body;
-
-//     const schoolExists = await School.findOne({ schoolId });
-//     if (!schoolExists) {
-//       return res.status(404).json({
-//         hasError: true,
-//         message: "school not found.",
-//       });
-//     }
-
-//     // i want to add subscriptionEndDate accrding to start date and subscriptionNoOfMonth
-//     // for example if start date is 07-05-2025 and number of months are 12 at that time the stored end date must be stored like
-//     // 07-05-2025 automatically
-//     // and  i also want like for example if same subscriptionFor come at that time if user type subscriptionStartDate then you need to check like what is end date
-//     // and from databse find what is the endDate if user typed start date is lower than endDate at that time user must be given message like
-//     // "you alredy have suscription till "end date" if want to buy new one then buy after "end date" ,
-//     // for exmple school has suscription fro fees and it is till 01-12-2025 at that if same school buy another suscription for same fees module
-//     // for date 01-11-2025  at that time there  should be message like "you alredy have suscription till "01-12-2025" if want to buy new one then buy after "01-12-2025"
-//     const newSubscription = new Subscription({
-//       schoolId,
-//       subscriptionFor,
-//       subscriptionStartDate,
-//       subscriptionNoOfMonth,
-//       monthlyRate,
-//     });
-
-//     await newSubscription.save();
-
-//     return res.status(201).json({
-//       hasError: false,
-//       message: "Subscription created successfully.",
-//       data: newSubscription,
-//     });
-//   } catch (error) {
-//     if (error.code === 11000) {
-//       return res.status(400).json({
-//         hasError: true,
-//         message:
-//           "This Subscription Details already exists for same school on same date.",
-//       });
-//     }
-
-//     console.error("Error submitting Subscription Details:", error);
-//     return res.status(500).json({
-//       hasError: true,
-//       message: "Internal server error. Please try again later.",
-//     });
-//   }
-// }
-
-// export default create;
-
-// see this api works but i want little modification like for example if same school buys same subscription but he type startDate
-// smaller than endDate at that time i want to store startDate one day after the already existing end date for that perticular suscription
-// and endDate according to count of numberOf munth
-// for example alredy existing subsription is 07-05-2025 to 07-05-2026 for fees and if user takes another subscription for
-//  01-11-2025 and number of month is 12 at that time by default in database it must store like startdate 08-12-2026 and date 08-12-2027
-// and the message should be display like "You already have an active subscription till 07-12-2026 your new suscrioption will be start from
-// 08-12-2026."
-// import Subscription from "../../../models/Subscription.js";
-// import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
-// import School from "../../../models/School.js";
-
-// async function create(req, res) {
-//   try {
-//     const { error } =
-//       SubscriptionValidator.SubscriptionCreateValidator.validate(req.body);
-
-//     if (error?.details?.length) {
-//       const errorMessages = error.details[0].message;
-//       return res.status(400).json({ message: errorMessages });
-//     }
-
-//     const {
-//       schoolId,
-//       subscriptionFor,
-//       subscriptionStartDate,
-//       subscriptionNoOfMonth,
-//       monthlyRate,
-//     } = req.body;
-
-//     const schoolExists = await School.findOne({ schoolId });
-//     if (!schoolExists) {
-//       return res.status(404).json({
-//         hasError: true,
-//         message: "School not found.",
-//       });
-//     }
-
-//     // Calculate subscription end date
-//     const startDate = new Date(subscriptionStartDate);
-//     const endDate = new Date(startDate);
-//     endDate.setMonth(endDate.getMonth() + subscriptionNoOfMonth);
-
-//     // Check for existing active subscription
-//     const existingSubscription = await Subscription.findOne({
-//       schoolId,
-//       subscriptionFor,
-//       subscriptionStartDate: { $lte: endDate },
-//       $expr: {
-//         $gte: [
-//           {
-//             $dateAdd: {
-//               startDate: "$subscriptionStartDate",
-//               unit: "month",
-//               amount: "$subscriptionNoOfMonth",
-//             },
-//           },
-//           startDate,
-//         ],
-//       },
-//     });
-
-//     if (existingSubscription) {
-//       const existingEndDate = new Date(
-//         existingSubscription.subscriptionStartDate
-//       );
-//       existingEndDate.setMonth(
-//         existingEndDate.getMonth() + existingSubscription.subscriptionNoOfMonth
-//       );
-
-//       return res.status(400).json({
-//         hasError: true,
-//         message: `You already have an active subscription till ${
-//           existingEndDate.toISOString().split("T")[0]
-//         }. Please buy a new subscription after this date.`,
-//       });
-//     }
-
-//     const newSubscription = new Subscription({
-//       schoolId,
-//       subscriptionFor,
-//       subscriptionStartDate: startDate,
-//       subscriptionNoOfMonth,
-//       monthlyRate,
-//       subscriptionEndDate: endDate,
-//     });
-
-//     await newSubscription.save();
-
-//     return res.status(201).json({
-//       hasError: false,
-//       message: "Subscription created successfully.",
-//       data: newSubscription,
-//     });
-//   } catch (error) {
-//     console.error("Error submitting Subscription Details:", error);
-//     return res.status(500).json({
-//       hasError: true,
-//       message: "Internal server error. Please try again later.",
-//     });
-//   }
-// }
-
-// export default create;
-
 import Subscription from "../../../models/Subscription.js";
 import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
 import School from "../../../models/School.js";
 
+import AdminUser from "../../../models/AdminUser.js";
+
+import { NotificationService } from "../../../notificationService.js";
+import mongoose from "mongoose";
+
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { error } =
       SubscriptionValidator.SubscriptionCreateValidator.validate(req.body);
 
     if (error?.details?.length) {
+      await session.abortTransaction();
+      session.endSession();
       const errorMessages = error.details[0].message;
       return res.status(400).json({ message: errorMessages });
     }
@@ -200,8 +30,11 @@ async function create(req, res) {
       monthlyRate,
     } = req.body;
 
-    const schoolExists = await School.findOne({ schoolId });
+    const schoolExists = await School.findOne({ schoolId }).session(session);
+
     if (!schoolExists) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "School not found.",
@@ -223,7 +56,9 @@ async function create(req, res) {
     const existingSubscription = await Subscription.findOne({
       schoolId,
       subscriptionFor,
-    }).sort({ subscriptionEndDate: -1 });
+    })
+      .sort({ subscriptionEndDate: -1 })
+      .session(session);
 
     if (existingSubscription) {
       const existingEndDate = new Date(
@@ -259,7 +94,69 @@ async function create(req, res) {
       subscriptionEndDate: endDate,
     });
 
-    await newSubscription.save();
+    await newSubscription.save({ session });
+
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    const formatDate = (date) =>
+      date.toDateString() + " " + date.toTimeString().split(" ")[0];
+
+    await NotificationService.sendNotification(
+      "SCHOOL_SUbCRPTION_BY_EDPROWISE",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        schoolName: schoolExists.schoolName,
+        schoolId: schoolId,
+        subscriptionFor: newSubscription.subscriptionFor,
+        subscriptionStartDate: formatDate(
+          newSubscription.subscriptionStartDate
+        ),
+        subscriptionEndDate: formatDate(newSubscription.subscriptionEndDate),
+        entityId: newSubscription._id,
+        entityType: "School Subscription",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          subscriptionId: newSubscription._id,
+          type: "school_subscription",
+        },
+      }
+    );
+
+    await NotificationService.sendNotification(
+      "SCHOOL_SUbCRPTION",
+      [
+        {
+          id: schoolExists.schoolId.toString(),
+          type: "school",
+        },
+      ],
+      {
+        schoolName: schoolExists.schoolName,
+        schoolId: schoolId,
+        subscriptionFor: newSubscription.subscriptionFor,
+        subscriptionStartDate: formatDate(
+          newSubscription.subscriptionStartDate
+        ),
+        subscriptionEndDate: formatDate(newSubscription.subscriptionEndDate),
+        entityId: newSubscription._id,
+        entityType: "School Subscription",
+        senderType: "edprowise",
+        senderId: senderId,
+        metadata: {
+          subscriptionId: newSubscription._id,
+          type: "school_subscription",
+        },
+      }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(201).json({
       hasError: false,
@@ -272,6 +169,8 @@ async function create(req, res) {
       datesAdjusted,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error submitting Subscription Details:", error);
     return res.status(500).json({
       hasError: true,

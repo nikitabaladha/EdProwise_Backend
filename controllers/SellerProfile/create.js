@@ -4,6 +4,12 @@ import Seller from "../../models/Seller.js";
 
 import nodemailer from "nodemailer";
 import SMTPEmailSetting from "../../models/SMTPEmailSetting.js";
+
+import AdminUser from "../../models/AdminUser.js";
+import { NotificationService } from "../../notificationService.js";
+
+import mongoose from "mongoose";
+
 import path from "path";
 import fs from "fs";
 
@@ -293,10 +299,15 @@ async function sendSellerRegistrationEmail(
 }
 
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const sellerId = req.user?.id;
 
     if (!sellerId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(401).json({
         hasError: true,
         message:
@@ -308,6 +319,8 @@ async function create(req, res) {
       SellerProfileValidator.SellerProfileCreateValidator.validate(req.body);
 
     if (error?.details?.length) {
+      await session.abortTransaction();
+      session.endSession();
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
@@ -357,6 +370,8 @@ async function create(req, res) {
     const cinFile = req.files && req.files.cinFile ? req.files.cinFile : null;
 
     if (!signature || !signature[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Signature is required.",
@@ -364,6 +379,8 @@ async function create(req, res) {
     }
 
     if (!panFile || !panFile[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Seller PAN File is required.",
@@ -371,6 +388,8 @@ async function create(req, res) {
     }
 
     if (!gstFile || !gstFile[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Seller GST File is required.",
@@ -396,9 +415,13 @@ async function create(req, res) {
         ? `/Documents/SellerCinFile/${cinFile[0].filename}`
         : null;
 
-    const seller = await Seller.findOne({ _id: sellerId }).select("randomId");
+    const seller = await Seller.findOne({ _id: sellerId })
+      .select("randomId")
+      .session(session);
 
     if (!seller) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Seller not found.",
@@ -441,26 +464,64 @@ async function create(req, res) {
       status: "Completed",
     });
 
-    const SellerDetails = await Seller.findById(sellerId);
+    const SellerDetails = await Seller.findById(sellerId).session(session);
 
-    await newSellerProfile.save();
+    await newSellerProfile.save({ session });
 
-    await sendSellerRegistrationEmail(companyName, emailId, {
+    const emailSent = await sendSellerRegistrationEmail(companyName, emailId, {
       userId: SellerDetails.userId,
     });
+
+    if (!emailSent) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({
+        hasError: true,
+        message: "Failed to send registration email.",
+      });
+    }
 
     const updatedSeller = await Seller.findOneAndUpdate(
       { _id: sellerId },
       { status: "Completed" },
-      { new: true }
+      { new: true, session }
     );
 
     if (!updatedSeller) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Seller not found. Failed to update status.",
       });
     }
+
+    const randomId = newSellerProfile.randomId;
+    const senderId = req.user.id;
+
+    const relevantEdprowise = await AdminUser.find({}).session(session);
+
+    await NotificationService.sendNotification(
+      "NEW_SELLER_REGISTERED",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: newSellerProfile.companyName,
+        randomId: randomId,
+        entityId: newSellerProfile._id,
+        entityType: "Seller Registred",
+        senderType: "seller",
+        senderId: senderId,
+        metadata: {
+          sellerId: senderId,
+          type: "seller_registered",
+        },
+      }
+    );
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(201).json({
       hasError: false,
@@ -468,6 +529,9 @@ async function create(req, res) {
       data: newSellerProfile,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
     console.error("Error creating Seller Profile:", error.message);
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
