@@ -9,11 +9,6 @@ async function markAllReadForSeller(req, res) {
       });
     }
 
-    console.log(
-      "Request received to mark all seller notifications as read",
-      req.user
-    );
-
     const result = await Notification.updateMany(
       {
         recipientId: req.user.id,
