@@ -8,19 +8,46 @@ import routes from "./routes/index.js";
 import https from "https";
 import fs from "fs";
 import { constants } from "crypto";
-
-import { initializeSocket } from "./socket.js";
-import http from "http";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { setIO } from "./socket.js";
 
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-console.log(connectDB);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  // Extract userId and userType from query parameters
+  const { userId, userType } = socket.handshake.query;
+
+  if (userId && userType) {
+    const room = `${userType}-${userId}`;
+    socket.join(room);
+    console.log(`User ${userId} joined room ${room}`);
+  }
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
+setIO(io);
+
 connectDB();
 
 app.use(
@@ -31,19 +58,21 @@ app.use(
   })
 );
 
-const io = initializeSocket(server);
-
-app.set("io==========================================", io);
-
+// Static paths
 app.use("/Images", express.static(path.resolve("Images")));
 app.use("/Documents", express.static(path.resolve("Documents")));
 app.use("/DummyImages", express.static(path.resolve("DummyImages")));
 
+// Routes
 routes(app);
 
 const PORT = process.env.PORT || 3001;
+
+// Start HTTP or HTTPS server
 if (!process.env.isHttps) {
-  app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+  server.listen(PORT, () =>
+    console.log(`Server started on port ${PORT} (HTTP)`)
+  );
 } else {
   https
     .createServer(
@@ -58,5 +87,5 @@ if (!process.env.isHttps) {
       },
       app
     )
-    .listen(PORT, () => console.log(`Server started on port ${PORT}`));
+    .listen(PORT, () => console.log(`Server started on port ${PORT} (HTTPS)`));
 }

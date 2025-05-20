@@ -286,60 +286,47 @@
         </tr>
       </thead>
       <tbody class="center">
-        <% const hsnGroups = {}; prepareQuoteData?.forEach((item) => { if
-        (!hsnGroups[item.hsnSacc]) { hsnGroups[item.hsnSacc] = { hsnSacc:
-        item.hsnSacc, taxableValue: 0, cgstRate: item.cgstRate, cgstAmount: 0,
-        sgstRate: item.sgstRate, sgstAmount: 0, igstRate: item.igstRate,
-        igstAmount: 0, totalTaxAmount: 0 }; }
-        hsnGroups[item.hsnSacc].taxableValue += item.taxableValue;
-        hsnGroups[item.hsnSacc].cgstAmount += item.cgstAmount;
-        hsnGroups[item.hsnSacc].sgstAmount += item.sgstAmount;
-        hsnGroups[item.hsnSacc].igstAmount += item.igstAmount;
-        hsnGroups[item.hsnSacc].totalTaxAmount += (item.cgstAmount +
-        item.sgstAmount + item.igstAmount); });const groupedItems =
-        Object.values(hsnGroups); let index = 0; %> <%
-        groupedItems.forEach((item) => { %>
+        <% prepareQuoteData?.forEach((item, index) => { %>
         <tr>
           <td><%= item.hsnSacc %></td>
-          <td><%= formatCost(item.taxableValue) %></td>
+          <td><%=formatCost( item.taxableValue )%></td>
           <td><%= item.cgstRate %></td>
-          <td><%= formatCost(item.cgstAmount) %></td>
-          <td><%= item.sgstRate %></td>
+          <td><%=formatCost( item.cgstAmount )%></td>
+          <td><%= item.sgstRate%></td>
           <td><%= formatCost(item.sgstAmount) %></td>
-          <td><%= item.igstRate %></td>
+          <td><%= item.igstRate%></td>
           <td><%= formatCost(item.igstAmount) %></td>
           <td></td>
         </tr>
-        <% index++; }) %>
-
+        <% }) %>
         <tr class="bold">
           <td>Sub Total</td>
-          <td><%= formatCost(quoteProposalData.totalTaxableValue) %></td>
+          <td><%=formatCost( quoteProposalData.totalTaxableValue) %></td>
           <td></td>
-          <td><%= formatCost(quoteProposalData.totalCgstAmount) %></td>
+          <td><%=formatCost( quoteProposalData.totalCgstAmount) %></td>
           <td></td>
-          <td><%= formatCost(quoteProposalData.totalSgstAmount) %></td>
+          <td><%=formatCost( quoteProposalData.totalSgstAmount)%></td>
           <td></td>
-          <td><%= formatCost(quoteProposalData.totalIgstAmount) %></td>
-          <td><%= formatCost(quoteProposalData.totalTaxAmount) %></td>
+          <td><%=formatCost(quoteProposalData.totalIgstAmount)%></td>
+          <td><%=formatCost(quoteProposalData.totalTaxAmount) %></td>
         </tr>
 
         <tr>
           <td>996812</td>
           <td><%= formatCost(profileData.deliveryCharges) %></td>
-          <td><%= quoteProposalData.deliveryCgstRate %></td>
+          <td><%= quoteProposalData. deliveryCgstRate %></td>
           <td>
-            <% if (quoteProposalData.deliveryCgstRate > 0) { %> <%=
+            <% if (quoteProposalData. deliveryCgstRate > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
             %> <% } else { %> ₹0 <% } %>
           </td>
-          <td><%= quoteProposalData.deliverySgstRate %></td>
+          <td><%= quoteProposalData. deliverySgstRate %></td>
           <td>
             <% if (quoteProposalData.deliverySgstRate > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise / 2)
             %> <% } else { %> ₹0 <% } %>
           </td>
-          <td><%= quoteProposalData.deliveryIgstRate %></td>
+          <td><%= quoteProposalData. deliveryIgstRate %></td>
           <td>
             <% if (quoteProposalData.deliveryIgstRate > 0) { %> <%=
             formatCost(quoteProposalData.totalDeliveryGstAmountForEdprowise) %>
@@ -355,7 +342,7 @@
           <td>Total</td>
           <td>
             <%= formatCost(quoteProposalData.totalTaxableValue +
-            profileData.deliveryCharges) %>
+            profileData.deliveryCharges ) %>
           </td>
           <td></td>
           <td>
@@ -367,14 +354,15 @@
           <td>
             <%= formatCost(quoteProposalData.totalSgstAmount +
             (quoteProposalData.totalSgstAmount > 0 ?
-            quoteProposalData.totalDeliveryGstAmountForEdprowise / 2 : 0)) %>
+            quoteProposalData.totalDeliveryGstAmountForEdprowise / 2 : 0) )%>
           </td>
           <td></td>
           <td>
-            <%= formatCost(quoteProposalData.totalIgstAmount +
+            <%= formatCost( quoteProposalData.totalIgstAmount +
             (quoteProposalData.totalIgstAmount > 0 ?
-            quoteProposalData.totalDeliveryGstAmountForEdprowise : 0)) %>
+            quoteProposalData.totalDeliveryGstAmountForEdprowise : 0) ) %>
           </td>
+
           <td>
             <%= formatCost(quoteProposalData.totalTaxAmount +
             quoteProposalData.totalDeliveryGstAmountForEdprowise) %>
