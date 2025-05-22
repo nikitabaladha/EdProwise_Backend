@@ -4,7 +4,7 @@ export const TCFormValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     'any.required': 'School ID is required.'
   }),
-     academicYear: Joi.string().required(),
+  academicYear: Joi.string().required(),
   AdmissionNumber: Joi.string().optional().allow(''),
   studentPhoto: Joi.string().allow(null).optional().messages({
     "any.required": "Student photo is required.",

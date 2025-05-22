@@ -12,7 +12,7 @@ export const createBoardRegistrationFees = async (req, res) => {
       });
     }
 
-    // ✅ Validate the request body
+   
     const { error } = BoardRegistrationFeesValidator.validate(req.body);
     if (error) {
       return res.status(400).json({
@@ -23,11 +23,11 @@ export const createBoardRegistrationFees = async (req, res) => {
 
     const { academicYear, classId, sectionIds, amount } = req.body;
 
-    const existingFees = await BoardRegistrationFees.findOne({ schoolId, classId, academicYear });
+    const existingFees = await BoardRegistrationFees.findOne({ schoolId, classId, academicYear,sectionIds, });
     if (existingFees) {
       return res.status(409).json({
         hasError: true,
-        message: "A board registration fee already exists for this class and academic year.",
+        message: "A board registration fee already exists for this class and section and  academic year.",
       });
     }
 

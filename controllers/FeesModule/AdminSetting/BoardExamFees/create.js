@@ -22,11 +22,11 @@ export const createBoardExamFees = async (req, res) => {
 
     const { academicYear, classId, sectionIds, amount } = req.body;
 
-    const existingFees = await BoardExamFees.findOne({ schoolId, classId, academicYear });
+    const existingFees = await BoardExamFees.findOne({ schoolId, classId, academicYear,sectionIds });
     if (existingFees) {
       return res.status(409).json({
         hasError: true,
-        message: "A board exam fee already exists for this class and academic year.",
+        message: "A board exam fee already exists for this class and section and academic year.",
       });
     }
 

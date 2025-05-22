@@ -1,9 +1,10 @@
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
+import StudentRegistration from "../../../../models/FeesModule/RegistrationForm.js";
+import { RegistrationCreateValidator } from "../../../../validators/FeesModule/RegistrationValidator/RegistrationValidator.js";
+import mongoose from "mongoose";
 
 const getFilePath = (file) => {
-  if (!file) return '';
-  return file.mimetype.startsWith('image/')
+  if (!file) return "";
+  return file.mimetype.startsWith("image/")
     ? `/Images/Registration/${file.filename}`
     : `/Documents/Registration/${file.filename}`;
 };
@@ -13,14 +14,19 @@ const updateRegistrationForm = async (req, res) => {
   if (!schoolId) {
     return res.status(401).json({
       hasError: true,
-      message: 'Access denied: School ID missing.',
+      message: "Access denied: School ID missing.",
     });
   }
 
   const { error } = RegistrationCreateValidator.validate(req.body);
   if (error) {
-    return res.status(400).json({ hasError: true, message: error.details[0].message });
+    return res
+      .status(400)
+      .json({ hasError: true, message: error.details[0].message });
   }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
     const { id } = req.params;
@@ -49,20 +55,38 @@ const updateRegistrationForm = async (req, res) => {
     const updatedStudent = await StudentRegistration.findByIdAndUpdate(
       id,
       { $set: updatedFields },
-      { new: true }
+      {
+        new: true,
+        session,
+      }
     );
 
     if (!updatedStudent) {
-      return res.status(404).json({ hasError: true, message: 'Student not found.' });
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        hasError: true,
+        message: "Student not found.",
+      });
     }
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       hasError: false,
-      message: 'Student registration updated successfully.',
+      message: "Student registration updated successfully.",
       student: updatedStudent,
     });
   } catch (err) {
-    res.status(500).json({ hasError: true, message: err.message });
+    await session.abortTransaction();
+    session.endSession();
+
+    res.status(500).json({
+      hasError: true,
+      message: err.message,
+      details: "Transaction aborted. No changes were saved.",
+    });
   }
 };
 

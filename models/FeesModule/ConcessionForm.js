@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+
 const { Schema } = mongoose;
 
 const concessionDetailSchema = new Schema({
@@ -8,7 +9,7 @@ const concessionDetailSchema = new Schema({
     },
     feesType: {
         type: Schema.Types.ObjectId,
-        ref: 'FeeType',
+        ref: 'FeeType'
     },
     totalFees: {
         type: Number,
@@ -33,6 +34,13 @@ const concessionDetailSchema = new Schema({
     }
 });
 
+const concessionCounterSchema = new Schema({
+    schoolId: { type: String, required: true, unique: true },
+    receiptSeq: { type: Number, default: 0 }
+});
+
+const ConcessionCounter = mongoose.model('ConcessionCounter', concessionCounterSchema);
+
 const concessionSchema = new Schema({
     schoolId: {
         type: String,
@@ -41,7 +49,7 @@ const concessionSchema = new Schema({
     },
     academicYear: {
         type: String,
-        required: true,
+        required: true
     },
     AdmissionNumber: {
         type: String,
@@ -77,11 +85,10 @@ const concessionSchema = new Schema({
         enum: ['EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other']
     },
     castOrIncomeCertificate: {
-        type: String,
+        type: String
     },
     receiptNumber: {
-        type: String,
-        unique: true,
+        type: String
     },
     concessionDetails: {
         type: [concessionDetailSchema],
@@ -90,27 +97,34 @@ const concessionSchema = new Schema({
     }
 }, { timestamps: true });
 
-
-const counterSchema = new Schema({
-    _id: { type: String, required: true },
-    seq: { type: Number, default: 0 }
-});
-const Counter = mongoose.model('Counter', counterSchema);
-
+concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true, sparse: true });
+concessionSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true, sparse: true });
 
 concessionSchema.pre('save', async function(next) {
-    if (!this.receiptNumber) {
-        const counter = await Counter.findByIdAndUpdate(
-            'concessionReceiptNumber',
-            { $inc: { seq: 1 } },
-            { new: true, upsert: true }
-        );
-        this.receiptNumber = `CON/${counter.seq.toString().padStart(6, '0')}`;
+    let attempts = 3;
+    while (attempts > 0) {
+        try {
+            const counter = await ConcessionCounter.findOneAndUpdate(
+                { schoolId: this.schoolId },
+                { $inc: { receiptSeq: 1 } },
+                { new: true, upsert: true }
+            );
+
+            if (!this.receiptNumber) {
+                const padded = counter.receiptSeq.toString().padStart(6, '0');
+                this.receiptNumber = `CON/${padded}`;
+            }
+
+            return next();
+        } catch (err) {
+            if (err.code === 11000 && err.message.includes('receiptNumber')) {
+                attempts--;
+                if (attempts === 0) return next(err);
+            } else {
+                return next(err);
+            }
+        }
     }
-    next();
 });
-
-
-concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true });
 
 export default mongoose.model('ConcessionForm', concessionSchema);

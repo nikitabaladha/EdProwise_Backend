@@ -24,6 +24,39 @@ async function create(req, res) {
     const startDate = new Date(`1970-01-01T${startTime}:00Z`);
     const endDate = new Date(`1970-01-01T${endTime}:00Z`);
 
+    if (startDate.getTime() === endDate.getTime()) {
+      return res.status(400).json({
+        hasError: true,
+        message: "Start time and end time cannot be the same.",
+      });
+    }
+
+
+    const shiftNameExists = await MasterDefineShift.findOne({
+      schoolId,
+      masterDefineShiftName,
+    });
+
+    if (shiftNameExists) {
+      return res.status(400).json({
+        hasError: true,
+        message: `already exists ${ masterDefineShiftName} shift.`,
+      });
+    }
+
+
+    const existingShift = await MasterDefineShift.findOne({
+      schoolId,
+      startTime: startDate,
+      endTime: endDate,
+    });
+
+    if (existingShift) {
+      return res.status(400).json({
+        hasError: true,
+        message: "A shift with the same start and end time already exists.",
+      });
+    }
 
     const masterDefineShift = new MasterDefineShift({
       schoolId,
@@ -31,6 +64,7 @@ async function create(req, res) {
       startTime: startDate,
       endTime: endDate,
     });
+
     await masterDefineShift.save();
 
     return res.status(201).json({
@@ -55,3 +89,4 @@ async function create(req, res) {
 }
 
 export default create;
+

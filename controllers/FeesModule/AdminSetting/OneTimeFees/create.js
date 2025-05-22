@@ -33,7 +33,7 @@ export const createOneTimeFees = async (req, res) => {
       if (existingOneTimeFees) {
         return res.status(409).json({
           hasError: true,
-          message: `One-time fee with feesTypeId ${feesTypeId} already exists for this class and sections.`,
+          message: `One-time fee already exists for this class and sections.`,
         });
       }
     }

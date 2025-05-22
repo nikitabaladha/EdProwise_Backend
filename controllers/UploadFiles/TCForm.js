@@ -38,10 +38,42 @@ const fileFilter = (req, file, cb) => {
   return cb(new Error("Only .jpg and .jpeg files are allowed"));
 };
 
-export const tcFileUpload = multer({
-  storage,
-  limits: {
-    fileSize: 300 * 1024,
-  },
-  fileFilter,
-}).fields([{ name: "studentPhoto", maxCount: 1 }]);
+export const tcFileUpload = (req, res, next) => {
+  const upload = multer({
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: 300 * 1024,
+    },
+  }).fields([{ name: "studentPhoto", maxCount: 1 }]);
+
+  upload(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          hasError: true,
+          message: "studentPhoto image must be under 300KB",
+        });
+      }
+      return res.status(400).json({
+        hasError: true,
+        message: err.message,
+      });
+    }
+
+    try {
+      if (req.files && req.files.studentPhoto) {
+        const file = req.files.studentPhoto[0];
+        if (file.size > 300 * 1024) {
+          throw new Error("studentPhoto image must be under 300KB");
+        }
+      }
+      next();
+    } catch (error) {
+      return res.status(400).json({
+        hasError: true,
+        message: error.message,
+      });
+    }
+  });
+};

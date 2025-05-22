@@ -27,13 +27,14 @@ export const updateBoardExamFees = async (req, res) => {
       _id: { $ne: id },
       schoolId,
       classId,
+      sectionIds,
       academicYear,
     });
 
     if (duplicate) {
       return res.status(409).json({
         hasError: true,
-        message: "A board exam fee already exists for this class and academic year.",
+        message: "A board exam fee already exists for this class and section and academic year.",
       });
     }
 

@@ -40,6 +40,7 @@ import getAllBySchoolClassAndSection from "./OneTimeFees/getbySchoolClassnSectio
 
 import createBoardRegistrationFees from "./BoardRegistartionFees/create.js";
 import getBoardRegistrationFees from "./BoardRegistartionFees/get.js";
+import getBySchoolClassAndSectionandyear from "./BoardRegistartionFees/getbyschoolclassandsectionandyear.js";
 import deleteBoardRegistrationFees from "./BoardRegistartionFees/delete.js";
 import updateBoardRegistrationFees from "./BoardRegistartionFees/update.js";
 
@@ -47,6 +48,7 @@ import createBoardExamFees from "./BoardExamFees/create.js";
 import getBoardExamFees from "./BoardExamFees/get.js";
 import deleteBoardExamFees from "./BoardExamFees/delete.js";
 import updateBoardExamFees from "./BoardExamFees/update.js";
+import getexamBySchoolClassAndSectionandyear from "./BoardExamFees/getbyschoolclassandsectionandyear.js";
 
 
 
@@ -85,12 +87,14 @@ export {
   getAllBySchoolClassAndSection,
   createBoardRegistrationFees,
   getBoardRegistrationFees,
+  getBySchoolClassAndSectionandyear,
   deleteBoardRegistrationFees,
   updateBoardRegistrationFees,
   createBoardExamFees,
   getBoardExamFees,
   deleteBoardExamFees,
   updateBoardExamFees,
+  getexamBySchoolClassAndSectionandyear
 
 
 };
