@@ -1,5 +1,6 @@
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import {RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
+import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
+import mongoose from 'mongoose';
 
 const getFilePath = (file) => {
   if (!file) return '';
@@ -22,6 +23,9 @@ const registrationform = async (req, res) => {
     return res.status(400).json({ hasError: true, message: error.details[0].message });
   }
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const files = req.files;
 
@@ -35,7 +39,13 @@ const registrationform = async (req, res) => {
       studentPhoto: getFilePath(files?.studentPhoto?.[0])
     });
 
-    await newStudent.save();
+    newStudent.$session(session);
+
+    await newStudent.save({ session });
+
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json({
       hasError: false,
@@ -43,7 +53,17 @@ const registrationform = async (req, res) => {
       student: newStudent
     });
   } catch (err) {
-    res.status(500).json({ hasError: true, message: err.message });
+
+    await session.abortTransaction();
+    session.endSession();
+
+  
+
+    res.status(500).json({
+      hasError: true,
+      message: err.message,
+      details: 'Transaction aborted. No changes were saved.'
+    });
   }
 };
 

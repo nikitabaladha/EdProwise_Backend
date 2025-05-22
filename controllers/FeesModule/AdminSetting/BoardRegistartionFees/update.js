@@ -30,6 +30,7 @@ export const updateBoardRegistrationFees = async (req, res) => {
       _id: { $ne: id },
       schoolId,
       classId,
+      sectionIds,
       academicYear,
     });
 

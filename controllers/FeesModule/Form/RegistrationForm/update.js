@@ -1,5 +1,6 @@
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
 import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
+import mongoose from 'mongoose';
 
 const getFilePath = (file) => {
   if (!file) return '';
@@ -21,6 +22,9 @@ const updateRegistrationForm = async (req, res) => {
   if (error) {
     return res.status(400).json({ hasError: true, message: error.details[0].message });
   }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
     const { id } = req.params;
@@ -49,12 +53,24 @@ const updateRegistrationForm = async (req, res) => {
     const updatedStudent = await StudentRegistration.findByIdAndUpdate(
       id,
       { $set: updatedFields },
-      { new: true }
+      {
+        new: true,
+        session
+      }
     );
 
     if (!updatedStudent) {
-      return res.status(404).json({ hasError: true, message: 'Student not found.' });
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        hasError: true,
+        message: 'Student not found.'
+      });
     }
+
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       hasError: false,
@@ -62,7 +78,15 @@ const updateRegistrationForm = async (req, res) => {
       student: updatedStudent,
     });
   } catch (err) {
-    res.status(500).json({ hasError: true, message: err.message });
+
+    await session.abortTransaction();
+    session.endSession();
+
+    res.status(500).json({
+      hasError: true,
+      message: err.message,
+      details: 'Transaction aborted. No changes were saved.'
+    });
   }
 };
 

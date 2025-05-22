@@ -31,7 +31,8 @@ const getAdmissionForms = async (req, res) => {
           boardExamStatus: boardFee?.status || 'Pending',
            paymentMode: boardFee?.paymentMode || 'N/A', 
           chequeNumber: boardFee?.chequeNumber || 'N/A', 
-          bankName: boardFee?.bankName || 'N/A'
+          bankName: boardFee?.bankName || 'N/A',
+          receiptNumberBef:boardFee?.receiptNumberBef
         };
       })
     );

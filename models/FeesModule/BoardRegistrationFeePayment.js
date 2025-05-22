@@ -80,7 +80,7 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
       return this.paymentMode === 'Cheque';
     },
   },
-  receiptNumber: {
+  receiptNumberBrf: {
     type: String,
     unique: true,
   },
@@ -89,12 +89,12 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
 
 BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
   try {
-    if (!this.receiptNumber) {
+    if (!this.receiptNumberBrf) {
       const count = await this.constructor.countDocuments({
         academicYear: this.academicYear,
+         schoolId: this.schoolId 
       });
-      // const year = this.academicYear.split('-')[0].slice(2);
-      this.receiptNumber = `BRF/${(count + 1).toString().padStart(6, '0')}`;
+      this.receiptNumberBrf = `BRF/${(count + 1).toString().padStart(6, '0')}`;
     }
 
     if (this.paymentMode === 'Online' && !this.transactionId) {
@@ -108,7 +108,7 @@ BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
   }
 });
 
-BoardRegistrationFeePaymentSchema.index({ receiptNumber: 1 }, { unique: true, sparse: true });
+BoardRegistrationFeePaymentSchema.index({ schoolId:1,receiptNumberBrf: 1 }, { unique: true, sparse: true });
 BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
 const BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);

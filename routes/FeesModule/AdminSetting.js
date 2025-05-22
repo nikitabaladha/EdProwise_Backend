@@ -46,13 +46,15 @@ import {
   getBoardRegistrationFees,
   deleteBoardRegistrationFees,
   updateBoardRegistrationFees,
+  getBySchoolClassAndSectionandyear,
 
   createBoardExamFees,
   getBoardExamFees,
   deleteBoardExamFees,
   updateBoardExamFees,
+  getexamBySchoolClassAndSectionandyear
 } from "../../controllers/FeesModule/AdminSetting/index.js";
-// import deletePrefix from "../../controllers/FeesModule/AdminSetting/PrefixSetting/RegistrationPrefix/delete.js";
+
 
 const router = express.Router();
 
@@ -268,6 +270,15 @@ router.get(
   getBoardRegistrationFees
 );
 
+router.get(
+   "/get-board-registration-fees-byIds/:schoolId/:academicYear/:classId/:sectionId?",
+  roleBasedMiddleware("Admin", "School"),
+ getBySchoolClassAndSectionandyear
+);
+
+
+
+
 router.delete(
   "/delete-board-registration-fees/:id",
   roleBasedMiddleware("Admin", "School"),
@@ -304,6 +315,13 @@ router.put(
   roleBasedMiddleware("Admin", "School"),
   updateBoardExamFees
 );
+
+router.get(
+   "/get-board-exam-fees-byIds/:schoolId/:academicYear/:classId/:sectionId?",
+  roleBasedMiddleware("Admin", "School"),
+ getexamBySchoolClassAndSectionandyear
+);
+
 
 
 export default router;

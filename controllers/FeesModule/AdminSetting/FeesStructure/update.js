@@ -19,13 +19,14 @@ export const updateFeesStructure = async (req, res) => {
       return res.status(400).json({ hasError: true, message: error.message });
     }
 
-    const { classId, feesTypeId, academicYear,installments } = value;
+    const { classId,sectionIds, feesTypeId, academicYear,installments } = value;
 
 
     const duplicate = await FeesStructure.findOne({
       _id: { $ne: id },
       schoolId,
       classId,
+      sectionIds,
       feesTypeId,
       academicYear
     });
@@ -33,7 +34,7 @@ export const updateFeesStructure = async (req, res) => {
     if (duplicate) {
       return res.status(409).json({
         hasError: true,
-        message: "A fees structure already exists for this class and fee type.",
+        message: "A fees structure already exists for this class section and and fee type.",
       });
     }
 
@@ -42,6 +43,7 @@ export const updateFeesStructure = async (req, res) => {
       { _id: id, schoolId },
       { 
         classId,
+        sectionIds,
         feesTypeId,
         sectionIds: value.sectionIds,
         installments: installments.map((installment) => ({

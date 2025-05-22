@@ -3,6 +3,7 @@ import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
 createSchoolFees,
+getSchoolFees,
 
 
 getAdmissionForms,
@@ -22,6 +23,11 @@ router.post(
   "/create-schoolfees",
   roleBasedMiddleware("Admin","School"),
  createSchoolFees
+);
+router.get(
+  "/get-schoolfees",
+  roleBasedMiddleware("Admin","School"),
+getSchoolFees
 );
 
 //----------------------BoardRegistrationFees--------------------//

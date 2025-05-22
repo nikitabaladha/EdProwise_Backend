@@ -184,12 +184,12 @@
   
   // export default getAllFeesInstallmentsWithConcession;
   
-  import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
+import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 import FeesType from "../../../../models/FeesModule/FeesType.js";
 import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
 import AdmissionForm from "../../../../models/FeesModule/AdmissionForm.js";
 import Fine from "../../../../models/FeesModule/Fine.js";
-import SchoolFees from "../../../../models/FeesModule/SchoolFees.js";
+import {SchoolFees} from "../../../../models/FeesModule/SchoolFees.js";
 
 export const getAllFeesInstallmentsWithConcession = async (req, res) => {
   try {

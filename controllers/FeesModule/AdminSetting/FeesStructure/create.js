@@ -19,11 +19,11 @@ export const createFeesStructure = async (req, res) => {
     const { classId, sectionIds,academicYear } = value;
 
 
-    const existingStructure = await FeesStructure.findOne({ schoolId, classId,academicYear });
+    const existingStructure = await FeesStructure.findOne({ schoolId, classId,academicYear,sectionIds });
     if (existingStructure) {
       return res.status(409).json({
         hasError: true,
-        message: "A fees structure already exists for this class.",
+        message: "A fees structure already exists for this class and section.",
       });
     }
 
