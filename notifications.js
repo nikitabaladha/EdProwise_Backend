@@ -129,6 +129,14 @@ export const NOTIFICATION_TEMPLATES = {
     recipientType: "seller",
   },
 
+  SELLER_RECEIVE_REJECTED_QUOTE_FROM_SCHOOL: {
+    type: "quote_rejected_by_school",
+    title: "Rejected Quote From School",
+    message: (context) =>
+      `${context.schoolName} has rejected your Quote Proposal which has Enquiry Number ${context.enquiryNumber} and Quote Number ${context.quoteNumber}.`,
+    recipientType: "seller",
+  },
+
   SELLER_RECEIVED_UPDATED_QUOTE_FROM_EDPROWISE: {
     type: "quote_updated_from_edprowise",
     title: "Updated Quote From Edprowise",

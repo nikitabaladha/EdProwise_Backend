@@ -250,38 +250,19 @@
         </tr>
       </thead>
       <tbody class="center">
-        <% const hsnGroups = {}; prepareQuoteData?.forEach((item) => { if
-        (!hsnGroups[item.hsnSacc]) { hsnGroups[item.hsnSacc] = { hsnSacc:
-        item.hsnSacc, taxableValueForEdprowise: 0, cgstRateForEdprowise:
-        item.cgstRateForEdprowise, cgstAmountForEdprowise: 0,
-        sgstRateForEdprowise: item.sgstRateForEdprowise, sgstAmountForEdprowise:
-        0, igstRateForEdprowise: item.igstRateForEdprowise,
-        igstAmountForEdprowise: 0, totalTaxAmountForEdprowise: 0 }; }
-        hsnGroups[item.hsnSacc].taxableValueForEdprowise +=
-        item.taxableValueForEdprowise;
-        hsnGroups[item.hsnSacc].cgstAmountForEdprowise +=
-        item.cgstAmountForEdprowise;
-        hsnGroups[item.hsnSacc].sgstAmountForEdprowise +=
-        item.sgstAmountForEdprowise;
-        hsnGroups[item.hsnSacc].igstAmountForEdprowise +=
-        item.igstAmountForEdprowise;
-        hsnGroups[item.hsnSacc].totalTaxAmountForEdprowise +=
-        (item.cgstAmountForEdprowise + item.sgstAmountForEdprowise +
-        item.igstAmountForEdprowise); });const groupedItems =
-        Object.values(hsnGroups); let index = 0; %> <%
-        groupedItems.forEach((item) => { %>
+        <% prepareQuoteData?.forEach((item, index) => { %>
         <tr>
           <td><%= item.hsnSacc %></td>
-          <td><%= formatCost(item.taxableValueForEdprowise) %></td>
+          <td><%=formatCost( item.taxableValueForEdprowise )%></td>
           <td><%= item.cgstRateForEdprowise %></td>
-          <td><%= formatCost(item.cgstAmountForEdprowise) %></td>
+          <td><%=formatCost( item.cgstAmountForEdprowise )%></td>
           <td><%= item.sgstRateForEdprowise %></td>
           <td><%= formatCost(item.sgstAmountForEdprowise) %></td>
           <td><%= item.igstRateForEdprowise %></td>
           <td><%= formatCost(item.igstAmountForEdprowise) %></td>
           <td></td>
         </tr>
-        <% index++; }) %>
+        <% }) %>
         <tr class="bold">
           <td>Total</td>
           <td>

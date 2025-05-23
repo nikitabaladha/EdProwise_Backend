@@ -1,12 +1,18 @@
 import Cart from "../../models/Cart.js";
 import PrepareQuote from "../../models/PrepareQuote.js";
 import SubmitQuote from "../../models/SubmitQuote.js";
+import mongoose from "mongoose";
 
 async function create(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const schoolId = req.user?.schoolId;
 
     if (!schoolId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(401).json({
         hasError: true,
         message:
@@ -17,6 +23,8 @@ async function create(req, res) {
     let { enquiryNumber, products } = req.body;
 
     if (!enquiryNumber) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Enquiry number is required.",
@@ -24,6 +32,8 @@ async function create(req, res) {
     }
 
     if (!products || !Array.isArray(products) || products.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "At least one product is required.",
@@ -38,6 +48,8 @@ async function create(req, res) {
       selectedPrepareQuoteIds.includes(undefined) ||
       selectedPrepareQuoteIds.includes(null)
     ) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Each product must have a valid prepareQuoteId.",
@@ -47,16 +59,20 @@ async function create(req, res) {
     const prepareQuotes = await PrepareQuote.find({
       _id: { $in: selectedPrepareQuoteIds },
       enquiryNumber: enquiryNumber,
-    });
+    }).session(session);
 
     const prepareQuoteMap = new Map(
       prepareQuotes.map((pq) => [pq._id.toString(), pq])
     );
 
-    const cartEntries = products.map((product) => {
+    const cartEntries = [];
+
+    for (const product of products) {
       const prepareQuoteEntry = prepareQuoteMap.get(product.prepareQuoteId);
 
       if (!prepareQuoteEntry) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({
           hasError: true,
           message: `PrepareQuote with ID ${product.prepareQuoteId} not found.`,
@@ -64,13 +80,15 @@ async function create(req, res) {
       }
 
       if (!prepareQuoteEntry.sellerId) {
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({
           hasError: true,
           message: `PrepareQuote with ID ${product.prepareQuoteId} is missing a sellerId.`,
         });
       }
 
-      return {
+      cartEntries.push({
         schoolId,
         enquiryNumber,
         prepareQuoteId: product.prepareQuoteId,
@@ -98,19 +116,19 @@ async function create(req, res) {
         discountAmount: prepareQuoteEntry?.discountAmount || 0,
         gstAmount: prepareQuoteEntry?.gstAmount || 0,
         totalAmount: prepareQuoteEntry?.totalAmount || 0,
-      };
-    });
-
-    if (cartEntries.some((entry) => entry.hasError)) {
-      return;
+      });
     }
 
-    const savedEntries = await Cart.insertMany(cartEntries);
+    const savedEntries = await Cart.insertMany(cartEntries, { session });
 
     await SubmitQuote.updateOne(
       { enquiryNumber, sellerId: cartEntries[0].sellerId },
-      { venderStatusFromBuyer: "Quote Accepted" }
+      { venderStatusFromBuyer: "Quote Accepted" },
+      { session }
     );
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(201).json({
       hasError: false,
@@ -118,11 +136,14 @@ async function create(req, res) {
       data: savedEntries,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error creating Cart:", error);
+
     if (error.code === 11000) {
       return res.status(400).json({
         hasError: true,
-        message: "Duplicate entry: This products are already in the cart.",
+        message: "Duplicate entry: These products are already in the cart.",
       });
     }
 

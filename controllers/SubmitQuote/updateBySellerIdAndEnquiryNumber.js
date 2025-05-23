@@ -2,7 +2,11 @@ import SubmitQuote from "../../models/SubmitQuote.js";
 import SubmitQuoteValidator from "../../validators/SubmitQuote.js";
 import QuoteProposal from "../../models/QuoteProposal.js";
 
+import mongoose from "mongoose";
+
 async function updateBySellerIdAndEnquiryNumber(req, res) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { enquiryNumber, sellerId } = req.query;
 
@@ -32,14 +36,14 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
     }
 
     const existingQuoteProposal = await QuoteProposal.findOne({
-      sellerId,
       enquiryNumber,
-    });
+      sellerId,
+    }).session(session);
 
     if (!existingQuoteProposal) {
       return res.status(404).json({
         hasError: true,
-        message: `No Quote Proposal  found with ID ${id} for enquiry number ${enquiryNumber} and seller ID ${sellerId}.`,
+        message: `Quote Proposal not found for the given enquiryNumber and sellerId.`,
       });
     }
 
@@ -92,7 +96,7 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       const quoteProposal = await QuoteProposal.findOne({
         enquiryNumber,
         sellerId,
-      });
+      }).session(session);
 
       if (!quoteProposal) {
         return res.status(404).json({
@@ -124,10 +128,10 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       quoteProposal.finalPayableAmountWithTDSForEdprowise =
         finalPayableAmountWithTDSForEdprowise;
 
-      await quoteProposal.save();
+      await quoteProposal.save({ session });
     }
 
-    const updatedQuote = await existingQuote.save();
+    const updatedQuote = await existingQuote.save({ session });
 
     await QuoteProposal.findOneAndUpdate(
       { enquiryNumber, sellerId },
@@ -136,8 +140,11 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
         edprowiseStatus: "Quote Received",
         buyerStatus: "Quote Received",
       },
-      { new: true }
+      { new: true, session }
     );
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(200).json({
       hasError: false,
@@ -145,6 +152,9 @@ async function updateBySellerIdAndEnquiryNumber(req, res) {
       data: updatedQuote,
     });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
+
     console.error("Error updating Submitted Quote:", error);
     return res.status(500).json({
       hasError: true,

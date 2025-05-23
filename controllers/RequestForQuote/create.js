@@ -958,25 +958,19 @@ async function create(req, res) {
 
     await newQuoteRequest.save({ session });
 
-    const schoolDetail = await School.findOne({ schoolId });
-
-    console.log("School details: ", schoolDetail);
-
+    const schoolDetail = await School.findOne({ schoolId }).session(session);
     const schoolEmail = schoolDetail.schoolEmail;
-
     const schoolName = schoolDetail.schoolName;
-
-    console.log("school Name:", schoolName);
 
     const enrichedProducts = await Promise.all(
       createdEntries.map(async (product) => {
-        const category = await Category.findById(product.categoryId).lean();
+        const category = await Category.findById(product.categoryId)
+          .lean()
+          .session(session);
 
-        const subCategory = await SubCategory.findById(
-          product.subCategoryId
-        ).lean();
-
-        6;
+        const subCategory = await SubCategory.findById(product.subCategoryId)
+          .lean()
+          .session(session);
 
         return {
           ...product.toObject(),
@@ -986,9 +980,6 @@ async function create(req, res) {
         };
       })
     );
-
-    await session.commitTransaction();
-    session.endSession();
 
     await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
       enquiryNumber,
@@ -1083,6 +1074,9 @@ async function create(req, res) {
       }
     );
 
+    await session.commitTransaction();
+    session.endSession();
+
     return res.status(201).json({
       hasError: false,
       message: "Quotes and Quote Proposal created successfully.",
@@ -1093,11 +1087,9 @@ async function create(req, res) {
     });
   } catch (error) {
     // Only abort transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-
+    await session.abortTransaction();
     session.endSession();
+
     console.error("Error creating Product:", error.message);
     console.error(error.stack);
     return res.status(500).json({

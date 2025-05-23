@@ -141,17 +141,21 @@ async function updateDeliveryCharges(req, res) {
       { new: true, session }
     );
 
-    await session.commitTransaction();
-    session.endSession();
-
     const schoolId = quoteRequest?.schoolId;
+
+    if (!schoolId) {
+      return res.status(401).json({
+        hasError: true,
+        message: "schoolId Not found.",
+      });
+    }
+
+    const senderId = req.user.id;
 
     const quoteProposal = await QuoteProposal.findOne({
       enquiryNumber,
       sellerId,
-    });
-
-    const senderId = req.user.id;
+    }).session(session);
 
     if (!senderId) {
       return res.status(401).json({
@@ -160,48 +164,55 @@ async function updateDeliveryCharges(req, res) {
       });
     }
 
-    await NotificationService.sendNotification(
-      "SCHOOL_QUOTE_RECEIVED_FROM_EDPROWISE",
-      schoolId ? [{ id: schoolId.toString(), type: "school" }] : [],
-      {
-        companyName: sellerProfile.companyName,
-        enquiryNumber: quoteProposal.enquiryNumber,
-        quoteNumber: quoteProposal.quoteNumber,
-        entityId: quoteProposal._id,
-        entityType: "QuoteProposal From Edprowise",
-        senderType: "edprowise",
-        senderId: senderId,
-        metadata: {
-          enquiryNumber,
-          sellerId: quoteProposal.sellerId,
-          type: "quote_received_from_edprowise",
-        },
-      }
-    );
+    const relevantEdprowise = await AdminUser.find({}).session(session);
 
-    const relevantEdprowise = await AdminUser.find({});
+    try {
+      await NotificationService.sendNotification(
+        "SCHOOL_QUOTE_RECEIVED_FROM_EDPROWISE",
+        schoolId ? [{ id: schoolId.toString(), type: "school" }] : [],
+        {
+          companyName: sellerProfile.companyName,
+          enquiryNumber: quoteProposal.enquiryNumber,
+          quoteNumber: quoteProposal.quoteNumber,
+          entityId: quoteProposal._id,
+          entityType: "QuoteProposal From Edprowise",
+          senderType: "edprowise",
+          senderId: senderId,
+          metadata: {
+            enquiryNumber,
+            sellerId: quoteProposal.sellerId,
+            type: "quote_received_from_edprowise",
+          },
+        }
+      );
 
-    await NotificationService.sendNotification(
-      "EDPROWISE_ACCEPTED_QUOTE",
-      relevantEdprowise.map((admin) => ({
-        id: admin._id.toString(),
-        type: "edprowise",
-      })),
-      {
-        companyName: sellerProfile.companyName,
-        quoteNumber: quoteProposal.quoteNumber,
-        enquiryNumber: quoteProposal.enquiryNumber,
-        entityId: quoteProposal._id,
-        entityType: "QuoteProposal From Edprowise",
-        senderType: "edprowise",
-        senderId: senderId,
-        metadata: {
-          enquiryNumber,
-          sellerId: quoteProposal.sellerId,
-          type: "quote_accepted_from_edprowise",
-        },
-      }
-    );
+      await NotificationService.sendNotification(
+        "EDPROWISE_ACCEPTED_QUOTE",
+        relevantEdprowise.map((admin) => ({
+          id: admin._id.toString(),
+          type: "edprowise",
+        })),
+        {
+          companyName: sellerProfile.companyName,
+          quoteNumber: quoteProposal.quoteNumber,
+          enquiryNumber: quoteProposal.enquiryNumber,
+          entityId: quoteProposal._id,
+          entityType: "QuoteProposal From Edprowise",
+          senderType: "edprowise",
+          senderId: senderId,
+          metadata: {
+            enquiryNumber,
+            sellerId: quoteProposal.sellerId,
+            type: "quote_accepted_from_edprowise",
+          },
+        }
+      );
+    } catch (notificationError) {
+      throw new Error("Notification failed: " + notificationError.message);
+    }
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(200).json({
       hasError: false,

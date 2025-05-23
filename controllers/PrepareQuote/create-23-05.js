@@ -60,14 +60,14 @@ async function generateQuoteNumber(session) {
 
 async function create(req, res) {
   const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    await session.startTransaction();
     const sellerId = req.user?.id;
 
     if (!sellerId) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(401).json({
         hasError: true,
         message: "Access denied: You do not have permission to Prepare quote.",
@@ -77,8 +77,8 @@ async function create(req, res) {
     let { enquiryNumber, products } = req.body;
 
     if (!enquiryNumber) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Enquiry number is required.",
@@ -88,8 +88,8 @@ async function create(req, res) {
     try {
       if (typeof products === "string") products = JSON.parse(products);
     } catch (e) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Invalid products format.",
@@ -97,8 +97,8 @@ async function create(req, res) {
     }
 
     if (!Array.isArray(products) || products.length === 0) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "At least one product must be provided.",
@@ -112,8 +112,8 @@ async function create(req, res) {
     ]);
 
     if (!quoteRequest || !sellerProfile || !edprowiseProfile) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Required profile data not found.",
@@ -125,8 +125,8 @@ async function create(req, res) {
     const edprowiseState = edprowiseProfile.state;
 
     if (!schoolState || !sellerState || !edprowiseState) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Location data is incomplete.",
@@ -170,8 +170,6 @@ async function create(req, res) {
         const errorMessages = error.details
           .map((err) => err.message)
           .join(", ");
-        await session.abortTransaction();
-        session.endSession();
         return res.status(400).json({ hasError: true, message: errorMessages });
       }
 
@@ -184,8 +182,8 @@ async function create(req, res) {
 
       for (const field of requiredFields) {
         if (product[field] === undefined || product[field] === null) {
-          await session.abortTransaction();
-          session.endSession();
+          // await session.abortTransaction();
+          // session.endSession();
           return res.status(400).json({
             hasError: true,
             message: `Field '${field}' is required for calculations.`,
@@ -410,8 +408,8 @@ async function create(req, res) {
     );
 
     if (!updatedQuoteRequest) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Quote request not found with the given enquiry number.",
@@ -428,55 +426,49 @@ async function create(req, res) {
 
     await newSubmitQuote.save({ session });
 
-    // Commit the transaction before sending notifications
+    // Send notification after transaction committed
+    await NotificationService.sendNotification(
+      "SELLER_QUOTE_PREPARED",
+      [{ id: sellerId, type: "seller" }],
+      {
+        enquiryNumber: enquiryNumber,
+        quoteNumber: newQuoteProposal.quoteNumber,
+        entityId: newQuoteProposal._id,
+        entityType: "QuoteProposal",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_prepared",
+        },
+      }
+    );
+
+    const relevantEdprowise = await AdminUser.find({});
+
+    await NotificationService.sendNotification(
+      "EDPROWISE_QUOTE_RECEIVED_FROM_SELLER",
+      relevantEdprowise.map((admin) => ({
+        id: admin._id.toString(),
+        type: "edprowise",
+      })),
+      {
+        companyName: sellerProfile.companyName,
+        enquiryNumber: enquiryNumber,
+        quoteNumber: newQuoteProposal.quoteNumber,
+        entityId: newQuoteProposal._id,
+        entityType: "QuoteProposal From Seller",
+        senderType: "seller",
+        senderId: sellerId,
+        metadata: {
+          enquiryNumber,
+          type: "quote_received_from_seller",
+        },
+      }
+    );
+
     await session.commitTransaction();
     session.endSession();
-
-    // Send notifications after transaction is committed
-    try {
-      await NotificationService.sendNotification(
-        "SELLER_QUOTE_PREPARED",
-        [{ id: sellerId, type: "seller" }],
-        {
-          enquiryNumber: enquiryNumber,
-          quoteNumber: newQuoteProposal.quoteNumber,
-          entityId: newQuoteProposal._id,
-          entityType: "QuoteProposal",
-          senderType: "seller",
-          senderId: sellerId,
-          metadata: {
-            enquiryNumber,
-            type: "quote_prepared",
-          },
-        }
-      );
-
-      const relevantEdprowise = await AdminUser.find({});
-
-      await NotificationService.sendNotification(
-        "EDPROWISE_QUOTE_RECEIVED_FROM_SELLER",
-        relevantEdprowise.map((admin) => ({
-          id: admin._id.toString(),
-          type: "edprowise",
-        })),
-        {
-          companyName: sellerProfile.companyName,
-          enquiryNumber: enquiryNumber,
-          quoteNumber: newQuoteProposal.quoteNumber,
-          entityId: newQuoteProposal._id,
-          entityType: "QuoteProposal From Seller",
-          senderType: "seller",
-          senderId: sellerId,
-          metadata: {
-            enquiryNumber,
-            type: "quote_received_from_seller",
-          },
-        }
-      );
-    } catch (notificationError) {
-      console.error("Error sending notifications:", notificationError);
-      // Don't fail the request if notifications fail
-    }
 
     return res.status(201).json({
       hasError: false,
@@ -488,17 +480,52 @@ async function create(req, res) {
       },
     });
   } catch (error) {
-    // Only abort transaction if it hasn't been committed yet
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-    session.endSession();
+    console.error("Error in create prepare quote:", error);
 
-    console.error("Error preparing Quote:", error.message);
-    console.error(error.stack);
+    // Handle transaction cleanup safely
+    try {
+      if (session.inTransaction()) {
+        await session.abortTransaction().catch((e) => {
+          console.error("Error aborting transaction:", e);
+        });
+      }
+      session.endSession().catch((e) => {
+        console.error("Error ending session:", e);
+      });
+    } catch (e) {
+      console.error("Error in transaction cleanup:", e);
+    }
+
+    // Specific error handling
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        hasError: true,
+        message: error.message,
+      });
+    }
+
+    if (error.name === "MongoServerError") {
+      if (error.code === 251) {
+        // NoSuchTransaction
+        return res.status(500).json({
+          hasError: true,
+          message: "Transaction error occurred. Please try again.",
+        });
+      }
+      if (error.code === 112) {
+        // WriteConflict
+        return res.status(500).json({
+          hasError: true,
+          message: "Conflict detected. Please retry your request.",
+        });
+      }
+    }
+
+    // General error response
     return res.status(500).json({
       hasError: true,
-      message: "Internal server error.",
+      message: "An unexpected error occurred. Please try again later.",
+      error: error.message, // Only show in development
     });
   }
 }
