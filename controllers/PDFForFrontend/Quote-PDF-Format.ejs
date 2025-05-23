@@ -242,19 +242,31 @@
         </tr>
       </thead>
       <tbody class="center">
-        <% prepareQuoteData?.forEach((item, index) => { %>
+        <% const hsnGroups = {}; prepareQuoteData?.forEach((item) => { if
+        (!hsnGroups[item.hsnSacc]) { hsnGroups[item.hsnSacc] = { hsnSacc:
+        item.hsnSacc, taxableValue: 0, cgstRate: item.cgstRate, cgstAmount: 0,
+        sgstRate: item.sgstRate, sgstAmount: 0, igstRate: item.igstRate,
+        igstAmount: 0, totalTaxAmount: 0 }; }
+        hsnGroups[item.hsnSacc].taxableValue += item.taxableValue;
+        hsnGroups[item.hsnSacc].cgstAmount += item.cgstAmount;
+        hsnGroups[item.hsnSacc].sgstAmount += item.sgstAmount;
+        hsnGroups[item.hsnSacc].igstAmount += item.igstAmount;
+        hsnGroups[item.hsnSacc].totalTaxAmount += (item.cgstAmount +
+        item.sgstAmount + item.igstAmount); });const groupedItems =
+        Object.values(hsnGroups); let index = 0; %> <%
+        groupedItems.forEach((item) => { %>
         <tr>
           <td><%= item.hsnSacc %></td>
-          <td><%=formatCost( item.taxableValue )%></td>
+          <td><%= formatCost(item.taxableValue) %></td>
           <td><%= item.cgstRate %></td>
-          <td><%=formatCost( item.cgstAmount )%></td>
+          <td><%= formatCost(item.cgstAmount) %></td>
           <td><%= item.sgstRate %></td>
           <td><%= formatCost(item.sgstAmount) %></td>
           <td><%= item.igstRate %></td>
           <td><%= formatCost(item.igstAmount) %></td>
           <td></td>
         </tr>
-        <% }) %>
+        <% index++; }) %>
         <tr class="bold">
           <td>Total</td>
           <td><%=formatCost( quoteProposalData.totalTaxableValue) %></td>
