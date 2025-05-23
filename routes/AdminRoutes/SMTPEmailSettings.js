@@ -1,5 +1,6 @@
 import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
+import { emailAttachmentsUpload } from "../../controllers/UploadFiles/EmailAttachments.js";
 
 import {
   get,
@@ -25,6 +26,11 @@ router.post(
 
 // Marketing
 router.get("/get-all-emails", roleBasedMiddleware("Admin"), getAllEmails);
-router.post("/send-email", roleBasedMiddleware("Admin"), sendMarketingEmail);
+router.post(
+  "/send-email",
+  emailAttachmentsUpload,
+  roleBasedMiddleware("Admin"),
+  sendMarketingEmail
+);
 
 export default router;
