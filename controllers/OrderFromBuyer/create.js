@@ -989,7 +989,6 @@ async function create(req, res) {
     // orderFromBuyerEntries  at time of sending mail i want to send orderNumber which ever is stored in orderFromBuyerEntries.orderNumber
     await sendSchoolRequestQuoteEmail(schoolName, schoolEmail, {
       orderNumber,
-
       products: orderFromBuyerEntries,
     });
 
@@ -999,26 +998,17 @@ async function create(req, res) {
 
     await sendEmailsToSellers(
       sellerName,
-
       sellerEmail,
-
       schoolName,
-
       {
         orderNumber,
-
         products: orderFromBuyerEntries,
-
         deliveryAddress,
-
         deliveryCountry,
         deliveryState,
         deliveryCity,
-
         deliveryLandMark,
-
         deliveryPincode,
-
         expectedDeliveryDate,
       }
     );
