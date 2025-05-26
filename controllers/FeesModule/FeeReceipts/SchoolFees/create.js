@@ -36,7 +36,7 @@ const schoolFees = async (req, res) => {
       installments,
       chequeNumber,       
       bankName,           
-       paymentDate    
+      paymentDate    
     } = req.body;
 
     if (!Array.isArray(installments) || installments.length === 0) {
@@ -47,96 +47,41 @@ const schoolFees = async (req, res) => {
       });
     }
 
-    const existingRecord = await SchoolFees.findOne({
-      schoolId,
-      studentAdmissionNumber,
-      academicYear
-    }).session(session);
-
     const newReceiptNumber = await getNextReceiptNumber(schoolId, session);
 
-    if (existingRecord) {
-      existingRecord.receiptNumber = newReceiptNumber;
-      existingRecord.transactionNumber = transactionNumber;
-      existingRecord.paymentMode = paymentMode;
-      existingRecord.collectorName = collectorName;
-      existingRecord.paymentDate = paymentDate;
-      existingRecord.chequeNumber = chequeNumber;
-      existingRecord.bankName = bankName;
+    const processedInstallments = installments.map((inst, index) => ({
+      ...inst,
+      number: inst.number ?? index + 1
+    }));
 
+    const newSchoolFees = new SchoolFees({
+      schoolId,
+      studentAdmissionNumber,
+      studentName,
+      className,
+      section,
+      receiptNumber: newReceiptNumber,
+      transactionNumber,
+      paymentMode,
+      collectorName,
+      academicYear,
+      chequeNumber,       
+      bankName,           
+      paymentDate: paymentDate ? new Date(paymentDate) : new Date(), 
+      installments: processedInstallments
+    });
 
+    await newSchoolFees.save({ session });
 
-      installments.forEach((newInstallment) => {
-        const existingInstallment = existingRecord.installments.find(
-          (inst) => inst.number === newInstallment.number
-        );
+    await session.commitTransaction();
+    session.endSession();
 
-        if (existingInstallment) {
-          newInstallment.feeItems.forEach((newFeeItem) => {
-            const existingFeeItem = existingInstallment.feeItems.find(
-              (item) => item.feeTypeId === newFeeItem.feeTypeId
-            );
+    return res.status(201).json({
+      hasError: false,
+      message: 'New school fee record created successfully.',
+      receipt: newSchoolFees
+    });
 
-            if (existingFeeItem) {
-              existingFeeItem.amount = newFeeItem.amount;
-              existingFeeItem.concession = newFeeItem.concession;
-              existingFeeItem.fineAmount = newFeeItem.fineAmount;
-              existingFeeItem.payable = newFeeItem.payable;
-              existingFeeItem.paid = newFeeItem.paid;
-              existingFeeItem.balance = newFeeItem.balance;
-            } else {
-              existingInstallment.feeItems.push(newFeeItem);
-            }
-          });
-        } else {
-          existingRecord.installments.push(newInstallment);
-        }
-      });
-
-      await existingRecord.save({ session });
-
-      await session.commitTransaction();
-      session.endSession();
-
-      return res.status(200).json({
-        hasError: false,
-        message: 'Fee receipt updated with new data and receipt number.',
-        receipt: existingRecord
-      });
-    } else {
-      const processedInstallments = installments.map((inst, index) => ({
-        ...inst,
-        number: inst.number ?? index + 1
-      }));
-
-      const newSchoolFees = new SchoolFees({
-        schoolId,
-        studentAdmissionNumber,
-        studentName,
-        className,
-        section,
-        receiptNumber: newReceiptNumber,
-        transactionNumber,
-        paymentMode,
-        collectorName,
-        academicYear,
-        chequeNumber,       
-        bankName,           
-        paymentDate: paymentDate ? new Date(paymentDate) : new Date(), 
-        installments: processedInstallments
-      });
-
-      await newSchoolFees.save({ session });
-
-      await session.commitTransaction();
-      session.endSession();
-
-      return res.status(201).json({
-        hasError: false,
-        message: 'New school fee record created successfully.',
-        receipt: newSchoolFees
-      });
-    }
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
