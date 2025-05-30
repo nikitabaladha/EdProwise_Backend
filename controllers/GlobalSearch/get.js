@@ -1,5 +1,5 @@
-import QuoteRequest from "../../models/QuoteRequest.js";
-import OrderFromBuyer from "../../models/OrderFromBuyer.js";
+import QuoteRequest from "../../models/ProcurementService/QuoteRequest.js";
+import OrderFromBuyer from "../../models/ProcurementService/OrderFromBuyer.js";
 import School from "../../models/School.js";
 import SellerProfile from "../../models/SellerProfile.js";
 import mongoose from "mongoose";

@@ -1,11 +1,8 @@
 import loginSignupRoutes from "./login-signup.js";
 
-import PDFRoutes from "./PDFForFrontend/QuoteProposal.js";
 import DashboardRoutes from "./DashboardRoutes/TotalCounts.js";
-
 import schoolRoutes from "./AdminRoutes/schoolRegistration.js";
 import schoolProfileRoutes from "./SchoolRoutes/school-profile.js";
-
 import userRoutes from "./AdminRoutes/user.js";
 import schoolUserRoutes from "./SchoolRoutes/school-user.js";
 import SellerRoutes from "./SellerRoutes/seller-profile.js";
@@ -16,23 +13,24 @@ import AdminUserRoutes from "./AdminRoutes/admin.js";
 import NewAdminRoutes from "./AdminRoutes/NewAdmin.js";
 
 // ======================Procurement Services==================
-import MainCategoryCategorySubCategoryRoutes from "./AdminRoutes/MainCategoryCategorySubCategory.js";
-import EdprowiseBankDetailRoutes from "./Procurement/bank-detail.js";
+import PDFRoutes from "./ProcurementService/pdf-for-frontend.js";
+import MainCategoryCategorySubCategoryRoutes from "./ProcurementService/maincategory-category-subcategory.js";
+import EdprowiseBankDetailRoutes from "./ProcurementService/bank-detail.js";
+import QuoteRoutes from "./ProcurementService/quote-request.js";
+import PrepareQuoteRoutes from "./ProcurementService/prepare-quote-by-seller.js";
+import SubmitQuoteRoutes from "./ProcurementService/submit-quote-by-seller.js";
+import UpdateVenderStatusRoutes from "./ProcurementService/update-vender-status.js";
+import CartRoutes from "./ProcurementService/cart-by-school.js";
+import OrderFromBuyerRoutes from "./ProcurementService/order-from-buyer.js";
+import QuoteProposalRoutes from "./ProcurementService/quote-proposal.js";
+import OrderDetailsFromSellerRoutes from "./ProcurementService/order-details-from-seller.js";
+import OrderProgressStatusRoutes from "./ProcurementService/order-progress-status.js";
+import UpdateTDSRoutes from "./ProcurementService/update-tds.js";
+import CancelOrder from "./ProcurementService/order-cancel.js";
+import FeedBackAndRating from "./ProcurementService/feedback-and-rating.js";
+import GlobalSearchRoutes from "./global-search.js";
 
-import QuoteRoutes from "./Procurement/quote-request.js";
-import PrepareQuoteRoutes from "./Procurement/prepare-quote-by-seller.js";
-import SubmitQuoteRoutes from "./Procurement/submit-quote-by-seller.js";
-import UpdateVenderStatusRoutes from "./Procurement/update-vender-status.js";
-import CartRoutes from "./Procurement/cart-by-school.js";
-import OrderFromBuyerRoutes from "./Procurement/order-from-buyer.js";
-import QuoteProposalRoutes from "./Procurement/quote-proposal.js";
-import OrderDetailsFromSellerRoutes from "./Procurement/order-details-from-seller.js";
-import OrderProgressStatusRoutes from "./Procurement/order-progress-status.js";
-import UpdateTDSRoutes from "./Procurement/update-tds.js";
-import CancelOrder from "./Procurement/order-cancel.js";
-import FeedBackAndRating from "./Procurement/feedback-and-rating.js";
-
-import GlobalSearchRoutes from "./Procurement/global-search.js";
+import Notification from "./notification.js";
 
 // ====================Fees Module===================
 
@@ -53,8 +51,6 @@ import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUp
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
 import sitemap from "./sitemap.js";
-
-import Notification from "./Procurement/notification.js";
 
 export default (app) => {
   // PDF Routes

@@ -1,9 +1,9 @@
 import SchoolRegistration from "../../models/School.js";
 import SellerProfile from "../../models/SellerProfile.js";
-import QuoteRequest from "../../models/QuoteRequest.js";
-import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
+import QuoteRequest from "../../models/ProcurementService/QuoteRequest.js";
+import OrderDetailsFromSeller from "../../models/ProcurementService/OrderDetailsFromSeller.js";
 import Subscription from "../../models/Subscription.js";
-import SubCategory from "../../models/SubCategory.js";
+import SubCategory from "../../models/ProcurementService/SubCategory.js";
 async function getCounts(req, res) {
   try {
     const [

@@ -1,7 +1,7 @@
 import School from "../../models/School.js";
-import OrderDetailsFromSeller from "../../models/OrderDetailsFromSeller.js";
-import QuoteRequest from "../../models/QuoteRequest.js";
-import QuoteProposal from "../../models/QuoteProposal.js";
+import OrderDetailsFromSeller from "../../models/ProcurementService/OrderDetailsFromSeller.js";
+import QuoteRequest from "../../models/ProcurementService/QuoteRequest.js";
+import QuoteProposal from "../../models/ProcurementService/QuoteProposal.js";
 
 async function getTotalCountForSchool(req, res) {
   try {

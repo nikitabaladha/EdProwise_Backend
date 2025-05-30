@@ -1,6 +1,6 @@
 import SellerProfile from "../../models/SellerProfile.js";
 import Seller from "../../models/Seller.js";
-import QuoteProposal from "../../models/QuoteProposal.js";
+import QuoteProposal from "../../models/ProcurementService/QuoteProposal.js";
 
 async function getByIdForAdmin(req, res) {
   try {

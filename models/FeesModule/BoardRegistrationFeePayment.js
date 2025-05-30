@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   schoolId: {
     type: String,
     required: true,
-    ref: 'School',
+    ref: "School",
   },
   academicYear: {
     type: String,
@@ -13,7 +13,7 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   admissionId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'AdmissionForm',
+    ref: "AdmissionForm",
   },
   admissionNumber: {
     type: String,
@@ -26,12 +26,12 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Class',
+    ref: "Class",
   },
   sectionId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Section',
+    ref: "Section",
   },
   className: {
     type: String,
@@ -49,8 +49,8 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   paymentMode: {
     type: String,
     required: true,
-    enum: ['Cash', 'Cheque', 'Online'],
-    default: 'Cash',
+    enum: ["Cash", "Cheque", "Online"],
+    default: "Cash",
   },
   paymentDate: {
     type: Date,
@@ -60,8 +60,8 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'Paid'],
-    default: 'Pending',
+    enum: ["Pending", "Paid"],
+    default: "Pending",
   },
   transactionId: {
     type: String,
@@ -71,13 +71,13 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   chequeNumber: {
     type: String,
     required: function () {
-      return this.paymentMode === 'Cheque';
+      return this.paymentMode === "Cheque";
     },
   },
   bankName: {
     type: String,
     required: function () {
-      return this.paymentMode === 'Cheque';
+      return this.paymentMode === "Cheque";
     },
   },
   receiptNumberBrf: {
@@ -86,31 +86,43 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   },
 });
 
-
-BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
+BoardRegistrationFeePaymentSchema.pre("save", async function (next) {
   try {
     if (!this.receiptNumberBrf) {
       const count = await this.constructor.countDocuments({
         academicYear: this.academicYear,
-         schoolId: this.schoolId 
+        schoolId: this.schoolId,
       });
-      this.receiptNumberBrf = `BRF/${(count + 1).toString().padStart(6, '0')}`;
+      this.receiptNumberBrf = `BRF/${(count + 1).toString().padStart(6, "0")}`;
     }
 
-    if (this.paymentMode === 'Online' && !this.transactionId) {
-      this.transactionId = `TXN-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    if (this.paymentMode === "Online" && !this.transactionId) {
+      this.transactionId = `TXN-${Date.now()
+        .toString(36)
+        .toUpperCase()}-${Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, "0")}`;
     }
 
     next();
   } catch (err) {
-    console.error('Error in pre-save middleware:', err);
+    console.error("Error in pre-save middleware:", err);
     next(err);
   }
 });
 
-BoardRegistrationFeePaymentSchema.index({ schoolId:1,receiptNumberBrf: 1 }, { unique: true, sparse: true });
-BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
+BoardRegistrationFeePaymentSchema.index(
+  { schoolId: 1, receiptNumberBrf: 1 },
+  { unique: true, sparse: true }
+);
+BoardRegistrationFeePaymentSchema.index(
+  { transactionId: 1 },
+  { unique: true, sparse: true }
+);
 
-const BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
+const BoardRegistrationFeePayment = mongoose.model(
+  "BoardRegistrationFeePayment",
+  BoardRegistrationFeePaymentSchema
+);
 
 export default BoardRegistrationFeePayment;

@@ -6,4 +6,7 @@ const VerificationCodeForEmailSchema = new mongoose.Schema({
   expiresAt: { type: Date, required: true }, // Expiry time
 });
 
-export default mongoose.model("VerificationCodeForEmail", VerificationCodeForEmailSchema);
+export default mongoose.model(
+  "VerificationCodeForEmail",
+  VerificationCodeForEmailSchema
+);
