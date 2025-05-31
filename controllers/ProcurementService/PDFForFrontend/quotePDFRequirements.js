@@ -79,6 +79,7 @@ async function quotePDFRequirements(req, res) {
     const htmlPath = path.join(
       __dirname,
       "controllers",
+      "ProcurementService",
       "PDFForFrontend",
       "Quote-PDF-Format.ejs"
     );

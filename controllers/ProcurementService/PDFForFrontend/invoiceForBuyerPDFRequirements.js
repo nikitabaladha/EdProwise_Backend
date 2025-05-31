@@ -80,6 +80,7 @@ async function invoiceForBuyerPDFRequirements(req, res) {
     const htmlPath = path.join(
       __dirname,
       "controllers",
+      "ProcurementService",
       "PDFForFrontend",
       fileName
     );

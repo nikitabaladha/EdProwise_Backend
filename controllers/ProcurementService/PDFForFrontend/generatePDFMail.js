@@ -18,7 +18,7 @@ async function generatePDFMail(htmlFilePath, dynamicData = {}, outputPath) {
     // Logo handling
     const logoPath = path.join(
       __dirname,
-      "../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
+      "../../../Images/edprowiseLogoImages/EdProwiseNewLogo.png"
     );
     if (!fs.existsSync(logoPath)) {
       throw new Error(`Logo not found at ${logoPath}`);
