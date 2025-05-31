@@ -43,8 +43,11 @@ RUN apt-get update && \
     lsb-release \
     xdg-utils \
     wget \
+    chromium \
     && rm -rf /var/lib/apt/lists/*
 
+RUN which chromium || which chromium-browser || echo "Chromium not found"
+RUN chromium --version || chromium-browser --version || echo "Chromium not installed"
 
 # 2. Set working directory
 WORKDIR /app

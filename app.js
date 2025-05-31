@@ -1,4 +1,26 @@
 // EdProwise_Backend\app.js
+import puppeteer from "puppeteer";
+
+(async () => {
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // Needed inside Docker
+    });
+
+    const page = await browser.newPage();
+    await page.goto("https://example.com");
+    console.log("✅ Page loaded:", await page.title());
+
+    await page.screenshot({ path: "example.png" });
+    console.log("✅ Screenshot saved as example.png");
+
+    await browser.close();
+  } catch (err) {
+    console.error("❌ Puppeteer test failed:", err);
+    // process.exit(1);
+  }
+})();
 
 import dotenv from "dotenv";
 import path from "path";
