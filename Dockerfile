@@ -52,6 +52,8 @@ RUN chromium --version || chromium-browser --version || echo "Chromium not insta
 # 2. Set working directory
 WORKDIR /app
 
+RUN mkdir -p /app/temp
+
 # 3. Copy package.json and package-lock.json (if exists)
 COPY package*.json ./
 
