@@ -1,6 +1,6 @@
-import EdprowiseProfile from "../../../models/EdprowiseProfile.js";
-import EdprowiseProfileValidator from "../../../validators/AdminUser/EdprowiseProfile.js";
-import AdminUser from "../../../models/AdminUser.js";
+import EdprowiseProfile from "../../models/EdprowiseProfile.js";
+import EdprowiseProfileValidator from "../../validators/EdprowiseProfile.js";
+import AdminUser from "../../models/AdminUser.js";
 
 async function create(req, res) {
   try {
@@ -40,14 +40,15 @@ async function create(req, res) {
       contactNo,
       alternateContactNo,
       emailId,
-      // insuranceCharges,
     } = req.body;
 
-    const edprowiseProfileImagePath = "/Images/EdprowiseProfile";
-    const edprowiseProfile =
-      req.files && req.files.edprowiseProfile
-        ? `${edprowiseProfileImagePath}/${req.files.edprowiseProfile[0].filename}`
-        : "/Images/DummyImages/Dummy_Profile.png";
+    const edprowiseProfile = req.file;
+
+    const edprowiseProfileImagePath = edprowiseProfile
+      ? `/Images/EdprowiseProfile/${edprowiseProfile.filename}`
+      : "/Images/DummyImages/Dummy_Profile.png";
+
+    console.log("Files received:", req.file?.filename);
 
     const newEdprowiseProfile = new EdprowiseProfile({
       userId,
@@ -66,8 +67,7 @@ async function create(req, res) {
       contactNo,
       alternateContactNo,
       emailId,
-      edprowiseProfile,
-      // insuranceCharges,
+      edprowiseProfile: edprowiseProfileImagePath,
     });
 
     await newEdprowiseProfile.save();
