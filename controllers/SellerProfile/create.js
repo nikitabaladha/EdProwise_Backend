@@ -337,6 +337,7 @@ async function create(req, res) {
       ceoName,
       turnover,
       dealingProducts,
+      acceptTermsAndConditions
     } = req.body;
 
     const sellerProfileImagePath = "/Images/SellerProfile";
@@ -439,6 +440,7 @@ async function create(req, res) {
       turnover,
       dealingProducts,
       status: "Completed",
+      acceptTermsAndConditions
     });
 
     const SellerDetails = await Seller.findById(sellerId);

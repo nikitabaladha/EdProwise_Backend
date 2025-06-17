@@ -348,6 +348,7 @@ async function createByAdmin(req, res) {
       ceoName,
       turnover,
       dealingProducts,
+      
     } = req.body;
 
     const sellerProfileImagePath = "/Images/SellerProfile";
@@ -441,6 +442,7 @@ async function createByAdmin(req, res) {
       dealingProducts,
       randomId: userId,
       status: "Completed",
+      
     });
 
     await newSellerProfile.save();

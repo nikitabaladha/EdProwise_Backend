@@ -393,6 +393,7 @@ async function create(req, res) {
       deliveryCountry,
       deliveryState,
       deliveryCity,
+      acceptTermsAndConditions,
     } = req.body;
 
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
@@ -450,6 +451,7 @@ async function create(req, res) {
       profileImage: profileImagePath,
       affiliationCertificate: affiliationCertificatePath,
       panFile: panFilePath,
+      acceptTermsAndConditions,
       status: "Completed",
     });
 

@@ -50,7 +50,10 @@ import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.
 import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js";
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
-
+// import PayrollAdminSettingRoutes "./PayrollModule/PayrollAdminSettingRoutes.js";
+import PayrollAdminSettingRoutes from "./PayrollModule/PayrollAdminSettingRoutes.js"
+// Blogs
+import Blogs from "./AdminRoutes/blogs.js"
 
 import sitemap from "./sitemap.js"
 export default (app) => {
@@ -110,4 +113,7 @@ export default (app) => {
   app.use("/api", ContactUsFormRoutes);
 
   app.use("/", sitemap );
+
+  app.use("/api", Blogs);
+  app.use("/api", PayrollAdminSettingRoutes);
 };

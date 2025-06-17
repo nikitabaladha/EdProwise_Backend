@@ -163,6 +163,10 @@ const SellerProfileSchema = new mongoose.Schema(
       enum: ["Pending", "Completed", "Deleted"],
       default: "Pending",
     },
+    acceptTermsAndConditions: {
+      type: Boolean,
+      required: true,
+    },
     dealingProducts: [
       {
         categoryId: {

@@ -95,6 +95,10 @@ const SchoolSchema = new mongoose.Schema(
         "University",
       ],
     },
+     acceptTermsAndConditions: {
+      type: Boolean,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["Pending", "Completed", "Deleted"],
@@ -107,3 +111,4 @@ const SchoolSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("School", SchoolSchema);
+ 

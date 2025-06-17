@@ -78,6 +78,15 @@ const SchoolRegistrationCreateValidator = Joi.object({
       "string.pattern.base": "PAN number must be in the format 'AAAAA9999A'.",
       "any.required": "PAN number is required.",
     }),
+
+    acceptTermsAndConditions: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      "boolean.base": "You must accept the terms and conditions.",
+      "any.only": "You must accept the terms and conditions to proceed.",
+      "any.required": "You must accept the terms and conditions."
+    }),
 });
 
 const SchoolRegistrationUpdateValidator = Joi.object({
@@ -157,6 +166,14 @@ const SchoolRegistrationUpdateValidator = Joi.object({
       "string.empty": "PAN number cannot be empty.",
       "string.pattern.base": "PAN number must be in the format 'AAAAA9999A'.",
       "any.required": "PAN number is required.",
+    }),
+    acceptTermsAndConditions: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      "boolean.base": "You must accept the terms and conditions & privacy&policy.",
+      "any.only": "You must accept the terms and conditions & privacy&policy to proceed.",
+      "any.required": "You must accept the terms and conditions."
     }),
 });
 
@@ -301,6 +318,14 @@ const SchoolProfileUpdateValidator = Joi.object({
       "any.only":
         "Affiliation upto must be one of 'Pre-Primary', 'Primary (Upto Class 5)', 'Secondary (Upto Class 10)', 'Higher Secondary (Upto Class 12)', 'College', 'University'.",
     }),
+    acceptTermsAndConditions: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      "boolean.base": "You must accept the terms and conditions.",
+      "any.only": "You must accept the terms and conditions to proceed.",
+      "any.required": "You must accept the terms and conditions."
+    }),
 });
 
 const SchoolProfileCreateByUserValidator = Joi.object({
@@ -442,6 +467,14 @@ const SchoolProfileCreateByUserValidator = Joi.object({
       "string.empty": "Affiliation upto is required.",
       "any.only":
         "Affiliation upto must be one of 'Pre-Primary', 'Primary (Upto Class 5)', 'Secondary (Upto Class 10)', 'Higher Secondary (Upto Class 12)', 'College', 'University'.",
+    }),
+    acceptTermsAndConditions: Joi.boolean()
+    .valid(true)
+    .required()
+    .messages({
+      "boolean.base": "You must accept the terms and conditions.",
+      "any.only": "You must accept the terms and conditions to proceed.",
+      "any.required": "You must accept the terms and conditions."
     }),
 });
 

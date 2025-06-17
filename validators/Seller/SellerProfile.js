@@ -252,6 +252,14 @@ const SellerProfileCreateValidator = Joi.object({
       "array.min": "At least one dealing product is required.",
       "any.required": "Dealing products are required.",
     }),
+    acceptTermsAndConditions: Joi.boolean()
+        .valid(true)
+        .required()
+        .messages({
+          "boolean.base": "You must accept the terms and conditions & privacy&policy.",
+          "any.only": "You must accept the terms and conditions & privacy&policy to proceed.",
+          "any.required": "You must accept the terms and conditions."
+        }),
 });
 
 const SellerProfileUpdateValidator = Joi.object({
@@ -506,6 +514,14 @@ const SellerProfileUpdateValidator = Joi.object({
       "array.min": "At least one dealing product is required.",
       "any.required": "Dealing products are required.",
     }),
+    acceptTermsAndConditions: Joi.boolean()
+        .valid(true)
+        .required()
+        .messages({
+          "boolean.base": "You must accept the terms and conditions & privacy&policy.",
+          "any.only": "You must accept the terms and conditions & privacy&policy to proceed.",
+          "any.required": "You must accept the terms and conditions."
+        }),
 });
 
 export default {
