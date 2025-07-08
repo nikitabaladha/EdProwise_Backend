@@ -38,6 +38,7 @@ import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import FormRoutes from "./FeesModule/Form.js";
 import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js"
 import FeesManagementYearRoutes from "./FeesModule/FeesManagementYear.js";
+import Reports from "./FeesModule/Reports.js"
 
 // Umesh Routes
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
@@ -99,6 +100,7 @@ export default (app) => {
   app.use("/api", FormRoutes);
   app.use("/api",FeesReceiptsRoutes);
   app.use("/api",FeesManagementYearRoutes);
+  app.use("/api",Reports)
 
 
   // Umesh Routes

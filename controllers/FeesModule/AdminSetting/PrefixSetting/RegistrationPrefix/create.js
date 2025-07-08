@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import PrefixSetting from '../../../../../models/FeesModule/RegistrationPrefix.js';
 import validatePrefixSetting from '../../../../../validators/FeesModule/PrefixSetting.js';
 
@@ -11,48 +12,76 @@ export const createprefix = async (req, res) => {
     });
   }
 
-  const { error } = validatePrefixSetting(req.body);
-  if (error) {
-    return res.status(400).json({
-      hasError: true,
-      message: error.details[0].message,
-    });
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const existing = await PrefixSetting.findOne({ schoolId });
-    if (existing) {
+    const { error } = validatePrefixSetting(req.body);
+    if (error) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
-        message: "Prefix already exists for this school. Only one is allowed.",
+        message: error.details[0].message,
       });
     }
 
-    const { type, value, prefix, number } = req.body;
+    const { type, value, prefix, number, academicYear } = req.body;
 
-    const payload = { schoolId, type };
+    if (!academicYear) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        hasError: true,
+        message: "Academic year is required.",
+      });
+    }
+
+
+    const existing = await PrefixSetting.findOne({ schoolId, academicYear }).session(session);
+    if (existing) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        hasError: true,
+        message: "Prefix already exists for this school and academic year.",
+      });
+    }
+
+    const payload = {
+      schoolId,
+      academicYear,
+      type,
+    };
 
     if (type === 'numeric') {
       payload.value = value;
-    }
-
-    if (type === 'alphanumeric') {
+    } else if (type === 'alphanumeric') {
       payload.prefix = prefix;
       payload.number = number;
     }
 
-    const saved = await PrefixSetting.create(payload);
+    const newPrefix = new PrefixSetting(payload);
+    newPrefix.$session(session);
+    await newPrefix.save({ session });
 
-    res.status(201).json({
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({
       hasError: false,
-      message: 'Prefix  saved successfully.',
-      data: saved,
+      message: "Prefix saved successfully.",
+      data: newPrefix,
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
+    console.error("Prefix creation failed:", err);
+    await session.abortTransaction();
+    session.endSession();
+
+    return res.status(500).json({
       hasError: true,
-      message: 'Server error while saving prefix setting.',
+      message: "Server error while saving prefix setting.",
     });
   }
 };

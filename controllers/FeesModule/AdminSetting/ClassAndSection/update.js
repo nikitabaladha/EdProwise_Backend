@@ -1,21 +1,29 @@
+import mongoose from "mongoose";
 import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
 import ClassAndSectionValidator from "../../../../validators/FeesModule/ClassandSection.js";
 
 const updateClassAndSection = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    // Validate incoming request body
+
     const { error } = ClassAndSectionValidator.ClassAndSectionUpdate.validate(req.body, {
       abortEarly: false,
     });
 
     if (error) {
+      await session.abortTransaction();
+      session.endSession();
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
 
-    // Get schoolId from user context
+
     const schoolId = req.user?.schoolId;
     if (!schoolId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(401).json({
         hasError: true,
         message: "Access denied: You do not have permission to update class and section.",
@@ -23,36 +31,57 @@ const updateClassAndSection = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { className, sections } = req.body;
+    const { className, sections, academicYear } = req.body;
 
-    // Check if the class exists
-    const classData = await ClassAndSection.findOne({ _id: id, schoolId });
+
+    const classData = await ClassAndSection.findOne({ _id: id, schoolId }).session(session);
     if (!classData) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         hasError: true,
         message: "Class and section data not found.",
       });
     }
 
-    // Check if a class with the same name exists (excluding current class)
-    const existingClass = await ClassAndSection.findOne({
-      className,
-      schoolId,
-      _id: { $ne: id },
-    });
 
-    if (existingClass) {
+    const sectionNames = sections.map((section) => section.name);
+    const uniqueSectionNames = new Set(sectionNames);
+    if (sectionNames.length !== uniqueSectionNames.size) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
-        message: `Class with name '${className}' already exists.`,
+        message: "Duplicate section names are not allowed within the same class.",
       });
     }
 
-    // Update class and sections
+
+    const existingClass = await ClassAndSection.findOne({
+      className,
+      schoolId,
+      academicYear,
+      _id: { $ne: id },
+    }).session(session);
+
+    if (existingClass) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(409).json({
+        hasError: true,
+        message: `Class '${className}' already exists for academic year ${academicYear}.`,
+      });
+    }
+
+
     classData.className = className;
+    classData.academicYear = academicYear;
     classData.sections = sections;
 
-    await classData.save();
+    await classData.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(200).json({
       hasError: false,
@@ -60,6 +89,8 @@ const updateClassAndSection = async (req, res) => {
       data: classData,
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Update Class Error:", err);
     return res.status(500).json({
       hasError: true,

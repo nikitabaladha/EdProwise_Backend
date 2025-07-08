@@ -34,10 +34,20 @@ const schoolFees = async (req, res) => {
       collectorName,
       academicYear,
       installments,
-      chequeNumber,       
-      bankName,           
-      paymentDate    
+      chequeNumber,
+      bankName,
+      paymentDate
     } = req.body;
+
+
+    if (!studentAdmissionNumber || !studentName || !className || !section || !paymentMode || !collectorName || !academicYear) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        hasError: true,
+        message: 'Missing required fields: studentAdmissionNumber, studentName, className, section, paymentMode, collectorName, or academicYear.'
+      });
+    }
+
 
     if (!Array.isArray(installments) || installments.length === 0) {
       await session.abortTransaction();
@@ -47,11 +57,51 @@ const schoolFees = async (req, res) => {
       });
     }
 
+   
+    for (const inst of installments) {
+      if (!inst.installmentName || !inst.dueDate || !Array.isArray(inst.feeItems) || inst.feeItems.length === 0) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          hasError: true,
+          message: 'Each installment must have installmentName, dueDate, and a non-empty feeItems array.'
+        });
+      }
+   
+      if (isNaN(new Date(inst.dueDate).getTime())) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          hasError: true,
+          message: `Invalid dueDate in installment ${inst.installmentName}.`
+        });
+      }
+
+      for (const feeItem of inst.feeItems) {
+        if (!feeItem.feeTypeId || typeof feeItem.amount !== 'number' || typeof feeItem.payable !== 'number' || typeof feeItem.balance !== 'number') {
+          await session.abortTransaction();
+          return res.status(400).json({
+            hasError: true,
+            message: `Invalid feeItem in installment ${inst.installmentName}: feeTypeId, amount, payable, and balance are required.`
+          });
+        }
+      }
+    }
+
     const newReceiptNumber = await getNextReceiptNumber(schoolId, session);
 
     const processedInstallments = installments.map((inst, index) => ({
-      ...inst,
-      number: inst.number ?? index + 1
+      number: inst.number ?? index + 1,
+      installmentName: inst.installmentName,
+      dueDate: new Date(inst.dueDate), 
+      excessAmount: inst.excessAmount ?? 0,
+      fineAmount: inst.fineAmount ?? 0,
+      feeItems: inst.feeItems.map(feeItem => ({
+        feeTypeId: feeItem.feeTypeId,
+        amount: feeItem.amount,
+        concession: feeItem.concession ?? 0,
+        payable: feeItem.payable,
+        paid: feeItem.paid ?? 0,
+        balance: feeItem.balance
+      }))
     }));
 
     const newSchoolFees = new SchoolFees({
@@ -65,9 +115,9 @@ const schoolFees = async (req, res) => {
       paymentMode,
       collectorName,
       academicYear,
-      chequeNumber,       
-      bankName,           
-      paymentDate: paymentDate ? new Date(paymentDate) : new Date(), 
+      chequeNumber,
+      bankName,
+      paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
       installments: processedInstallments
     });
 

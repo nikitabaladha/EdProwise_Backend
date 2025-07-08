@@ -6,6 +6,10 @@ const RegistartionPrefixSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
     type: {
       type: String,
       enum: ['numeric', 'alphanumeric'],
@@ -25,5 +29,6 @@ const RegistartionPrefixSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
 
 export default mongoose.model('RegistartionPrefix', RegistartionPrefixSchema);

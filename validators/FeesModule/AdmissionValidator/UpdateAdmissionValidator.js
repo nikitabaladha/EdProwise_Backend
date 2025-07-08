@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-export const AdmissionValidator = Joi.object({
+export const UpdateAdmissionValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     "any.required": "School ID is required."
   }),
@@ -102,7 +102,7 @@ export const AdmissionValidator = Joi.object({
   castCertificate: Joi.string().allow(null, ""),
 
   siblingInfoChecked: Joi.boolean(),
-  relationType: Joi.string().valid('Brother', 'Sister').allow(null, ""),
+  relationType: Joi.string().allow(null, ""),
   siblingName: Joi.string().allow(null, ""),
   idCardFile: Joi.string().allow(null, ""),
 
@@ -146,7 +146,7 @@ export const AdmissionValidator = Joi.object({
   name: Joi.string().required().messages({
     "any.required": "Name is required."
   }),
-  paymentMode: Joi.string().valid("Cash", "Cheque", "Online").required().messages({
+  paymentMode: Joi.string().valid("Cash", "Cheque", "Online","null").required().messages({
     "any.required": "Payment mode is required.",
     "any.only": "Payment mode must be Cash, Cheque, or Online."
   }),

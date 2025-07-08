@@ -27,6 +27,11 @@ const MasterDefineShiftCreate = Joi.object({
       "string.pattern.base": "End time must be in HH:mm format (24-hour).",
       "any.required": "End time is required.",
     }),
+  academicYear: Joi.string().required().messages({
+    "string.base": "Academic year must be a string.",
+    "string.empty": "Academic year cannot be empty.",
+    "any.required": "Academic year is required.",
+  }),
 });
 
 const MasterDefineShiftUpdate = Joi.object({
@@ -56,6 +61,11 @@ const MasterDefineShiftUpdate = Joi.object({
       "string.pattern.base": "End time must be in HH:mm format (24-hour).",
       "any.required": "End time is required.",
     }),
+  academicYear: Joi.string().required().messages({
+    "string.base": "Academic year must be a string.",
+    "string.empty": "Academic year cannot be empty.",
+    "any.required": "Academic year is required.",
+  }),
 });
 
 export default {

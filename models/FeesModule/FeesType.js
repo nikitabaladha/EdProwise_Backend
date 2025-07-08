@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const FeesTypeSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -16,12 +15,14 @@ const FeesTypeSchema = new mongoose.Schema(
       enum: ["School Fees", "One Time Fees"],
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-
-FeesTypeSchema.index({  feesTypeName: 1 }, { unique: true });
+FeesTypeSchema.index({ feesTypeName: 1, academicYear: 1 ,schoolId:1,}, { unique: true });
 
 export default mongoose.model("FeesType", FeesTypeSchema);
-

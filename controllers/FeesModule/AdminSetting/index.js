@@ -2,16 +2,19 @@ import createFeesType from "./FeesType/create.js";
 import getAllFeesType from "./FeesType/getAll.js";
 import deleteFeesType from "./FeesType/delete.js";
 import updateFeesType from "./FeesType/update.js";
+import getFeeTypebyYear from "./FeesType/getfeetypebyyear.js"
 
 import createMasterDefineShift from "./MasterDefineShift/create.js";
 import getAllMasterDefineShift from "./MasterDefineShift/getAll.js";
 import updateMasterDefineShift from "./MasterDefineShift/update.js";
 import deleteMasterDefineShift from "./MasterDefineShift/delete.js";
+import getshiftbyyear from "./MasterDefineShift/getbyyear.js";
 
 import createClassAndSection from "./ClassAndSection/create.js";
 import getClassAndSection from "./ClassAndSection/getclassandsection.js";
 import deleteClassAndSection from "./ClassAndSection/delete.js"
 import updateClassAndSection from "./ClassAndSection/update.js"
+import getClassAndSectionsbyyear from "./ClassAndSection/getclassandsectionbyyear.js";
 
 import createFeesStructure from "./FeesStructure/create.js";
 import getFeesStructure from "./FeesStructure/get.js";
@@ -50,6 +53,12 @@ import deleteBoardExamFees from "./BoardExamFees/delete.js";
 import updateBoardExamFees from "./BoardExamFees/update.js";
 import getexamBySchoolClassAndSectionandyear from "./BoardExamFees/getbyschoolclassandsectionandyear.js";
 
+import getAdmissionFormsByYearClassnsection from '../AdminSetting/Promotion/getbyyearwiseclassnsection.js';
+import promotestudent from '../AdminSetting/Promotion/promotestudent.js';
+import promoteStudentsBulk from '../AdminSetting/Promotion/promotestudentbulk.js';
+import deleteAcademicHistoryById from "./Promotion/deletebyacademicHistory.js";
+import updateAcademicHistoryById from "./Promotion/Updatepromotion.js";
+
 
 
 export {
@@ -57,12 +66,15 @@ export {
   getAllFeesType,
   deleteFeesType,
   updateFeesType,
+  getFeeTypebyYear,
   createMasterDefineShift,
   getAllMasterDefineShift,
   updateMasterDefineShift,
   deleteMasterDefineShift,
+  getshiftbyyear,
   createClassAndSection,
   getClassAndSection,
+  getClassAndSectionsbyyear,
   deleteClassAndSection,
   updateClassAndSection,
   createFeesStructure,
@@ -94,7 +106,12 @@ export {
   getBoardExamFees,
   deleteBoardExamFees,
   updateBoardExamFees,
-  getexamBySchoolClassAndSectionandyear
+  getexamBySchoolClassAndSectionandyear,
+  getAdmissionFormsByYearClassnsection,
+  promotestudent,
+  promoteStudentsBulk,
+  deleteAcademicHistoryById,
+  updateAcademicHistoryById
 
 
 };

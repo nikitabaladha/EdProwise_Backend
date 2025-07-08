@@ -2,14 +2,12 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-
 const schoolFeesCounterSchema = new Schema({
   schoolId: { type: String, required: true, unique: true },
   receiptSeq: { type: Number, default: 0 }
 });
 
 export const SchoolFeesCounter = mongoose.model('SchoolFeesCounter', schoolFeesCounterSchema);
-
 
 const schoolFeesSchema = new Schema({
   schoolId: { type: String, required: true },
@@ -30,12 +28,15 @@ const schoolFeesSchema = new Schema({
   installments: [
     {
       number: { type: Number, required: true },
+      installmentName: { type: String, required: true },
+      dueDate: { type: Date, required: true },
+      excessAmount: { type: Number, default: 0 },
+      fineAmount: { type: Number, default: 0 }, 
       feeItems: [
         {
           feeTypeId: { type: String, ref: 'FeesType', required: true },
           amount: { type: Number, required: true },
           concession: { type: Number, default: 0 },
-          fineAmount: { type: Number, default: 0 },
           payable: { type: Number, required: true },
           paid: { type: Number, default: 0 },
           balance: { type: Number, required: true }
@@ -43,8 +44,7 @@ const schoolFeesSchema = new Schema({
       ]
     }
   ]
-},{ timestamps: true });
-
+}, { timestamps: true });
 
 schoolFeesSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true });
 

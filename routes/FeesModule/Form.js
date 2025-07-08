@@ -11,7 +11,7 @@ import {
   getRegistrationsBySchoolId,
   deleteRegistrationbyid,
   updateRegistrationForm,
-   getRegistrationsBySchoolIdandyear,
+  getRegistrationsBySchoolIdandyear,
   downloadreceipts,
 
   createAdmissionForm,
@@ -19,6 +19,7 @@ import {
   deleteAdmissionFormById,
   updateAdmissionForm,
   getbySchoolIdandYear,
+
 
   createTCForm,
   getTCForm,
@@ -93,6 +94,8 @@ router.get(
  getbySchoolIdandYear
 );
 
+
+
 router.delete(
   "/delete-admission-form/:id",
   roleBasedMiddleware("Admin","School"),
@@ -104,6 +107,8 @@ router.put(
   roleBasedMiddleware("Admin","School"),admissionFileUpload,
   updateAdmissionForm
 );
+
+
 
 
 //------------------------------------TC Form-------------------------------------------------------------//

@@ -90,7 +90,6 @@ BoardExamFeePaymentSchema.pre('save', async function (next) {
   try {
     if (!this.receiptNumberBef) {
       const count = await this.constructor.countDocuments({
-        academicYear: this.academicYear,
         schoolId: this.schoolId 
       });
       this.receiptNumberBef = `BEF/${(count + 1).toString().padStart(6, '0')}`;

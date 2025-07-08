@@ -8,6 +8,10 @@ const SectionSchema = new mongoose.Schema({
 const ClassAndSectionSchema = new mongoose.Schema(
   {
     schoolId: { type: String, required: true },
+     academicYear: {
+      type: String,
+      required: true,
+    },
     className: { type: String, required: true },
     sections: [SectionSchema],
   },

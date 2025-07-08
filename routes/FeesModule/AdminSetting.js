@@ -4,6 +4,7 @@ import roleBasedMiddleware from "../../middleware/index.js";
 import {
   createFeesType,
   getAllFeesType,
+  getFeeTypebyYear,
   deleteFeesType,
   updateFeesType,
 
@@ -11,9 +12,11 @@ import {
   getAllMasterDefineShift,
   updateMasterDefineShift,
   deleteMasterDefineShift,
+  getshiftbyyear,
 
   createClassAndSection,
   getClassAndSection,
+  getClassAndSectionsbyyear,
   deleteClassAndSection,
   updateClassAndSection,
 
@@ -52,7 +55,13 @@ import {
   getBoardExamFees,
   deleteBoardExamFees,
   updateBoardExamFees,
-  getexamBySchoolClassAndSectionandyear
+  getexamBySchoolClassAndSectionandyear,
+
+  getAdmissionFormsByYearClassnsection,
+  promotestudent,
+  promoteStudentsBulk,
+  deleteAcademicHistoryById,
+  updateAcademicHistoryById
 } from "../../controllers/FeesModule/AdminSetting/index.js";
 
 
@@ -76,6 +85,13 @@ router.get(
   getAllFeesType,
 );
 
+router.get(
+  "/getall-fess-type-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+ getFeeTypebyYear
+);
+
+
 router.delete(
   "/delete-fees-type/:id",
   roleBasedMiddleware("Admin","School"),
@@ -92,6 +108,11 @@ router.get(
   "/master-define-shift/:schoolId",
   roleBasedMiddleware("Admin", "School"),
   getAllMasterDefineShift
+);
+router.get(
+  "/master-define-shift-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+   getshiftbyyear
 );
 router.put(
   "/master-define-shift/:id",
@@ -115,6 +136,12 @@ router.get(
   "/get-class-and-section/:schoolId",
   roleBasedMiddleware("Admin","School"),
  getClassAndSection
+);
+
+router.get(
+  "/get-class-and-section-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getClassAndSectionsbyyear
 );
 
 router.delete(
@@ -168,7 +195,7 @@ router.post(
 );
 
 router.get(
-  "/get-prefix/:schoolId",
+  "/get-prefix/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getPrefixes
 );
@@ -188,7 +215,7 @@ router.post(
 );
 
 router.get(
-  "/get-admission-prefix/:schoolId",
+  "/get-admission-prefix/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getAdmissionPrefix
 );
@@ -323,5 +350,37 @@ router.get(
 );
 
 
+//------------------------------------------promotion----------------------------------//
+
+router.post(
+  "/promote-student",
+  roleBasedMiddleware("Admin","School"),
+  promotestudent
+);
+
+router.post(
+  "/promote-students-bulk",
+  roleBasedMiddleware("Admin","School"),
+  promoteStudentsBulk
+)
+
+router.get(
+  "/get-admission-form-by-year-classnsection/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+getAdmissionFormsByYearClassnsection
+);
+
+router.delete(
+  "/delete-promotion/:academicHistoryId",
+  roleBasedMiddleware("Admin","School"),
+deleteAcademicHistoryById
+);
+
+
+router.put(
+  "/update-promotion/:academicHistoryId",
+  roleBasedMiddleware("Admin","School"),
+updateAcademicHistoryById
+);
 
 export default router;

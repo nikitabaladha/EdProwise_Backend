@@ -1,3 +1,4 @@
+
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 import FeesType from "../../../../models/FeesModule/FeesType.js";
 import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
@@ -7,56 +8,53 @@ import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
 
 export const getAllFeesInstallmentsWithConcession = async (req, res) => {
   try {
-    const { classId, sectionIds, schoolId, admissionNumber } = req.query;
-
-    if (!classId || !sectionIds || !schoolId || !admissionNumber) {
+    const { schoolId, admissionNumber } = req.query;
+    if (!schoolId || !admissionNumber) {
       return res.status(400).json({
-        message: "classId, sectionIds, schoolId, and admissionNumber are required",
+        message: "schoolId and admissionNumber are required",
       });
     }
-
-    const sectionIdArray = Array.isArray(sectionIds) ? sectionIds : [sectionIds];
 
     const admissionData = await AdmissionForm.findOne({
       AdmissionNumber: { $regex: `^${admissionNumber}$`, $options: "i" },
       schoolId,
     });
-
     if (!admissionData) {
       return res.status(404).json({ message: "Admission data not found" });
     }
 
-    const allAcademicYears = await FeesStructure.distinct("academicYear", {
-      schoolId,
-      classId,
-      sectionIds: { $in: sectionIdArray },
-    });
+    const academicHistory = admissionData.academicHistory || [];
+    if (!academicHistory.length) {
+      return res.status(404).json({ message: "No academic history found for the student" });
+    }
 
     const result = [];
 
-    for (const academicYear of allAcademicYears) {
+    for (const history of academicHistory) {
+      const { academicYear, masterDefineClass, section } = history;
+
       const feeTypes = await FeesType.find({ academicYear });
       const feeTypeMap = feeTypes.reduce((acc, type) => {
         acc[type._id.toString()] = type.name;
         return acc;
       }, {});
 
+
       const feesStructures = await FeesStructure.find({
         schoolId,
-        classId,
-        sectionIds: { $in: sectionIdArray },
+        classId: masterDefineClass,
+        sectionIds: { $in: [section] },
         academicYear,
       }).lean();
 
       if (!feesStructures.length) continue;
 
+
       const concessionForm = await ConcessionFormModel.findOne({
         AdmissionNumber: { $regex: `^${admissionNumber}$`, $options: "i" },
         academicYear,
       });
-
       const fineData = await Fine.findOne({ schoolId, academicYear });
-
       const allPaidFeesData = await SchoolFees.find({
         schoolId,
         studentAdmissionNumber: admissionNumber,
@@ -72,19 +70,18 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       const feeInstallments = [];
       const paidInstallments = [];
       let hasUnpaidFees = false;
-
-  
       const cumulativePaidMap = {};
 
       for (const structure of feesStructures) {
         for (let i = 0; i < structure.installments.length; i++) {
           const inst = structure.installments[i];
-          const instNumber = inst.number ?? i + 1;
+          const instNumber = inst.number !== undefined ? inst.number : i + 1;
+          let totalBalanceForInstallment = 0;
 
           for (const fee of inst.fees) {
             const feeAmount = fee.amount || 0;
             let concessionAmount = 0;
-            let fineAmount = 0;
+            let paidAmount = 0;
 
             if (concessionForm?.concessionDetails?.length) {
               const concessionMatch = concessionForm.concessionDetails.find(
@@ -97,23 +94,89 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               }
             }
 
+            allPaidFeesData.forEach((payment) => {
+              const matchingInst = payment?.installments?.find(
+                (instData) => instData.installmentName === inst.name
+              );
+              const matchingFeeItem = matchingInst?.feeItems?.find(
+                (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
+              );
+              if (matchingFeeItem) {
+                paidAmount += matchingFeeItem.paid || 0;
+              }
+            });
+
+            const balanceAmount = feeAmount - concessionAmount - paidAmount;
+            totalBalanceForInstallment += balanceAmount;
+          }
+
+          for (const fee of inst.fees) {
+            const feeAmount = fee.amount || 0;
+            let concessionAmount = 0;
+            let fineAmount = 0;
+            let paidAmount = 0;
+
+            if (concessionForm?.concessionDetails?.length) {
+              const concessionMatch = concessionForm.concessionDetails.find(
+                (c) =>
+                  c.installmentName === inst.name &&
+                  c.feesType.toString() === fee.feesTypeId.toString()
+              );
+              if (concessionMatch) {
+                concessionAmount = concessionMatch.concessionAmount || 0;
+              }
+            }
+
+            // const dueDate = new Date(inst.dueDate);
+            // const today = new Date();
+            // if (totalBalanceForInstallment > 0 && today > dueDate && fineData) {
+            //   const { feeType, frequency, value, maxCapFee } = fineData;
+            //   const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
+            //   let multiplier = 0;
+            //   const daysLate = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+            //   const monthsLate =
+            //     today.getMonth() - dueDate.getMonth() +
+            //     12 * (today.getFullYear() - dueDate.getFullYear());
+            //   const yearsLate = today.getFullYear() - dueDate.getFullYear();
+            //   switch (frequency) {
+            //     case "Daily":
+            //       multiplier = daysLate;
+            //       break;
+            //     case "Monthly":
+            //       multiplier = monthsLate;
+            //       break;
+            //     case "Annually":
+            //       multiplier = yearsLate;
+            //       break;
+            //     case "Fixed":
+            //       multiplier = 1;
+            //       break;
+            //   }
+            //   fineAmount = base * multiplier;
+            //   if (maxCapFee) {
+            //     fineAmount = Math.min(fineAmount, maxCapFee);
+            //   }
+            // }
+
             const dueDate = new Date(inst.dueDate);
             const today = new Date();
-            if (today > dueDate && fineData) {
+            if (totalBalanceForInstallment > 0 && today > dueDate && fineData) {
               const { feeType, frequency, value, maxCapFee } = fineData;
-
               const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
-
               let multiplier = 0;
               const daysLate = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
               const monthsLate =
                 today.getMonth() - dueDate.getMonth() +
                 12 * (today.getFullYear() - dueDate.getFullYear());
               const yearsLate = today.getFullYear() - dueDate.getFullYear();
+              const weeksLate = Math.floor(daysLate / 7); // Calculate number of weeks late
 
               switch (frequency) {
                 case "Daily":
                   multiplier = daysLate;
+                  break;
+                case "Weekly":
+                  multiplier = weeksLate;
                   break;
                 case "Monthly":
                   multiplier = monthsLate;
@@ -125,36 +188,25 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   multiplier = 1;
                   break;
               }
-
               fineAmount = base * multiplier;
               if (maxCapFee) {
                 fineAmount = Math.min(fineAmount, maxCapFee);
               }
             }
 
-            let paidAmount = 0;
-
-            
             allPaidFeesData.forEach((payment) => {
               const matchingInst = payment?.installments?.find(
-                (instData) => instData.number === instNumber
+                (instData) => instData.installmentName === inst.name
               );
-
               const matchingFeeItem = matchingInst?.feeItems?.find(
                 (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
               );
-
               if (matchingFeeItem) {
                 const individualPaid = matchingFeeItem.paid || 0;
                 paidAmount += individualPaid;
-
-           
-                const key = `${instNumber}_${fee.feesTypeId}`;
+                const key = `${inst.name}_${fee.feesTypeId}`;
                 cumulativePaidMap[key] = (cumulativePaidMap[key] || 0) + individualPaid;
-
-           
                 const totalPaidSoFar = cumulativePaidMap[key];
-
                 paidInstallments.push({
                   feesTypeId: {
                     _id: matchingFeeItem.feeTypeId,
@@ -166,20 +218,22 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   paymentDate: payment.paymentDate,
                   collectorName: payment.collectorName,
                   paymentMode: payment.paymentMode,
+                  chequeNumber: payment.chequeNumber,
+                  bankName: payment.bankName,
+                  transactionNumber: payment.transactionNumber,
                   amount: fee.amount || 0,
                   concession: concessionAmount || 0,
                   fineAmount: fineAmount || 0,
-                  payable: (fee.amount || 0) - (concessionAmount || 0) + (fineAmount || 0),
+                  excessAmount: matchingInst?.excessAmount || 0,
+                  paidFine: matchingInst?.fineAmount || 0,
+                  payable: (fee.amount || 0) - (concessionAmount || 0),
                   paid: individualPaid,
-                  balance:
-                    ((fee.amount || 0) - (concessionAmount || 0) + (fineAmount || 0)) -
-                    totalPaidSoFar,
+                  balance: ((fee.amount || 0) - (concessionAmount || 0)) - totalPaidSoFar,
                 });
               }
             });
 
-            const balanceAmount = feeAmount - concessionAmount + fineAmount - paidAmount;
-
+            const balanceAmount = feeAmount - concessionAmount - paidAmount;
             if (balanceAmount > 0) {
               hasUnpaidFees = true;
             }
@@ -190,8 +244,6 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
             totalFeesPayable += balanceAmount;
             totalPaidAmount += paidAmount;
             totalRemainingAmount += balanceAmount;
-
-            if (balanceAmount <= 0) continue;
 
             feeInstallments.push({
               feesTypeId: {
@@ -210,34 +262,30 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         }
       }
 
-      if (hasUnpaidFees || paidInstallments.length > 0) {
-        result.push({
-          academicYear,
-          feeInstallments,
-          finePolicy: fineData || null,
-          concession: concessionForm || null,
-          paidInstallments,
-          totals: {
-            totalFeesAmount,
-            totalConcession,
-            totalFine,
-            totalFeesPayable,
-            totalPaidAmount,
-            totalRemainingAmount,
-          },
-          installmentsPresent: Array.from(
-            new Set(
-              feeInstallments.map((item) =>
-                parseInt(item.installmentName?.split(" ")[1])
-              )
-            )
-          ).sort((a, b) => a - b),
-        });
-      }
+      result.push({
+        academicYear,
+        classId: masterDefineClass,
+        sectionId: section,
+        feeInstallments,
+        finePolicy: fineData || null,
+        concession: concessionForm || null,
+        paidInstallments,
+        totals: {
+          totalFeesAmount,
+          totalConcession,
+          totalFine,
+          totalFeesPayable,
+          totalPaidAmount,
+          totalRemainingAmount,
+        },
+        installmentsPresent: Array.from(
+          new Set(feeInstallments.map((item) => item.installmentName))
+        ).sort(),
+      });
     }
 
     if (result.length === 0) {
-      return res.status(404).json({ message: "All fees are paid for all academic years" });
+      return res.status(404).json({ message: "No fee data found for any academic year" });
     }
 
     res.status(200).json({

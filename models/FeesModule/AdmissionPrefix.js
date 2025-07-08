@@ -6,13 +6,17 @@ const AdmissionPrefixSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
     type: {
       type: String,
       enum: ['numeric', 'alphanumeric'],
       required: true,
     },
     value: {
-      type: String,
+      type: String, 
     },
     prefix: {
       type: String, 

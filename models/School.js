@@ -21,9 +21,27 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    schoolLocation: {
+
+    country: {
       type: String,
       required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true,
+    },
+    deliveryCountry: {
+      type: String,
+    },
+    deliveryState: {
+      type: String,
+    },
+    deliveryCity: {
+      type: String,
     },
     landMark: {
       type: String,
@@ -32,9 +50,6 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
     },
     deliveryAddress: {
-      type: String,
-    },
-    deliveryLocation: {
       type: String,
     },
     deliveryLandMark: {

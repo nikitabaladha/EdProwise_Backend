@@ -91,7 +91,7 @@ BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
   try {
     if (!this.receiptNumberBrf) {
       const count = await this.constructor.countDocuments({
-        academicYear: this.academicYear,
+        // academicYear: this.academicYear,
          schoolId: this.schoolId 
       });
       this.receiptNumberBrf = `BRF/${(count + 1).toString().padStart(6, '0')}`;
@@ -111,6 +111,6 @@ BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
 BoardRegistrationFeePaymentSchema.index({ schoolId:1,receiptNumberBrf: 1 }, { unique: true, sparse: true });
 BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
-const BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
+const   BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
 
 export default BoardRegistrationFeePayment;
