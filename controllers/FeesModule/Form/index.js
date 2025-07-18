@@ -22,7 +22,16 @@ import getConcessionFormsBySchoolId from './ConcessionForm/get.js';
 import deleteConcessionFormById from './ConcessionForm/delete.js';
 import updateConcessionForm from './ConcessionForm/update.js';
 
-import getbyadmissionId from './ConcessionForm/getbyADMId.js'
+import getbyadmissionId from './ConcessionForm/getbyADMId.js';
+import updatestatus from './RegistrationForm/updatestatus.js';
+import updateadmissionstatus from './AdmissionForm/upadatestatus.js';
+import updateConcessionStatus from './ConcessionForm/updatestatus.js';
+import updateTCstatus from './TCForm/Updatestatus.js';
+
+import getRegistrationStatus from './RegistrationForm/getstatus.js';
+import getAdmissionStatus from './AdmissionForm/getstatus.js';
+import getTCStatus from './TCForm/getstatus.js';
+import getConcessionStatus from './ConcessionForm/getstatus.js';
 
 export {
   createRegistrationForm,
@@ -44,5 +53,14 @@ export {
   getConcessionFormsBySchoolId,
   deleteConcessionFormById,
   updateConcessionForm,
-  getbyadmissionId 
+  getbyadmissionId,
+  updatestatus,
+  updateadmissionstatus,
+  updateConcessionStatus,
+  updateTCstatus,
+  getRegistrationStatus,
+  getAdmissionStatus,
+  getTCStatus,
+  getConcessionStatus
+
 };

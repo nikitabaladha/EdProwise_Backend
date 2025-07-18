@@ -60,7 +60,7 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Pending', 'Paid'],
+    enum: ['Pending', 'Paid', 'Cancelled', 'Cheque Return'],
     default: 'Pending',
   },
   transactionId: {
@@ -84,7 +84,12 @@ const BoardRegistrationFeePaymentSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
-});
+  cancelledDate: { type: Date },
+  cancelReason: { type: String },
+  chequeSpecificReason: { type: String },
+  additionalComment: { type: String },
+  reportStatus: [{ type: String, enum: ['Paid', 'Cancelled', 'Cheque Return'] }],
+}, { timestamps: true });
 
 
 BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
@@ -92,13 +97,21 @@ BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
     if (!this.receiptNumberBrf) {
       const count = await this.constructor.countDocuments({
         // academicYear: this.academicYear,
-         schoolId: this.schoolId 
+        schoolId: this.schoolId
       });
       this.receiptNumberBrf = `BRF/${(count + 1).toString().padStart(6, '0')}`;
     }
 
     if (this.paymentMode === 'Online' && !this.transactionId) {
       this.transactionId = `TXN-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    }
+
+    if (this.isNew && this.status !== 'Pending') {
+      this.reportStatus = [this.status];
+    } else if (this.isModified('status') && this.status !== 'Pending') {
+      if (!this.reportStatus.includes(this.status)) {
+        this.reportStatus.push(this.status);
+      }
     }
 
     next();
@@ -108,9 +121,24 @@ BoardRegistrationFeePaymentSchema.pre('save', async function (next) {
   }
 });
 
-BoardRegistrationFeePaymentSchema.index({ schoolId:1,receiptNumberBrf: 1 }, { unique: true, sparse: true });
+BoardRegistrationFeePaymentSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate();
+  const newStatus = update.$set?.status;
+  if (newStatus && newStatus !== 'Pending') {
+    const doc = await this.model.findOne(this.getQuery());
+    if (doc && !doc.reportStatus.includes(newStatus)) {
+      this.setUpdate({
+        ...update,
+        $push: { reportStatus: newStatus }
+      });
+    }
+  }
+  next();
+});
+
+BoardRegistrationFeePaymentSchema.index({ schoolId: 1, receiptNumberBrf: 1 }, { unique: true, sparse: true });
 BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
-const   BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
+const BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
 
 export default BoardRegistrationFeePayment;

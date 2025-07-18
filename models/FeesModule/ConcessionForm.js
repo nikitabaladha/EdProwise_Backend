@@ -55,8 +55,8 @@ const concessionSchema = new Schema({
         type: String,
         required: true
     },
-    studentPhoto: { 
-        type: String 
+    studentPhoto: {
+        type: String
     },
     firstName: {
         type: String,
@@ -94,13 +94,18 @@ const concessionSchema = new Schema({
         type: [concessionDetailSchema],
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
-    }
+    },
+    status: { type: String, enum: ['Pending', 'Paid', 'Cancelled', 'Cheque Return'], default: 'Paid' },
+    cancelledDate: { type: Date },
+    cancelReason: { type: String },
+    chequeSpecificReason: { type: String },
+    additionalComment: { type: String },
 }, { timestamps: true });
 
 concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true, sparse: true });
 concessionSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true, sparse: true });
 
-concessionSchema.pre('save', async function(next) {
+concessionSchema.pre('save', async function (next) {
     let attempts = 3;
     while (attempts > 0) {
         try {

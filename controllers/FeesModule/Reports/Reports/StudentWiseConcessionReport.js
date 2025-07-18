@@ -6,6 +6,7 @@ import FeesType from '../../../../models/FeesModule/FeesType.js';
 import ConcessionForm from '../../../../models/FeesModule/ConcessionForm.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 
+
 export const studentwiseConcessionReport = async (req, res) => {
   try {
     const { schoolId, academicYear, startDate, endDate } = req.query;
@@ -32,7 +33,6 @@ export const studentwiseConcessionReport = async (req, res) => {
       return acc;
     }, {});
 
-
     const classAndSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
     const classMap = classAndSections.reduce((acc, cls) => {
       acc[cls._id.toString()] = cls.className || '-';
@@ -44,7 +44,6 @@ export const studentwiseConcessionReport = async (req, res) => {
       });
       return acc;
     }, {});
-
 
     const admissionFormsAll = await AdmissionForm.find({ schoolId }).lean();
     const classSectionMap = admissionFormsAll.reduce((acc, form) => {
@@ -63,14 +62,12 @@ export const studentwiseConcessionReport = async (req, res) => {
       return acc;
     }, {});
 
-
     const admissionNumberMap = admissionFormsAll.reduce((acc, form) => {
       if (form.registrationNumber) {
         acc[form.registrationNumber] = form.AdmissionNumber;
       }
       return acc;
     }, {});
-
 
     let dateFilter = {};
     if (startDate && endDate) {
@@ -80,7 +77,6 @@ export const studentwiseConcessionReport = async (req, res) => {
       };
     }
 
-
     const concessionForms = await ConcessionForm.find({
       schoolId,
       academicYear,
@@ -88,11 +84,11 @@ export const studentwiseConcessionReport = async (req, res) => {
       ...(startDate && endDate ? { createdAt: dateFilter } : {}),
     }).lean();
 
+ 
     const concessionTypeMap = concessionForms.reduce((acc, form) => {
       acc[form.AdmissionNumber] = form.concessionType || '-';
       return acc;
     }, {});
-
 
     const [schoolFees, admissionForms, registrationForms, tcForms] = await Promise.all([
       SchoolFees.find({
@@ -109,7 +105,7 @@ export const studentwiseConcessionReport = async (req, res) => {
       StudentRegistration.find({
         schoolId,
         academicYear,
-        concessionAmount: { $gt: 0 }, 
+        concessionAmount: { $gt: 0 },
         ...(startDate && endDate ? { paymentDate: dateFilter } : {}),
       }).lean(),
       TCForm.find({
@@ -122,7 +118,6 @@ export const studentwiseConcessionReport = async (req, res) => {
 
     const concessionsByStudent = {};
 
-
     schoolFees.forEach((form) => {
       const studentId = admissionNumberMap[form.studentAdmissionNumber] || form.studentAdmissionNumber;
       const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
@@ -133,7 +128,7 @@ export const studentwiseConcessionReport = async (req, res) => {
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
-          concessionType: concessionTypeMap[studentId] || '-',
+          concessionType: concessionTypeMap[studentId] || '-', 
           transactions: [],
         };
       }
@@ -165,7 +160,6 @@ export const studentwiseConcessionReport = async (req, res) => {
       });
     });
 
-
     admissionForms.forEach((form) => {
       const studentId = form.AdmissionNumber;
       const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
@@ -177,7 +171,7 @@ export const studentwiseConcessionReport = async (req, res) => {
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
-          concessionType: concessionTypeMap[studentId] || '-',
+          concessionType: form.concessionType || concessionTypeMap[studentId] || '-', 
           transactions: [],
         };
       }
@@ -196,18 +190,17 @@ export const studentwiseConcessionReport = async (req, res) => {
       }
     });
 
-
     registrationForms.forEach((form) => {
       const studentId = admissionNumberMap[form.registrationNumber] || form.registrationNumber;
       const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
       if (!concessionsByStudent[studentId]) {
         concessionsByStudent[studentId] = {
-          admissionNumber: form.registrationNumber || '-',
+          admissionNumber: admissionNumberMap[form.registrationNumber] || '-',
           studentName: `${form.firstName} ${form.middleName || ''} ${form.lastName}`.trim() || '-',
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
-          concessionType: concessionTypeMap[studentId] || '-',
+          concessionType: form.concessionType || concessionTypeMap[studentId] || '-', 
           transactions: [],
         };
       }
@@ -228,7 +221,6 @@ export const studentwiseConcessionReport = async (req, res) => {
       }
     });
 
-
     tcForms.forEach((form) => {
       const studentId = form.AdmissionNumber;
       const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
@@ -239,7 +231,7 @@ export const studentwiseConcessionReport = async (req, res) => {
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
-          concessionType: concessionTypeMap[studentId] || '-',
+          concessionType: form.concessionType || concessionTypeMap[studentId] || '-', // Use form's concessionType first
           transactions: [],
         };
       }
@@ -258,16 +250,13 @@ export const studentwiseConcessionReport = async (req, res) => {
       }
     });
 
-
     const result = Object.values(concessionsByStudent)
-      .filter((student) => student.transactions.length > 0) 
+      .filter((student) => student.transactions.length > 0)
       .map((student) => ({
         ...student,
         transactions: student.transactions.sort((a, b) => new Date(a.date) - new Date(b.date)),
       }))
       .sort((a, b) => a.admissionNumber.localeCompare(b.admissionNumber));
-
-
 
     const grandTotals = result.reduce(
       (acc, student) => {

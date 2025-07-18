@@ -100,6 +100,13 @@ export const getAllTCFees = async (req, res) => {
               year: 'numeric',
             }).replace(/\//g, '-')
           : '-',
+          tcFeesCancelledDate: tcData?.cancelledDate
+          ? new Date(tcData?.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
         tcFeesPaymentMode: tcData?.paymentMode || '-',
         tcFeesDue: tcData?.TCfees || '0',
         tcFeesConcession: tcData?.concessionAmount || '0',
@@ -107,6 +114,7 @@ export const getAllTCFees = async (req, res) => {
         tcFeesTransactionNo: tcData?.chequeNumber || tcData?.transactionNumber || '-',
         tcFeesReceiptNo: tcData?.receiptNumber || '-',
         tcNo: tcData?.certificateNumber || '-',
+        tcFeesStatus: tcData?.reportStatus|| "-",
       });
 
       const academicYears = [
@@ -138,12 +146,20 @@ export const getAllTCFees = async (req, res) => {
                 year: 'numeric',
               }).replace(/\//g, '-')
             : '-',
+          tcFeesCancelledDate:academicYear === tcData?.academicYear &&tcData?.cancelledDate
+          ? new Date(tcData?.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
           tcFeesPaymentMode: academicYear === tcData?.academicYear ? tcData?.paymentMode || '-' : '-',
           tcFeesDue: academicYear === tcData?.academicYear ? tcData?.TCfees || '0' : '0',
           tcFeesConcession: academicYear === tcData?.academicYear ? tcData?.concessionAmount || '0' : '0',
           tcFeesPaid: academicYear === tcData?.academicYear ? tcData?.finalAmount || '0' : '0',
           tcFeesTransactionNo: academicYear === tcData?.academicYear ? (tcData?.chequeNumber || tcData?.transactionNumber || '-') : '-',
           tcFeesReceiptNo: academicYear === tcData?.academicYear ? tcData?.receiptNumber || '-' : '-',
+          tcFeesStatus: academicYear === tcData?.academicYear ? tcData?.reportStatus|| '-' : '-',
         };
 
         const yearSpecificData = {

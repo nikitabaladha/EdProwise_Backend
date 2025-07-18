@@ -9,15 +9,12 @@ export const getAllAdmissionFees = async (req, res) => {
     }
 
 
-    // const admissionDataList = await AdmissionForm.find({ schoolId, academicYear }).lean();
-    // if (!admissionDataList.length) {
-    //   return res.status(404).json({ message: "No admission data found for the specified academic year" });
-    // }
 
      const admissionDataList = await AdmissionForm.find({ 
       schoolId, 
       academicYear,
-      paymentMode: { $ne: 'null' } 
+      paymentMode: { $ne: 'null' },
+    status: { $ne: 'Pending' }   
     }).lean();
     if (!admissionDataList.length) {
       return res.status(404).json({ message: "No admission data found for the specified academic year" });
@@ -68,12 +65,20 @@ export const getAllAdmissionFees = async (req, res) => {
                 year: "numeric",
               }).replace(/\//g, "-")
             : "-",
+          admFeesCancelledDate: admission.cancelledDate
+          ? new Date(admission.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
           admFeesPaymentMode: admission.paymentMode || "-",
           admFeesDue: admission.admissionFees?.toString() || "0",
           admFeesConcession: admission.concessionAmount?.toString() || "0",
           admFeesPaid: admission.finalAmount?.toString() || "0",
           admFeesTransactionNo: admission.transactionNumber || "-",
           admFeesReceiptNo: admission.receiptNumber || "-",
+          admFeesStatus: admission.reportStatus|| "-",
         },
       };
     });

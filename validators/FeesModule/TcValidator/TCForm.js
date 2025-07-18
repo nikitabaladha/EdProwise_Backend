@@ -9,7 +9,7 @@
 //   studentPhoto: Joi.string().allow(null).optional().messages({
 //     "any.required": "Student photo is required.",
 //   }),
-  
+
 //   firstName: Joi.string().required().messages({
 //     'any.required': 'First name is required.'
 //   }),
@@ -192,6 +192,15 @@ export const TCFormValidator = Joi.object({
     'any.required': 'TC fees is required.',
     'number.base': 'TC fees must be a valid number.',
   }),
+     concessionType: Joi.when('concessionAmount', {
+          is: Joi.number().greater(0),
+           then: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').required().messages({
+             "string.base": "Concession type must be a string.",
+             "any.only": "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
+             "any.required": "Concession type is required when concession amount is greater than zero."
+           }),
+           otherwise: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').allow(null, "").optional()
+         }),
   concessionAmount: Joi.number().allow(null).default(0).messages({
     'number.base': 'Concession amount must be a valid number.',
   }),
@@ -204,7 +213,7 @@ export const TCFormValidator = Joi.object({
     'string.base': 'Name must be a string.',
   }),
   paymentMode: Joi.string()
-    .valid('Cash', 'Cheque', 'Online')
+    .valid('Cash', 'Cheque', 'Online','null')
     .required()
     .messages({
       'any.required': 'Payment mode is required.',

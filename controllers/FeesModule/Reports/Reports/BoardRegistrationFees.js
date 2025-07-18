@@ -105,11 +105,19 @@ export const getBoardRegistrationFees = async (req, res) => {
               year: "numeric",
             }).replace(/\//g, "-")
           : "-",
+            boardRegFeesCancelledDate: boardRegFeesPayment?.cancelledDate
+          ? new Date(boardRegFeesPayment.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
         boardRegFeesReceiptNo: boardRegFeesPayment?.receiptNumberBrf || "-",
         boardRegFeesPaymentMode: boardRegFeesPayment?.paymentMode || "-",
         boardRegFeesTransactionNo: boardRegFeesPayment?.chequeNumber || boardRegFeesPayment?.transactionId || "-",
         boardRegFeesConcession: boardRegFeesPayment?.concessionAmount || "0",
         boardRegFeesPaid: boardRegFeesPayment?.status === "Paid" ? boardRegFeesPayment.amount.toString() || "0" : "0",
+        boardRegFeesFeesStatus: boardRegFeesPayment?.reportStatus|| "-",
       };
 
       

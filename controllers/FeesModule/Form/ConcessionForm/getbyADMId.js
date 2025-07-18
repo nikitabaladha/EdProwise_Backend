@@ -169,7 +169,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 today.getMonth() - dueDate.getMonth() +
                 12 * (today.getFullYear() - dueDate.getFullYear());
               const yearsLate = today.getFullYear() - dueDate.getFullYear();
-              const weeksLate = Math.floor(daysLate / 7); // Calculate number of weeks late
+              const weeksLate = Math.floor(daysLate / 7); 
 
               switch (frequency) {
                 case "Daily":
@@ -201,6 +201,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               const matchingFeeItem = matchingInst?.feeItems?.find(
                 (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
               );
+              
               if (matchingFeeItem) {
                 const individualPaid = matchingFeeItem.paid || 0;
                 paidAmount += individualPaid;
@@ -208,11 +209,12 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 cumulativePaidMap[key] = (cumulativePaidMap[key] || 0) + individualPaid;
                 const totalPaidSoFar = cumulativePaidMap[key];
                 paidInstallments.push({
+                  _id: matchingInst._id,
                   feesTypeId: {
                     _id: matchingFeeItem.feeTypeId,
                     name: feeTypeMap[matchingFeeItem.feeTypeId.toString()],
                   },
-                  installmentNumber: instNumber,
+                  installmentName: inst.name,
                   paidAmount: individualPaid,
                   receiptNumber: payment.receiptNumber,
                   paymentDate: payment.paymentDate,
@@ -220,6 +222,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   paymentMode: payment.paymentMode,
                   chequeNumber: payment.chequeNumber,
                   bankName: payment.bankName,
+                   status:payment.status,
                   transactionNumber: payment.transactionNumber,
                   amount: fee.amount || 0,
                   concession: concessionAmount || 0,
@@ -229,6 +232,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   payable: (fee.amount || 0) - (concessionAmount || 0),
                   paid: individualPaid,
                   balance: ((fee.amount || 0) - (concessionAmount || 0)) - totalPaidSoFar,
+                 
                 });
               }
             });

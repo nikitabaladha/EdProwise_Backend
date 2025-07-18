@@ -308,6 +308,15 @@ export const AdmissionValidator = {
         "number.base": "Admission fees must be a valid number.",
         "any.required": "Admission fees is required."
       }),
+        concessionType: Joi.when('concessionAmount', {
+         is: Joi.number().greater(0),
+          then: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').required().messages({
+            "string.base": "Concession type must be a string.",
+            "any.only": "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
+            "any.required": "Concession type is required when concession amount is greater than zero."
+          }),
+          otherwise: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').allow(null, "").optional()
+        }),
       concessionAmount: Joi.number().allow(null).messages({
         "number.base": "Concession amount must be a valid number."
       }),

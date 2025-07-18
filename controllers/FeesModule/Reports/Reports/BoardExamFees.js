@@ -91,11 +91,19 @@ export const getBoardExamFees = async (req, res) => {
               year: "numeric",
             }).replace(/\//g, "-")
           : "-",
+       boardExamFeesCancelledDate: boardExamFeesPayment?.cancelledDate
+          ? new Date(boardExamFeesPayment.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
         boardExamFeesReceiptNo: boardExamFeesPayment?.receiptNumberBef || "-",
         boardExamFeesPaymentMode: boardExamFeesPayment?.paymentMode || "-",
         boardExamFeesTransactionNo: boardExamFeesPayment?.chequeNumber || boardExamFeesPayment?.transactionId || "-", 
         boardExamFeesConcession: boardExamFeesPayment?.concessionAmount || "0", 
-        boardExamFeesPaid: boardExamFeesPayment?.status === "Paid" ? boardExamFeesPayment.amount.toString() || "0" : "0", 
+        boardExamFeesPaid: boardExamFeesPayment?.status === "Paid" ? boardExamFeesPayment.amount.toString() || "0" : "0",
+            boardExamFeesFeesStatus: boardExamFeesPayment?.reportStatus|| "-", 
       };
 
       let className = "-";

@@ -171,7 +171,7 @@ export const RegistrationCreateValidator = Joi.object({
     "any.required": "Registration fee is required."
   }),
   concessionType: Joi.when('concessionAmount', {
-    is: Joi.number().greater(0),
+     is: Joi.number().greater(0),
     then: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').required().messages({
       "string.base": "Concession type must be a string.",
       "any.only": "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",

@@ -42,14 +42,10 @@ export const BoardExamFeePaymentValidator = Joi.object({
       }),
       chequeNumber: Joi.string().when('paymentMode', {
         is: 'Cheque',
-        then: Joi.string()
-          .pattern(/^\d{6}$/)
-          .required()
-          .messages({
-            'string.empty': 'Cheque number is required for cheque payments',
-            'any.required': 'Cheque number is required for cheque payments',
-            'string.pattern.base': 'Cheque number must be exactly 6 digits',
-          }),
+        then: Joi.string().required().pattern(/^[0-9]{6,}$/).messages({
+               "string.pattern.base": "Cheque number must be at least 6 digits",
+               "any.required": "Cheque number is required for cheque payments"
+             }),
         otherwise: Joi.string().allow('').optional(),
       }),
       bankName: Joi.string().when('paymentMode', {
@@ -60,8 +56,8 @@ export const BoardExamFeePaymentValidator = Joi.object({
         }),
         otherwise: Joi.string().allow('').optional(),
       }),
-      status: Joi.string().valid('Pending', 'Paid').required().messages({
-        'any.only': 'Status must be Pending or Paid',
+      status: Joi.string().valid('Pending', 'Paid','Cancelled').required().messages({
+        'any.only': 'Status must be Pending , Paid orCancelled',
         'any.required': 'Status is required',
       }),
       academicYear: Joi.string().required().messages({

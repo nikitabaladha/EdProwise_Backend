@@ -26,6 +26,6 @@ const boardExamFeesSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-});
+},{ timestamps: true });
 
 export default mongoose.model("BoardExamFees", boardExamFeesSchema);

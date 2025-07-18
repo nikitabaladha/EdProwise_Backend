@@ -18,7 +18,10 @@ StudentwiseFeesData,
 SchoolFees,
 LateFeeandExcessFees,
 DateWiseConcessionReport,
-StudentWiseConcessionReport
+StudentWiseConcessionReport,
+FeesRefundReport,
+FeesCancelledReport,
+FeesChequeReturn
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
@@ -128,6 +131,28 @@ router.get(
   "/get-all-studentwise-concession-report",
   roleBasedMiddleware("Admin","School"),
   StudentWiseConcessionReport
+);
+
+
+//-----------------------------------------------------Fees Refund Report-------------------------------------//
+router.get(
+  "/get-all-fees-refund-report",
+  roleBasedMiddleware("Admin","School"),
+   FeesRefundReport
+);
+
+//-----------------------------------------------------FeesCancelledReport-------------------------------------//
+router.get(
+  "/get-all-Fees-cancelled-report",
+  roleBasedMiddleware("Admin","School"),
+ FeesCancelledReport
+);
+
+//-----------------------------------------------------FeesChequeReturnReport-------------------------------------//
+router.get(
+  "/get-all-Fees-cheque-return-report",
+  roleBasedMiddleware("Admin","School"),
+   FeesChequeReturn
 );
 
 export default router;

@@ -27,7 +27,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       return res.status(404).json({ message: "No academic history found for the student" });
     }
 
-    // Filter academic history by academicYear if provided
+
     const filteredHistory = academicYear
       ? academicHistory.filter((history) => history.academicYear === academicYear)
       : academicHistory;
@@ -188,6 +188,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   paymentDate: payment.paymentDate,
                   collectorName: payment.collectorName,
                   paymentMode: payment.paymentMode,
+                  status:payment.status,
                   amount: fee.amount || 0,
                   concession: concessionAmount || 0,
                   fineAmount: fineAmount || 0,

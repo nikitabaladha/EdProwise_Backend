@@ -13,8 +13,8 @@ const schoolFeesSchema = new Schema({
   schoolId: { type: String, required: true },
   studentAdmissionNumber: { type: String, required: true },
   studentName: { type: String, required: true },
-  className: { type: String, required: true },
-  section: { type: String, required: true },
+  className: { type: String, required: true,  ref: 'ClassAndSection' },
+  section: { type: String, required: true ,ref: 'ClassAndSection.sections'},
   receiptNumber: { type: String, index: true },
   transactionNumber: { type: String },
   paymentMode: { type: String, required: true },
@@ -25,6 +25,11 @@ const schoolFeesSchema = new Schema({
   paymentDate: { type: Date, default: Date.now },
   isActive: { type: Boolean, default: true },
   previousReceipt: { type: Schema.Types.ObjectId, ref: 'SchoolFees' },
+  status: { type: String, enum: [ 'Pending','Paid', 'Cancelled','Cheque Return'], default: 'Pending' },
+  cancelledDate: { type: Date },
+  cancelReason: { type: String },
+  chequeSpecificReason: { type: String },
+  additionalComment: { type: String },
   installments: [
     {
       number: { type: Number, required: true },

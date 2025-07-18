@@ -26,6 +26,6 @@ const boardRegistrationFeesSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-});
+},{ timestamps: true });
 
 export default mongoose.model("BoardRegistrationFees", boardRegistrationFeesSchema);

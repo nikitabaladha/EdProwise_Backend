@@ -53,6 +53,7 @@ import deleteBoardExamFees from "./BoardExamFees/delete.js";
 import updateBoardExamFees from "./BoardExamFees/update.js";
 import getexamBySchoolClassAndSectionandyear from "./BoardExamFees/getbyschoolclassandsectionandyear.js";
 
+
 import getAdmissionFormsByYearClassnsection from '../AdminSetting/Promotion/getbyyearwiseclassnsection.js';
 import promotestudent from '../AdminSetting/Promotion/promotestudent.js';
 import promoteStudentsBulk from '../AdminSetting/Promotion/promotestudentbulk.js';
@@ -111,7 +112,8 @@ export {
   promotestudent,
   promoteStudentsBulk,
   deleteAcademicHistoryById,
-  updateAcademicHistoryById
+  updateAcademicHistoryById,
+
 
 
 };

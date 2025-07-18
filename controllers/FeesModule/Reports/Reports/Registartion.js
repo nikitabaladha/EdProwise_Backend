@@ -21,7 +21,8 @@ export const getAllRegistrationFees = async (req, res) => {
     const registrationDataList = await StudentRegistration.find({
       schoolId,
       academicYear: targetAcademicYear,
-      paymentMode: { $ne: 'null' } 
+      paymentMode: { $ne: 'null' } ,
+      status: { $ne: 'Pending' }   
     }).lean();
     if (!registrationDataList.length) {
       return res.status(404).json({ message: `No registration data found for academic year ${targetAcademicYear}` });
@@ -36,6 +37,13 @@ export const getAllRegistrationFees = async (req, res) => {
         registrationNumber: registration.registrationNumber || "-",
         regFeesDate: registration.paymentDate
           ? new Date(registration.paymentDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
+            regFeesCancelledDate: registration.cancelledDate
+          ? new Date(registration.cancelledDate).toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "2-digit",
               year: "numeric",
@@ -61,6 +69,13 @@ export const getAllRegistrationFees = async (req, res) => {
               year: "numeric",
             }).replace(/\//g, "-")
           : "-",
+           regFeesCancelledDate: registration.cancelledDate
+          ? new Date(registration.cancelledDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }).replace(/\//g, "-")
+          : "-",
         regFeesPaymentMode: registration.paymentMode || "-",
         regFeesDue: registration.registrationFee || "0",
         regFeesConcession: registration.concessionAmount || "0",
@@ -69,6 +84,7 @@ export const getAllRegistrationFees = async (req, res) => {
         regFeesBankName: registration.bankName || "-",
         regFeesTransactionNo: registration.chequeNumber ? registration.chequeNumber : registration.transactionNumber || "-",
         regFeesReceiptNo: registration.receiptNumber || "-",
+        regFeesStatus: registration.reportStatus|| "-",
       };
       const classId = registration.masterDefineClass || null;
       const sectionId = registration.section || null;
