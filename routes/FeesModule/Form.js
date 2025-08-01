@@ -23,6 +23,8 @@ import {
   getbySchoolIdandYear,
   updateadmissionstatus,
   getAdmissionStatus,
+  getAdmissionFormsByAcdemicHistoryYear,
+  updatebyAcdemicHistory,
 
 
   createTCForm,
@@ -96,6 +98,8 @@ router.get(
 );
 
 
+
+
 //------------------------------------Admission Form-------------------------------------------------------------//
 
 router.post(
@@ -140,6 +144,18 @@ router.get(
   "/get-admission-status/:id",
   roleBasedMiddleware("Admin", "School"),
   getAdmissionStatus
+);
+
+router.get(
+  "/get-admission-form-by-acadmichistoryyear-schoolId/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getAdmissionFormsByAcdemicHistoryYear
+);
+
+router.put(
+  "/update-admission-formby-acdemichistory/:id",
+  roleBasedMiddleware("Admin", "School"), admissionFileUpload,
+  updatebyAcdemicHistory
 );
 
 

@@ -181,9 +181,11 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
                     academicYear,
                     installmentName: inst.name,
                     paymentDate: formatDate(payment.paymentDate),
+                    cancelledDate:formatDate(payment.cancelledDate),
+                    reportStatus:payment.reportStatus,
                     paymentMode: payment.paymentMode || '-',
                     chequeNoOrTransactionNo:
-                      payment.chequeNumber || payment.transactionNumber || '-',
+                    payment.chequeNumber || payment.transactionNumber || '-',
                     receiptNo: payment.receiptNumber || '-',
                     lateFees: fineAmount,
                     paidFine,

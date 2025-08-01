@@ -163,6 +163,7 @@ const studentAdmissionSchema = new Schema({
   chequeSpecificReason: { type: String },
   additionalComment: { type: String },
   reportStatus: [{ type: String, enum: ['Paid', 'Cancelled', 'Cheque Return'] }],
+  TCStatus:{ type: String, enum: ['Active', 'Inactive'], default: 'Active' },
 }, { timestamps: true });
 
 studentAdmissionSchema.index({ schoolId: 1, AdmissionNumber: 1 }, { unique: true, sparse: true });

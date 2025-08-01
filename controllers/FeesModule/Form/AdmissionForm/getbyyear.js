@@ -97,6 +97,7 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
           additionalComment: 1,
           createdAt: 1,
           updatedAt: 1,
+          TCStatus:1,
           __v: 1,
         },
       },

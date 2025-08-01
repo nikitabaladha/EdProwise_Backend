@@ -14,7 +14,9 @@ TCData,
 BoardRegistrationData,
 BoardExamData,
 DatewiseFeesData,
+DateWiseFeeSDataWithConcession,
 StudentwiseFeesData,
+StudentwiseFeesDataWithConcession,
 SchoolFees,
 LateFeeandExcessFees,
 DateWiseConcessionReport,
@@ -25,6 +27,7 @@ FeesChequeReturn
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
+import studentwiseConcessionReport from "../../controllers/FeesModule/Reports/Reports/StudentWiseConcessionReport.js";
 
 
 
@@ -97,12 +100,23 @@ router.get(
   roleBasedMiddleware("Admin","School"),
   DatewiseFeesData
 );
+router.get(
+  "/get-all-data-datewise-Withconcession-fees",
+  roleBasedMiddleware("Admin","School"),
+  DateWiseFeeSDataWithConcession
+);
 
 //-----------------------------------------------------StudentWiseFee Data--------------------------------------//
 router.get(
   "/get-all-data-studentwise-fees",
   roleBasedMiddleware("Admin","School"),
  StudentwiseFeesData
+);
+
+router.get(
+  "/get-all-data-studentwise-Withconcession-fees",
+  roleBasedMiddleware("Admin","School"),
+  StudentwiseFeesDataWithConcession
 );
 
 //-----------------------------------------------------School Fees Data--------------------------------------//

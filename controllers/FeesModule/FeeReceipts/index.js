@@ -22,6 +22,7 @@ import getboardregsitartionstatus from './BoardRegistrationFees/getstatus.js';
 import getboardexamstatus from './BoardExamFee/getstatus.js';
 import getSchoolFeesStatus from './SchoolFees/getstatus.js';
 import getSchoolFeesStatusbyadm from './SchoolFees/getstatusbyadmno.js';
+import getSchoolFeesforreceipt from './SchoolFees/getschoolfeesforreceipt.js';
 
 export {
     createSchoolFees,
@@ -42,5 +43,6 @@ export {
     getboardregsitartionstatus,
     getboardexamstatus,
     getSchoolFeesStatus,
-    getSchoolFeesStatusbyadm
+    getSchoolFeesStatusbyadm,
+   getSchoolFeesforreceipt
 };

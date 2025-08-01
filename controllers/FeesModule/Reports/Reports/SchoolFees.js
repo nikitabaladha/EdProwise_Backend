@@ -15,13 +15,13 @@ export const getAllStudentFeesDue = async (req, res) => {
       });
     }
 
- 
+
     const students = await AdmissionForm.find({ schoolId }).lean();
     if (!students.length) {
       return res.status(404).json({ message: "No students found for the school" });
     }
 
-  
+
     const classAndSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
     const classMap = classAndSections.reduce((acc, item) => {
       acc[item._id.toString()] = item.className;
@@ -75,13 +75,15 @@ export const getAllStudentFeesDue = async (req, res) => {
 
       const installments = [];
 
-   
+
       const paymentsByInstallment = allPaidFeesData
         .flatMap((payment) =>
           payment.installments.map((inst) => ({
             ...inst,
             paymentDate: payment.paymentDate,
             paymentMode: payment.paymentMode || "-",
+            reportStatus: payment.reportStatus || [], // Include reportStatus
+            cancelledDate: payment.cancelledDate // Include cancelledDate
           }))
         )
         .reduce((acc, inst) => {
@@ -93,13 +95,13 @@ export const getAllStudentFeesDue = async (req, res) => {
           return acc;
         }, {});
 
-    
+
       for (const instName in paymentsByInstallment) {
         const payments = paymentsByInstallment[instName].sort(
           (a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)
         );
 
-    
+
         const structureInst = feesStructures
           .flatMap((structure) => structure.installments)
           .find((inst) => inst.name === instName);
@@ -121,7 +123,7 @@ export const getAllStudentFeesDue = async (req, res) => {
             installmentFeesPaid += feeItem.paid || 0;
           }
 
-      
+
           if (concessionForm?.concessionDetails?.length) {
             for (const fee of structureInst.fees) {
               const concessionMatch = concessionForm.concessionDetails.find(
@@ -136,9 +138,14 @@ export const getAllStudentFeesDue = async (req, res) => {
           }
 
           const installmentBalance = currentFeesDue - installmentFeesPaid - installmentConcession;
+          const formattedCancelledDate = payment.cancelledDate
+            ? new Date(payment.cancelledDate).toLocaleDateString("en-GB")
+            : null;
 
           installments.push({
             paymentDate: new Date(payment.paymentDate).toLocaleDateString("en-GB"),
+            cancelledDate: formattedCancelledDate,
+            reportStatus: payment.reportStatus || [],
             paymentMode: payment.paymentMode,
             installmentName: instName,
             feesDue: currentFeesDue,
@@ -152,7 +159,7 @@ export const getAllStudentFeesDue = async (req, res) => {
             }, {}),
           });
 
-   
+
           currentFeesDue = installmentBalance;
         }
       }

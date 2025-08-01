@@ -95,7 +95,7 @@ const concessionSchema = new Schema({
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
     },
-    status: { type: String, enum: ['Pending', 'Paid', 'Cancelled', 'Cheque Return'], default: 'Paid' },
+    status: { type: String, enum: ['Pending', 'Approved','Rejected'], default: 'Pending' },
     cancelledDate: { type: Date },
     cancelReason: { type: String },
     chequeSpecificReason: { type: String },

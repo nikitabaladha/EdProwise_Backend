@@ -163,5 +163,6 @@ export const UpdateAdmissionValidator = Joi.object({
   transactionNumber: Joi.string().allow(null, ""),
   receiptNumber: Joi.string().allow(null, ""),
   status: Joi.string().valid("Pending", "Approved", "Rejected").allow(null, ""),
-  applicationDate: Joi.date().allow(null, "")
+  applicationDate: Joi.date().allow(null, ""),
+    paymentDate: Joi.string().allow(null, ""),
 }).unknown(true);;

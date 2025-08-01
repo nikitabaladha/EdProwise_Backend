@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import AdmissionForm from './AdmissionForm.js';
 
 const { Schema } = mongoose;
 
@@ -130,6 +131,18 @@ TCFormSchema.pre('save', async function (next) {
         return next(err);
       }
     }
+  }
+});
+
+TCFormSchema.post('save', async function (doc, next) {
+  try {
+    await AdmissionForm.updateOne(
+      { schoolId: doc.schoolId, AdmissionNumber: doc.AdmissionNumber },
+      { $set: { TCStatus: 'Inactive' } }
+    );
+    next();
+  } catch (err) {
+    next(err);
   }
 });
 

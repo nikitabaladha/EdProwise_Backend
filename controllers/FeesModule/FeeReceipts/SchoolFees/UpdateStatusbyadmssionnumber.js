@@ -2,15 +2,17 @@ import mongoose from 'mongoose';
 import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
 
 const updateSchoolFeesStatus = async (req, res) => {
-  const { schoolId, studentAdmissionNumber } = req.params;
+  const { schoolId, studentAdmissionNumber, receiptNumber } = req.params;
   const { status, cancelReason, chequeSpecificReason, additionalComment } = req.body;
 
-  if (!schoolId || !studentAdmissionNumber) {
+
+  if (!schoolId || !studentAdmissionNumber || !receiptNumber) {
     return res.status(400).json({
       hasError: true,
-      message: 'School ID and student admission number are required.',
+      message: 'School ID, student admission number, and receipt number are required.',
     });
   }
+
 
   if (!status || !['Pending', 'Paid', 'Cancelled', 'Cheque Return'].includes(status)) {
     return res.status(400).json({
@@ -19,6 +21,7 @@ const updateSchoolFeesStatus = async (req, res) => {
     });
   }
 
+  
   if (['Cancelled', 'Cheque Return'].includes(status) && !cancelReason) {
     return res.status(400).json({
       hasError: true,
@@ -30,17 +33,18 @@ const updateSchoolFeesStatus = async (req, res) => {
   session.startTransaction();
 
   try {
-    const fees = await SchoolFees.findOne({ schoolId, studentAdmissionNumber }).session(session);
+    const fees = await SchoolFees.findOne({ schoolId, studentAdmissionNumber, receiptNumber }).session(session);
 
     if (!fees) {
       await session.abortTransaction();
       session.endSession();
       return res.status(404).json({
         hasError: true,
-        message: 'School fees record not found.',
+        message: 'School fees record not found for the provided identifiers.',
       });
     }
 
+ 
     if (['Cancelled', 'Cheque Return'].includes(fees.status)) {
       await session.abortTransaction();
       session.endSession();
@@ -50,6 +54,7 @@ const updateSchoolFeesStatus = async (req, res) => {
       });
     }
 
+    
     if (fees.paymentMode === 'Cheque' && ['Cancelled', 'Cheque Return'].includes(status) && !chequeSpecificReason) {
       await session.abortTransaction();
       session.endSession();
@@ -59,6 +64,7 @@ const updateSchoolFeesStatus = async (req, res) => {
       });
     }
 
+   
     const updateFields = { status };
 
     if (['Cancelled', 'Cheque Return'].includes(status)) {
@@ -70,8 +76,9 @@ const updateSchoolFeesStatus = async (req, res) => {
       }
     }
 
+
     const updatedSchoolFees = await SchoolFees.findOneAndUpdate(
-      { schoolId, studentAdmissionNumber },
+      { schoolId, studentAdmissionNumber, receiptNumber },
       { $set: updateFields },
       { new: true, runValidators: true, session }
     );

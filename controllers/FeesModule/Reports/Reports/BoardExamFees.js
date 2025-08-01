@@ -103,7 +103,7 @@ export const getBoardExamFees = async (req, res) => {
         boardExamFeesTransactionNo: boardExamFeesPayment?.chequeNumber || boardExamFeesPayment?.transactionId || "-", 
         boardExamFeesConcession: boardExamFeesPayment?.concessionAmount || "0", 
         boardExamFeesPaid: boardExamFeesPayment?.status === "Paid" ? boardExamFeesPayment.amount.toString() || "0" : "0",
-            boardExamFeesFeesStatus: boardExamFeesPayment?.reportStatus|| "-", 
+        boardExamFeesFeesStatus: boardExamFeesPayment?.reportStatus|| "-", 
       };
 
       let className = "-";

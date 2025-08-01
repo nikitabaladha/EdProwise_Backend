@@ -373,3 +373,6 @@ export const getTotalPaidFeeTypes = async (req, res) => {
 };
 
 export default getTotalPaidFeeTypes;
+
+
+

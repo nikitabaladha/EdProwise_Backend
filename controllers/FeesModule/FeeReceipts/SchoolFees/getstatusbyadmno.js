@@ -1,24 +1,28 @@
 import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
 
-const getSchoolFeesStatusByAdmissionNumber = async (req, res) => {
-  const { schoolId, studentAdmissionNumber } = req.params;
+const getSchoolFeesStatusByIdentifiers = async (req, res) => {
+  const { schoolId, studentAdmissionNumber, receiptNumber } = req.params;
 
-  if (!schoolId || !studentAdmissionNumber) {
+  if (!schoolId || !studentAdmissionNumber || !receiptNumber) {
     return res.status(400).json({
       hasError: true,
-      message: "School ID and student admission number are required.",
+      message: "School ID, student admission number, and receipt number are required.",
     });
   }
 
   try {
-    const feeRecord = await SchoolFees.findOne({ schoolId, studentAdmissionNumber }).select(
+    const feeRecord = await SchoolFees.findOne({
+      schoolId,
+      studentAdmissionNumber,
+      receiptNumber
+    }).select(
       "status cancelReason chequeSpecificReason additionalComment cancelledDate paymentMode"
     );
 
     if (!feeRecord) {
       return res.status(404).json({
         hasError: true,
-        message: "School fee record not found for this student.",
+        message: "School fee record not found for the provided identifiers.",
       });
     }
 
@@ -43,4 +47,4 @@ const getSchoolFeesStatusByAdmissionNumber = async (req, res) => {
   }
 };
 
-export default getSchoolFeesStatusByAdmissionNumber;
+export default getSchoolFeesStatusByIdentifiers;

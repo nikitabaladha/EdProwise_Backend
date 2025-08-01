@@ -10,6 +10,8 @@ import getAdmissionFormsBySchoolId from './AdmissionForm/get.js';
 import deleteAdmissionFormById from './AdmissionForm/delete.js';
 import updateAdmissionForm from './AdmissionForm/update.js';
 import getbySchoolIdandYear from './AdmissionForm/getbyyear.js'
+import getAdmissionFormsByAcdemicHistoryYear from './AdmissionForm/getbyacdemichistoryYear.js';
+import updatebyAcdemicHistory from './AdmissionForm/updateacdemichistory.js'
 
 
 import createTCForm from './TCForm/create.js';
@@ -45,6 +47,8 @@ export {
   deleteAdmissionFormById,
   updateAdmissionForm,
   getbySchoolIdandYear,
+  getAdmissionFormsByAcdemicHistoryYear,
+  updatebyAcdemicHistory,
   createTCForm,
   getTCForm,
   deleteTCFormById,
@@ -61,6 +65,7 @@ export {
   getRegistrationStatus,
   getAdmissionStatus,
   getTCStatus,
-  getConcessionStatus
+  getConcessionStatus,
+
 
 };

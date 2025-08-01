@@ -25,7 +25,9 @@ import {
   updateboardexamstatus,
   updateboardregsiatrtionstatus,
   updateschoolfeesstatus,
-  updatestatusbyadmno
+  updatestatusbyadmno,
+
+  getSchoolFeesforreceipt
 
 
 } from "../../controllers/FeesModule/FeeReceipts/index.js";
@@ -52,7 +54,7 @@ router.put(
   updateschoolfeesstatus
 );
 router.put(
-  "/update-school-fees-statusbyadm/:schoolId/:studentAdmissionNumber",
+  "/update-school-fees-statusbyadm/:schoolId/:studentAdmissionNumber/:receiptNumber",
   roleBasedMiddleware("Admin", "School"),
   updatestatusbyadmno
 );
@@ -63,9 +65,15 @@ router.get(
 );
 
 router.get(
-  "/get-school-fees-statusbyadm/:schoolId/:studentAdmissionNumber",
+  "/get-school-fees-statusbyadm/:schoolId/:studentAdmissionNumber/:receiptNumber",
   roleBasedMiddleware("Admin", "School"),
   getSchoolFeesStatusbyadm
+);
+
+router.get(
+  "/get-school-fees-receipts",
+  roleBasedMiddleware("Admin", "School"),
+    getSchoolFeesforreceipt
 );
 
 //----------------------BoardRegistrationFees--------------------//

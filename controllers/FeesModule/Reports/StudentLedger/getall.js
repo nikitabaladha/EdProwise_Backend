@@ -139,13 +139,12 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         regFeesReceiptNo: registrationData?.receiptNumber || "-",
       });
 
-      // Collect academic years
+
       const academicYears = [
         ...(academicHistory.length ? [...new Set(academicHistory.map(h => h.academicYear))] : []),
         ...(registrationData?.academicYear && !academicHistory.some(h => h.academicYear === registrationData.academicYear) ? [registrationData.academicYear] : []),
       ].filter((year, index, self) => self.indexOf(year) === index);
 
-      // Fallback to current academic year if none found
       if (!academicYears.length) {
         const defaultYear = getCurrentAcademicYear();
         academicYears.push(defaultYear);
@@ -158,7 +157,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         const sectionId = admissionData?.section || history.section || null;
         const shiftId = admissionData?.masterDefineShift || registrationData?.masterDefineShift || history.masterDefineShift || null;
 
-        // Create student data specific to this academic year
+       
         const studentData = {
           ...studentDataBase,
           admFeesDate: academicYear === academicHistory[0]?.academicYear && admissionData?.paymentDate
@@ -247,7 +246,6 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
           student: { ...studentData },
         };
 
-        // Fetch class and section data
         if (classId && sectionId) {
           const classData = await ClassAndSection.findOne({
             schoolId,
@@ -269,7 +267,6 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
           yearSpecificData.sectionName = "-";
         }
 
-        // Fetch shift data
         if (shiftId) {
           const shiftData = await MasterDefineShift.findOne({
             _id: shiftId,
@@ -279,7 +276,6 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
           yearSpecificData.shiftName = shiftData?.masterDefineShiftName || "-";
         }
 
-        // Fetch TC data
         const tcData = await TCForm.findOne({
           schoolId,
           AdmissionNumber: admissionData?.AdmissionNumber,
@@ -628,8 +624,8 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 particulars: `Fees Due - ${installmentName}`,
                 receiptNo: "",
                 paymentMode: "",
-                debit: installment.amount.toFixed(0),
-                credit: "",
+                due: installment.amount.toFixed(0),
+                receipt: "",
                 balance: group.balance.toFixed(0),
                 paymentDateRaw: dueDate,
                 dueDate: dueDate.toLocaleDateString("en-GB", {
@@ -660,8 +656,8 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 particulars: "Fine",
                 receiptNo: "",
                 paymentMode: "",
-                debit: installment.fineAmount.toFixed(0),
-                credit: "",
+                due: installment.fineAmount.toFixed(0),
+                receipt: "",
                 balance: group.balance.toFixed(0),
                 paymentDateRaw: dueDate,
                 finePaid: installment.fineAmount.toFixed(0),
@@ -694,8 +690,8 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 particulars: "Fine",
                 receiptNo: payment.receiptNumber,
                 paymentMode: payment.paymentMode,
-                debit: payment.totalFinePaid.toFixed(0),
-                credit: "",
+                due: payment.totalFinePaid.toFixed(0),
+                receipt: "",
                 balance: group.balance.toFixed(0),
                 paymentDateRaw: formattedDate,
                 finePaid: payment.totalFinePaid.toFixed(0),
@@ -710,8 +706,8 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 particulars: "Excess Amount",
                 receiptNo: payment.receiptNumber,
                 paymentMode: payment.paymentMode,
-                debit: payment.totalExcessPaid.toFixed(0),
-                credit: "",
+                due: payment.totalExcessPaid.toFixed(0),
+                receipt: "",
                 balance: group.balance.toFixed(0),
                 paymentDateRaw: paymentDate,
                 excessAmtPaid: payment.totalExcessPaid.toFixed(0),
@@ -719,21 +715,21 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
             }
 
             if (payment.totalPaid > 0 || payment.totalFinePaid > 0 || payment.totalExcessPaid > 0) {
-              const totalCredit = Number(payment.totalPaid) + Number(payment.totalFinePaid) + Number(payment.totalExcessPaid);
-              group.balance -= totalCredit;
+              const totalreceipt = Number(payment.totalPaid) + Number(payment.totalFinePaid) + Number(payment.totalExcessPaid);
+              group.balance -= totalreceipt;
               group.transactions.push({
                 academicYear,
                 date: formattedDate,
                 particulars: `Fees Received - ${installmentName}`,
                 receiptNo: payment.receiptNumber,
                 paymentMode: payment.paymentMode,
-                debit: "",
-                credit: totalCredit.toFixed(0),
+                due: "",
+                receipt: totalreceipt.toFixed(0),
                 balance: group.balance.toFixed(0),
                 paymentDateRaw: paymentDate,
                 tuitionFeesPaid: payment.totalPaid.toFixed(0),
                 examFeesPaid: "0",
-                totalFeesPaid: totalCredit.toFixed(0),
+                totalFeesPaid: totalreceipt.toFixed(0),
                 schoolFeesDate: formattedDate,
                 schoolFeesReceiptNo: payment.receiptNumber,
                 schoolFeesPaymentMode: payment.paymentMode,

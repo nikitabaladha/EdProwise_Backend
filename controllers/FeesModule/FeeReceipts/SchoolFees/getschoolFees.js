@@ -59,6 +59,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       const concessionForm = await ConcessionFormModel.findOne({
         AdmissionNumber: { $regex: `^${admissionNumber}$`, $options: "i" },
         academicYear,
+           status: "Approved",
       });
       const fineData = await Fine.findOne({ schoolId, academicYear });
       const allPaidFeesData = await SchoolFees.find({
@@ -108,7 +109,8 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
               );
               if (matchingFeeItem) {
-                paidAmount += matchingFeeItem.paid || 0;
+                 const effectivePaid = (matchingFeeItem.paid || 0) - (matchingFeeItem.cancelledPaidAmount || 0);
+                paidAmount += effectivePaid > 0 ? effectivePaid : 0;
               }
             });
 
@@ -172,7 +174,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                 (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
               );
               if (matchingFeeItem) {
-                const individualPaid = matchingFeeItem.paid || 0;
+                const individualPaid = (matchingFeeItem.paid || 0) -(matchingFeeItem.cancelledPaidAmount ||0);
                 paidAmount += individualPaid;
                 const key = `${inst.name}_${fee.feesTypeId}`;
                 cumulativePaidMap[key] = (cumulativePaidMap[key] || 0) + individualPaid;
