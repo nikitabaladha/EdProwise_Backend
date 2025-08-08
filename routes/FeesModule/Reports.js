@@ -18,16 +18,23 @@ DateWiseFeeSDataWithConcession,
 StudentwiseFeesData,
 StudentwiseFeesDataWithConcession,
 SchoolFees,
+FeeStructure,
 LateFeeandExcessFees,
 DateWiseConcessionReport,
 StudentWiseConcessionReport,
 FeesRefundReport,
 FeesCancelledReport,
-FeesChequeReturn
+FeesChequeReturn,
+lossoffeeduetoleftstudent,
+lossoffeeduetoLateAdmission,
+Defaulterfees,
+ArrearFeesReport,
+FeesReconHeadwise
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
-import studentwiseConcessionReport from "../../controllers/FeesModule/Reports/Reports/StudentWiseConcessionReport.js";
+import FeesStructure from "../../models/FeesModule/FeesStructure.js";
+
 
 
 
@@ -133,6 +140,13 @@ router.get(
   LateFeeandExcessFees
 );
 
+//-----------------------------------------------------FeeSStructure--------------------------------------//
+router.get(
+  "/get-fees-structure-report",
+  roleBasedMiddleware("Admin","School"),
+   FeeStructure
+);
+
 //-----------------------------------------------------DateWiseConcessionReport-------------------------------------//
 router.get(
   "/get-all-Ddatewise-concession-report",
@@ -167,6 +181,47 @@ router.get(
   "/get-all-Fees-cheque-return-report",
   roleBasedMiddleware("Admin","School"),
    FeesChequeReturn
+);
+
+
+//-----------------------------------------------------lossoffeeduetoleftstudent------------------------------------//
+
+router.get(
+  "/Loss-of-fee-due-to-left-student",
+  roleBasedMiddleware("Admin","School"),
+  lossoffeeduetoleftstudent
+);
+
+//-----------------------------------------------------lossoffeeduetoLateAdmission------------------------------------//
+
+router.get(
+  "/Loss-of-fee-due-to-late-Admission",
+  roleBasedMiddleware("Admin","School"),
+ lossoffeeduetoLateAdmission
+);
+
+//-----------------------------------------------------DefaulterFees------------------------------------//
+
+router.get(
+  "/Defaulter-Fees",
+  roleBasedMiddleware("Admin","School"),
+ Defaulterfees
+);
+
+//-----------------------------------------------------ArrearFeesReceived------------------------------------//
+
+router.get(
+  "/get-arrear-fees",
+  roleBasedMiddleware("Admin","School"),
+ ArrearFeesReport
+);
+
+//-----------------------------------------------------FeesReconHaedwise------------------------------------//
+
+router.get(
+  "/get-recon-fees-headwise",
+  roleBasedMiddleware("Admin","School"),
+ FeesReconHeadwise
 );
 
 export default router;

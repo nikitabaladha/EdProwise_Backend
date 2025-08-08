@@ -5,8 +5,7 @@ import AdmissionForm from "../../../../models/FeesModule/AdmissionForm.js";
 import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
 import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
 
-
-export const getAllStudentFeesDue = async (req, res) => {
+export const UnpaidPastDueStudents = async (req, res) => {
   try {
     const { schoolId, academicYear } = req.query;
     if (!schoolId || !academicYear) {
@@ -15,12 +14,10 @@ export const getAllStudentFeesDue = async (req, res) => {
       });
     }
 
-
     const students = await AdmissionForm.find({ schoolId }).lean();
     if (!students.length) {
       return res.status(404).json({ message: "No students found for the school" });
     }
-
 
     const classAndSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
     const classMap = classAndSections.reduce((acc, item) => {
@@ -36,15 +33,16 @@ export const getAllStudentFeesDue = async (req, res) => {
 
     const feeTypes = await FeesType.find({ academicYear }).lean();
     const feeTypeMap = feeTypes.reduce((acc, type) => {
-      acc[type._id.toString()] = type.name;
+      acc[type._id.toString()] = type.name || "Unknown";
       return acc;
     }, {});
 
     const result = [];
-    const allFeeTypes = feeTypes.map((type) => type.name).sort();
+    const allFeeTypes = feeTypes.map((type) => type.name).filter(Boolean).sort();
 
     for (const student of students) {
       const admissionNumber = student.AdmissionNumber;
+      const parentContactNumber = student.parentContactNumber || '-';
       const academicHistory = student.academicHistory.find(
         (history) => history.academicYear === academicYear
       );
@@ -73,17 +71,14 @@ export const getAllStudentFeesDue = async (req, res) => {
         academicYear,
       }).lean();
 
-      const installments = [];
-
-
       const paymentsByInstallment = allPaidFeesData
         .flatMap((payment) =>
           payment.installments.map((inst) => ({
             ...inst,
             paymentDate: payment.paymentDate,
             paymentMode: payment.paymentMode || "-",
-            reportStatus: payment.reportStatus || [], 
-            cancelledDate: payment.cancelledDate 
+            reportStatus: payment.reportStatus || [],
+            cancelledDate: payment.cancelledDate,
           }))
         )
         .reduce((acc, inst) => {
@@ -95,76 +90,84 @@ export const getAllStudentFeesDue = async (req, res) => {
           return acc;
         }, {});
 
+      const installments = [];
+      let hasUnpaidPastDueInstallment = false;
+      const allInstallments = feesStructures.flatMap((structure) => structure.installments);
+      const installmentNames = [...new Set(allInstallments.map((inst) => inst.name))].sort(
+        (a, b) => {
+          const dueDateA = allInstallments.find((inst) => inst.name === a)?.dueDate;
+          const dueDateB = allInstallments.find((inst) => inst.name === b)?.dueDate;
+          return dueDateA && dueDateB ? new Date(dueDateA) - new Date(dueDateB) : 0;
+        }
+      );
 
-      for (const instName in paymentsByInstallment) {
-        const payments = paymentsByInstallment[instName].sort(
-          (a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)
-        );
+      for (const instName of installmentNames) {
+        const structureInst = allInstallments.find((inst) => inst.name === instName);
+        if (!structureInst || !structureInst.dueDate) continue;
 
+        const dueDate = new Date(structureInst.dueDate);
+        const today = new Date();
+        if (today <= dueDate) continue;
 
-        const structureInst = feesStructures
-          .flatMap((structure) => structure.installments)
-          .find((inst) => inst.name === instName);
-
-        if (!structureInst) continue;
+        const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
 
         let initialFeesDue = 0;
         for (const fee of structureInst.fees) {
           initialFeesDue += fee.amount || 0;
         }
 
-        let currentFeesDue = initialFeesDue;
-
-        for (const payment of payments) {
-          let installmentFeesPaid = 0;
-          let installmentConcession = 0;
-
-          for (const feeItem of payment.feeItems) {
-            installmentFeesPaid += feeItem.paid || 0;
-          }
-
-
-          if (concessionForm?.concessionDetails?.length) {
-            for (const fee of structureInst.fees) {
-              const concessionMatch = concessionForm.concessionDetails.find(
-                (c) =>
-                  c.installmentName === instName &&
-                  c.feesType.toString() === fee.feesTypeId.toString()
-              );
-              if (concessionMatch) {
-                installmentConcession += concessionMatch.concessionAmount || 0;
-              }
+        let concession = 0;
+        if (concessionForm?.concessionDetails?.length) {
+          for (const fee of structureInst.fees) {
+            const concessionMatch = concessionForm.concessionDetails.find(
+              (c) =>
+                c.installmentName === instName &&
+                c.feesType.toString() === fee.feesTypeId.toString()
+            );
+            if (concessionMatch) {
+              concession += concessionMatch.concessionAmount || 0;
             }
           }
+        }
 
-          const installmentBalance = currentFeesDue - installmentFeesPaid - installmentConcession;
-          const formattedCancelledDate = payment.cancelledDate
-            ? new Date(payment.cancelledDate).toLocaleDateString("en-GB")
-            : null;
+        const netFeesDue = initialFeesDue - concession;
+        let installmentFeesPaid = 0;
 
+        const payments = paymentsByInstallment[instName] || [];
+        for (const payment of payments) {
+          if (!payment.cancelledDate) {
+            for (const feeItem of payment.feeItems) {
+              installmentFeesPaid += feeItem.paid || 0;
+            }
+          }
+        }
+
+        if (installmentFeesPaid === 0) {
+          hasUnpaidPastDueInstallment = true;
           installments.push({
-            paymentDate: new Date(payment.paymentDate).toLocaleDateString("en-GB"),
-            cancelledDate: formattedCancelledDate,
-            reportStatus: payment.reportStatus || [],
-            paymentMode: payment.paymentMode,
+            paymentDate: null,
+            cancelledDate: null,
+            reportStatus: [],
+            paymentMode: "-",
             installmentName: instName,
-            feesDue: currentFeesDue,
-            feesPaid: installmentFeesPaid,
-            concession: installmentConcession,
-            balance: installmentBalance,
+            dueDate: structureInst.dueDate
+              ? new Date(structureInst.dueDate).toLocaleDateString("en-GB")
+              : null,
+            feesDue: netFeesDue,
+            feesPaid: 0,
+            concession,
+            balance: netFeesDue,
+            daysOverdue,
             feeTypes: structureInst.fees.reduce((acc, curr) => {
-              const feeTypeName = feeTypeMap[curr.feesTypeId.toString()];
+              const feeTypeName = feeTypeMap[curr.feesTypeId.toString()] || "Unknown";
               acc[feeTypeName] = curr.amount || 0;
               return acc;
             }, {}),
           });
-
-
-          currentFeesDue = installmentBalance;
         }
       }
 
-      if (installments.length > 0) {
+      if (hasUnpaidPastDueInstallment) {
         const uniqueInstallments = [...new Set(installments.map((inst) => inst.installmentName))];
         let totalFeesDue = 0;
         let totalFeesPaid = 0;
@@ -186,6 +189,7 @@ export const getAllStudentFeesDue = async (req, res) => {
           className: classMap[masterDefineClass] || masterDefineClass,
           sectionName: sectionMap[section] || section,
           academicYear,
+          parentContactNumber,
           installments,
           totals: {
             totalFeesDue,
@@ -198,7 +202,7 @@ export const getAllStudentFeesDue = async (req, res) => {
     }
 
     if (!result.length) {
-      return res.status(404).json({ message: "No paid fee data found for the given academic year" });
+      return res.status(404).json({ message: "No students found with unpaid past-due installments" });
     }
 
     const classOptions = Array.from(new Set(Object.values(classMap))).map((name) => ({
@@ -231,9 +235,9 @@ export const getAllStudentFeesDue = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching student fees due:', error);
+    console.error("Error fetching unpaid past-due students:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-export default getAllStudentFeesDue;
+export default UnpaidPastDueStudents;

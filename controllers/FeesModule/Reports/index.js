@@ -13,13 +13,19 @@ import DatewiseFeesData from './Reports/DatewiseFees.js';
 import DateWiseFeeSDataWithConcession from './Reports/DateWiseFeeWithConcession.js'
 import StudentwiseFeesData from './Reports/StudentwiseFeesCollection.js';
 import StudentwiseFeesDataWithConcession from './Reports/StudentwiseFeesCollectionWithConcession.js';
-import SchoolFees from './Reports/SchoolFees.js'
+import SchoolFees from './Reports/SchoolFees.js';
+import FeeStructure from './Reports/FeesStructure.js'
 import LateFeeandExcessFees from './Reports/LateandExcessFees.js';
 import DateWiseConcessionReport from './Reports/DateWiseConcessionReport.js';
 import StudentWiseConcessionReport from './Reports/StudentWiseConcessionReport.js';
 import FeesRefundReport from './Reports/Refund.js';
 import FeesCancelledReport from './Reports/getcancelleddata.js'
 import FeesChequeReturn from './Reports/getChequeReturndata.js'
+import lossoffeeduetoleftstudent from './AdvancedReport/leftstudentfeedata.js';
+import lossoffeeduetoLateAdmission from './AdvancedReport/leftstudentfeedataLateAdmission.js';
+import Defaulterfees from './AdvancedReport/defaulterFees.js'
+import ArrearFeesReport from './AdvancedReport/ArrearFeesReport.js';
+import FeesReconHeadwise from './ReconFees/headwise.js'
 
 export {
 getall,
@@ -36,10 +42,16 @@ DateWiseFeeSDataWithConcession,
 StudentwiseFeesData,
 StudentwiseFeesDataWithConcession,
 SchoolFees,
+FeeStructure,
 LateFeeandExcessFees,
 DateWiseConcessionReport,
 StudentWiseConcessionReport,
 FeesRefundReport,
 FeesCancelledReport,
-FeesChequeReturn
+FeesChequeReturn,
+lossoffeeduetoleftstudent,
+lossoffeeduetoLateAdmission,
+Defaulterfees,
+ArrearFeesReport,
+FeesReconHeadwise
 };

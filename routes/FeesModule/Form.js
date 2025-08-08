@@ -25,6 +25,7 @@ import {
   getAdmissionStatus,
   getAdmissionFormsByAcdemicHistoryYear,
   updatebyAcdemicHistory,
+  updateTCinactiveStatus,
 
 
   createTCForm,
@@ -139,6 +140,14 @@ router.put(
   roleBasedMiddleware("Admin", "School"),
   updateadmissionstatus
 );
+
+router.put(
+  "/update-tc-active-inactive-status/:id",
+  roleBasedMiddleware("Admin", "School"),
+  updateTCinactiveStatus
+);
+
+
 
 router.get(
   "/get-admission-status/:id",

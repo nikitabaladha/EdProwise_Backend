@@ -138,7 +138,12 @@ TCFormSchema.post('save', async function (doc, next) {
   try {
     await AdmissionForm.updateOne(
       { schoolId: doc.schoolId, AdmissionNumber: doc.AdmissionNumber },
-      { $set: { TCStatus: 'Inactive' } }
+      {
+         $set: { 
+          TCStatus: 'Inactive',
+          TCStatusDate: new Date() 
+        }
+         }
     );
     next();
   } catch (err) {
