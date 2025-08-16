@@ -5,7 +5,7 @@ import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import loginValidationSchema from "../../validators/loginValidationSchema.js";
 import Subscription from "../../models/Subscription.js";
- 
+import EmployeeRegistration from "../../models/PayrollModule/Employer/EmployeeRegistration.js";
 dotenv.config();
  
 const jwtSecret = process.env.JWT_SECRET;
@@ -22,7 +22,7 @@ async function userLogin(req, res) {
       return res.status(400).json({ message: errorMessages });
     }
  
-    const { userId, password } = req.body;
+    const { userId, password, emailId } = req.body;
  
     let user = await User.findOne({ userId });
     let schemaType = "User";
@@ -32,6 +32,62 @@ async function userLogin(req, res) {
       schemaType = user ? "Seller" : null;
     }
  
+     if (!user) {
+      const employee = await EmployeeRegistration.findOne({ employeeId: userId, password: password });
+      if (employee) {
+        if (!emailId) {
+          return res.status(200).json({
+            hasError: true,
+            needEmail: true,
+            message: "Please enter your email ID to continue.",
+          });
+        }
+
+        // const isPasswordValid = await saltFunction.validatePassword(
+        //   password,
+        //   employee.password,
+        //   employee.salt
+        // );
+
+        const isPasswordValid = password === employee.password;
+
+        if (!isPasswordValid) {
+          return res.status(401).json({
+            hasError: true,
+            message: "Invalid Password",
+          });
+        }
+       
+        if (emailId !== employee.emailId) {
+          return res.status(401).json({
+            hasError: true,
+            message: "Email ID does not match",
+          });
+        }
+
+        const tokenPayload = {
+          id: employee._id,
+          userId: employee.employeeId,
+          schoolId: employee.schoolId,
+          employeeName: employee.employeeName,
+          status: employee.status,
+          emailId: employee.emailId,
+          role: "Employee",
+        };
+
+        const token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: jwtExpiration });
+
+        return res.status(200).json({
+          hasError: false,
+          message: "Login Successful",
+          token,
+          userDetails: tokenPayload,
+        });
+      }
+
+      return res.status(404).json({ hasError: true, message: "User does not exist" });
+    }
+
     if (!user) {
       return res.status(404).json({
         hasError: true,

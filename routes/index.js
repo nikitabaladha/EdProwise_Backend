@@ -51,6 +51,12 @@ import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplat
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
+// ==================Payroll Routes ========================
+import PayrollAcademicYear from "./PayrollModule/PayrollAcademicYear.js";
+import PayrollEmployerRoutes from "./PayrollModule/PayrollEmployerRoutes.js"
+import PayrollAdminSettingRoutes from "./PayrollModule/PayrollAdminSettingRoutes.js"
+import PayrollEmployeeSelfRoutes from "./PayrollModule/PayrollEmployeeSelfRoutes.js"
+
 export default (app) => {
   // ==================Email Routes =========================
 
@@ -107,4 +113,11 @@ export default (app) => {
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
+ 
+
+  // Payroll Routes
+  app.use("/api", PayrollAcademicYear);
+  app.use("/api", PayrollEmployerRoutes);
+  app.use("/api", PayrollAdminSettingRoutes);
+  app.use("/api", PayrollEmployeeSelfRoutes);
 };
