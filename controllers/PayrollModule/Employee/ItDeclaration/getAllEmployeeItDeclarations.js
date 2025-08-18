@@ -277,12 +277,15 @@ import EmployeeRentDetail from '../../../../models/PayrollModule/Employee/Employ
 import EmployeeltaDetails from '../../../../models/PayrollModule/Employee/EmployeeltaDetails.js';
 import EmployeeTelephoneAllowance from '../../../../models/PayrollModule/Employee/EmployeeTelephoneAllowance.js';
 import EmployeeInternetAllowance from '../../../../models/PayrollModule/Employee/EmployeeInternetAllowance.js';
-
+import EmployeeRegistration from '../../../../models/PayrollModule/Employer/EmployeeRegistration.js';
 const getAllEmployeeItDeclarations = async (req, res) => {
   console.log('Reached getAllEmployeeItDeclarations controller');
   try {
-    const { schoolId } = req.params;
-    const { academicYear  } = req.query;
+    const { schoolId, academicYear } = req.params;
+    // const { academicYear  } = req.query;
+console.log(schoolId);
+console.log(academicYear);
+
 
     if (!schoolId || !academicYear) {
       return res.status(400).json({
@@ -319,7 +322,12 @@ const getAllEmployeeItDeclarations = async (req, res) => {
     }
 
     for (let declaration of declarations) {
-      // Handle HRA Exemption
+     let employeeId = declaration.employeeId;
+   let employeeInfo = await EmployeeRegistration.findOne(
+  { schoolId, academicYear, employeeId });
+  console.log("employeeInfo", employeeInfo);
+      // declaration.employeeName = .employeeName;
+
       let hraExemptionProofSubmitted = 0;
       let rentDetailStatus = 'Pending';
       let rentDetails = monthOrder.map(month => ({
@@ -410,7 +418,8 @@ const getAllEmployeeItDeclarations = async (req, res) => {
       const internetDetail = await EmployeeInternetAllowance.findOne({
         schoolId,
         employeeId: declaration.employeeId,
-        academicYear
+        academicYear,
+        
       }).lean();
       declaration.otherExemption.internetAllowance = {
         internetAllowanceDetailsId: internetDetail?._id || null,

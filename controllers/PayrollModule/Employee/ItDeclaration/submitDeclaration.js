@@ -913,7 +913,7 @@ const submitDeclaration = async (req, res) => {
   try {
     const { schoolId, employeeId } = req.params;
     const { academicYear, taxRegime, panNumber,  acceptTermsAndConditions } = req.body;
-
+    
     if (!schoolId || !employeeId || !academicYear || !taxRegime || !panNumber) {
       return res.status(400).json({
         success: false,

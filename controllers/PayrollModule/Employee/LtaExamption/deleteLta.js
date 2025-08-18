@@ -38,8 +38,11 @@ import path from 'path';
 
 const deleteLta = async (req, res) => {
   try {
-    const { employeeId, detailId } = req.params;
-
+    const { detailId } = req.params;
+    const employeeId = req.query;
+     console.log("detailId", detailId );
+     console.log("employeeId", employeeId);
+     
     // Validate parameters
     if (!employeeId || !detailId) {
       return res.status(400).json({
@@ -116,5 +119,4 @@ const deleteLta = async (req, res) => {
   }
 };
 
-// export default deleteLtaDetails;
 export default deleteLta;

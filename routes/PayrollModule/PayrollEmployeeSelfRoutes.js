@@ -111,7 +111,7 @@ router.get('/it-computation-sheet/:schoolId/:employeeId', getItComputationSheetD
 
 router.post('/create-lta/:employeeId', LtaBillFileUpload, createLta);
 router.get('/get-lta-details/:schoolId/:employeeId', getLtaRecords);
-router.delete('/delete-lta/:id', deleteLta);
+router.delete('/delete-lta/:detailId', deleteLta);
 router.put('/update-lta/:schoolId/:employeeId', updateLtaDetails);
 
 router.post('/create-telephone-allowance/:employeeId', telephoneBillFileUpload, createTelephoneAllowance);

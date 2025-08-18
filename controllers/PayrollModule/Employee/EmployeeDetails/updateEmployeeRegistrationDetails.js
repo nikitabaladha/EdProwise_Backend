@@ -213,7 +213,7 @@ const updateEmployeeDetails = async (req, res) => {
       accountNumber: formData.accountNumber || 
         existingEmployee.academicYearDetails?.find((ay) => ay.academicYear === academicYear)?.accountNumber || '',
       accountType: formData.accountType || 
-        existingEmployee.academicYearDetails?.find((ay) => ay.academicYear === academicYear)?.accountType || '',
+        existingEmployee.academicYearDetails?.find((ay) => ay.academicYear === academicYear)?.accountType || 'Savings',
     };
 
     // Prepare the complete update query
