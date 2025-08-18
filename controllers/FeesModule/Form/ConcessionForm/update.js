@@ -48,10 +48,10 @@ const updateConcessionForm = async (req, res) => {
       schoolId,
       castOrIncomeCertificate: newCertificateFile
         ? getConcessionFilePath(newCertificateFile)
-        : existingForm.castOrIncomeCertificate,
+        : existingForm.castOrIncomeCertificate || '',
       studentPhoto: newPhotoFile
         ? getConcessionFilePath(newPhotoFile)
-        : existingForm.studentPhoto
+        : existingForm.studentPhoto || ''
     };
 
     const { error } = ConcessionFormValidator.validate(updatedData);

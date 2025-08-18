@@ -18,18 +18,15 @@ const concessionDetailSchema = new Schema({
     },
     concessionPercentage: {
         type: Number,
-        required: true,
         min: 0,
         max: 100
     },
     concessionAmount: {
         type: Number,
-        required: true,
         min: 0
     },
     balancePayable: {
         type: Number,
-        required: true,
         min: 0
     }
 });
@@ -92,10 +89,10 @@ const concessionSchema = new Schema({
     },
     concessionDetails: {
         type: [concessionDetailSchema],
-        required: true,
+        // required: true,
         validate: v => Array.isArray(v) && v.length > 0
     },
-    status: { type: String, enum: ['Pending', 'Approved','Rejected'], default: 'Pending' },
+    status: { type: String, enum: ['Pending', 'Approved','Rejected'], default: 'Approved' },
     cancelledDate: { type: Date },
     cancelReason: { type: String },
     chequeSpecificReason: { type: String },

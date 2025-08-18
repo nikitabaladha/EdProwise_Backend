@@ -25,7 +25,9 @@ import lossoffeeduetoleftstudent from './AdvancedReport/leftstudentfeedata.js';
 import lossoffeeduetoLateAdmission from './AdvancedReport/leftstudentfeedataLateAdmission.js';
 import Defaulterfees from './AdvancedReport/defaulterFees.js'
 import ArrearFeesReport from './AdvancedReport/ArrearFeesReport.js';
-import FeesReconHeadwise from './ReconFees/headwise.js'
+import FeesReconHeadwise from './ReconFees/headwise.js';
+import AdvancedFeesReport from './AdvancedReport/AdvancedFeesReport.js';
+import OpeningAndClosingAdvancedReport from './AdvancedReport/OpeningAndClosingAdvancedReport.js'
 
 export {
 getall,
@@ -53,5 +55,7 @@ lossoffeeduetoleftstudent,
 lossoffeeduetoLateAdmission,
 Defaulterfees,
 ArrearFeesReport,
-FeesReconHeadwise
+FeesReconHeadwise,
+AdvancedFeesReport,
+OpeningAndClosingAdvancedReport
 };

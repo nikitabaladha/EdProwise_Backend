@@ -47,6 +47,7 @@ import getBySchoolClassAndSectionandyear from "./BoardRegistartionFees/getbyscho
 import deleteBoardRegistrationFees from "./BoardRegistartionFees/delete.js";
 import updateBoardRegistrationFees from "./BoardRegistartionFees/update.js";
 
+
 import createBoardExamFees from "./BoardExamFees/create.js";
 import getBoardExamFees from "./BoardExamFees/get.js";
 import deleteBoardExamFees from "./BoardExamFees/delete.js";

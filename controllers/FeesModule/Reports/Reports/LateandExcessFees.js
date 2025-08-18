@@ -44,7 +44,7 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
     }, {});
 
     const result = [];
-    const seenPayments = new Set(); // To track unique payments
+    const seenPayments = new Set(); 
 
     for (const admission of admissionData) {
       const { AdmissionNumber, firstName, lastName, academicHistory } = admission;
@@ -79,7 +79,7 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
         for (const inst of structure.installments) {
           let totalBalanceForInstallment = 0;
 
-          // Calculate total balance for the installment
+       
           for (const fee of inst.fees) {
             const feeAmount = fee.amount || 0;
             let concessionAmount = 0;
@@ -111,7 +111,6 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
             totalBalanceForInstallment += feeAmount - concessionAmount - paidAmount;
           }
 
-          // Process payments for this installment
           for (const payment of paidFeesData) {
             const matchingInst = payment?.installments?.find(
               (instData) => instData.installmentName === inst.name
@@ -169,7 +168,6 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
               }
 
               if (paidFine > 0 || excessFees > 0) {
-                // Create a unique key for the payment
                 const paymentKey = `${AdmissionNumber}_${inst.name}_${payment.receiptNumber}_${formatDate(payment.paymentDate)}`;
                 if (!seenPayments.has(paymentKey)) {
                   seenPayments.add(paymentKey);

@@ -23,18 +23,17 @@ const concessionDetailSchema = Joi.object({
     'number.min': 'Total fees cannot be negative.',
     'any.required': 'Total fees is required.'
   }),
-  concessionPercentage: Joi.number().min(0).max(100).required().messages({
-    'number.base': 'Concession percentage must be a number.',
+  concessionPercentage: Joi.number().min(0).max(100).messages({
     'number.min': 'Concession percentage cannot be less than 0.',
     'number.max': 'Concession percentage cannot be more than 100.',
     'any.required': 'Concession percentage is required.'
   }),
-  concessionAmount: Joi.number().min(0).required().messages({
+  concessionAmount: Joi.number().min(0).messages({
     'number.base': 'Concession amount must be a number.',
     'number.min': 'Concession amount cannot be negative.',
     'any.required': 'Concession amount is required.'
   }),
-  balancePayable: Joi.number().min(0).required().messages({
+  balancePayable: Joi.number().min(0).messages({
     'number.base': 'Balance payable must be a number.',
     'number.min': 'Balance payable cannot be negative.',
     'any.required': 'Balance payable is required.'
@@ -51,9 +50,9 @@ export const ConcessionFormValidator = Joi.object({
     'string.base': 'Admission number must be a string.',
     'any.required': 'Admission number is required.'
   }),
-   studentPhoto: Joi.string().optional().messages({
-          "any.required": "Studentphoto is required."
-        }),
+  studentPhoto: Joi.string().allow('', null).optional().messages({
+  'string.base': 'Student photo must be a string.'
+}),
   firstName: Joi.string().required().messages({
     'string.base': 'First name must be a string.',
     'any.required': 'First name is required.'

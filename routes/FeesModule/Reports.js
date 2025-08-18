@@ -29,7 +29,9 @@ lossoffeeduetoleftstudent,
 lossoffeeduetoLateAdmission,
 Defaulterfees,
 ArrearFeesReport,
-FeesReconHeadwise
+FeesReconHeadwise,
+AdvancedFeesReport,
+OpeningAndClosingAdvancedReport
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
@@ -223,5 +225,23 @@ router.get(
   roleBasedMiddleware("Admin","School"),
  FeesReconHeadwise
 );
+
+//-----------------------------------------------------AdvancedFeesReport------------------------------------//
+
+router.get(
+  "/get-advanced-fees",
+  roleBasedMiddleware("Admin","School"),
+ AdvancedFeesReport
+);
+
+//-----------------------------------------------------OpeningAndClosingAdvancedReport------------------------------------//
+
+router.get(
+  "/get-opening-and-Closing-advanced",
+  roleBasedMiddleware("Admin","School"),
+OpeningAndClosingAdvancedReport
+);
+
+
 
 export default router;
