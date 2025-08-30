@@ -141,7 +141,8 @@ TCFormSchema.post('save', async function (doc, next) {
       {
          $set: { 
           TCStatus: 'Inactive',
-          TCStatusDate: new Date() 
+          TCStatusDate: new Date() ,
+          TCStatusYear: doc.academicYear
         }
          }
     );

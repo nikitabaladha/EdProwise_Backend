@@ -79,6 +79,7 @@ export const getAllAdmissionFees = async (req, res) => {
           admFeesTransactionNo: admission.transactionNumber || "-",
           admFeesReceiptNo: admission.receiptNumber || "-",
           admFeesStatus: admission.reportStatus|| "-",
+          Status: admission.TCStatus|| "-",
         },
       };
     });

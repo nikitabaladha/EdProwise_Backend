@@ -438,48 +438,91 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               }
             }
 
+            // const dueDate = new Date(inst.dueDate);
+            // const today = new Date();
+            // if (totalBalanceForInstallment > 0 && fineData) {
+            //   const fineStartDate = new Date(dueDate);
+            //   fineStartDate.setDate(dueDate.getDate() + 1);
+
+            //   if (today >= fineStartDate) {
+            //     const { feeType, frequency, value, maxCapFee } = fineData;
+            //     const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
+            //     let multiplier = 0;
+
+            //     const daysLate = Math.floor((today - fineStartDate) / (1000 * 60 * 60 * 24));
+            //     const weeksLate = Math.floor(daysLate / 7);
+            //     const monthsLate =
+            //       today.getMonth() -
+            //       fineStartDate.getMonth() +
+            //       12 * (today.getFullYear() - fineStartDate.getFullYear());
+            //     const yearsLate = today.getFullYear() - fineStartDate.getFullYear();
+
+            //     switch (frequency) {
+            //       case "Daily":
+            //         multiplier = daysLate;
+            //         break;
+            //       case "Weekly":
+            //         multiplier = weeksLate;
+            //         break;
+            //       case "Monthly":
+            //         multiplier = monthsLate;
+            //         break;
+            //       case "Annually":
+            //         multiplier = yearsLate;
+            //         break;
+            //       case "Fixed":
+            //         multiplier = 1;
+            //         break;
+            //     }
+            //     fineAmount = base * multiplier;
+            //     if (maxCapFee) {
+            //       fineAmount = Math.min(fineAmount, maxCapFee);
+            //     }
+            //   }
+            // }
+
             const dueDate = new Date(inst.dueDate);
-            const today = new Date();
-            if (totalBalanceForInstallment > 0 && fineData) {
-              const fineStartDate = new Date(dueDate);
-              fineStartDate.setDate(dueDate.getDate() + 1);
+dueDate.setHours(0, 0, 0, 0); 
+const fineStartDate = new Date(dueDate); 
+const today = new Date();
+today.setHours(0, 0, 0, 0); 
+if (totalBalanceForInstallment > 0 && fineData) {
+  if (today >= fineStartDate) {
+    const { feeType, frequency, value, maxCapFee } = fineData;
+    const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
+    let multiplier = 0;
 
-              if (today >= fineStartDate) {
-                const { feeType, frequency, value, maxCapFee } = fineData;
-                const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
-                let multiplier = 0;
+    const daysLate = Math.floor((today - fineStartDate) / (1000 * 60 * 60 * 24));
+    const weeksLate = Math.floor(daysLate / 7);
+    const monthsLate =
+      today.getMonth() -
+      fineStartDate.getMonth() +
+      12 * (today.getFullYear() - fineStartDate.getFullYear());
+    const yearsLate = today.getFullYear() - fineStartDate.getFullYear();
 
-                const daysLate = Math.floor((today - fineStartDate) / (1000 * 60 * 60 * 24));
-                const weeksLate = Math.floor(daysLate / 7);
-                const monthsLate =
-                  today.getMonth() -
-                  fineStartDate.getMonth() +
-                  12 * (today.getFullYear() - fineStartDate.getFullYear());
-                const yearsLate = today.getFullYear() - fineStartDate.getFullYear();
-
-                switch (frequency) {
-                  case "Daily":
-                    multiplier = daysLate;
-                    break;
-                  case "Weekly":
-                    multiplier = weeksLate;
-                    break;
-                  case "Monthly":
-                    multiplier = monthsLate;
-                    break;
-                  case "Annually":
-                    multiplier = yearsLate;
-                    break;
-                  case "Fixed":
-                    multiplier = 1;
-                    break;
-                }
-                fineAmount = base * multiplier;
-                if (maxCapFee) {
-                  fineAmount = Math.min(fineAmount, maxCapFee);
-                }
-              }
-            }
+    switch (frequency) {
+      case "Daily":
+        multiplier = daysLate;
+        break;
+      case "Weekly":
+        multiplier = weeksLate;
+        break;
+      case "Monthly":
+        multiplier = monthsLate;
+        break;
+      case "Annually":
+        multiplier = yearsLate;
+        break;
+      case "Fixed":
+        multiplier = 1;
+        break;
+    }
+    fineAmount = base * multiplier;
+    if (maxCapFee) {
+      fineAmount = Math.min(fineAmount, maxCapFee);
+    }
+  }
+}
 
             allPaidFeesData.forEach((payment) => {
               const matchingInst = payment?.installments?.find(

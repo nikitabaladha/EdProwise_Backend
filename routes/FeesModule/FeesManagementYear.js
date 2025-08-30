@@ -3,7 +3,9 @@ import roleBasedMiddleware from "../../middleware/index.js";
 
 import {
 createFeesManagementYear,
-getAcademicYearsBySchoolId
+getAcademicYearsBySchoolId,
+updateAcademicYears,
+deleteAcademicYears
 
 } from "../../controllers/FeesModule/FeesManagementYear/index.js";
 
@@ -21,4 +23,16 @@ router.get(
     roleBasedMiddleware("Admin","School"),
     getAcademicYearsBySchoolId
   );
+
+  router.put(
+  "/update-feesmanagment-year/:id",
+  roleBasedMiddleware("Admin","School"),
+updateAcademicYears
+);
+
+router.delete(
+  "/delete-feesmanagment-year/:id",
+  roleBasedMiddleware("Admin","School"),
+deleteAcademicYears
+);
 export default router;

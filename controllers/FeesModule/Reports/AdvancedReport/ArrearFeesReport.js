@@ -2,6 +2,7 @@ import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
 import FeesType from '../../../../models/FeesModule/FeesType.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
+import FeesManagementYear from '../../../../models/FeesModule/FeesManagementYear.js';
 
 export const ArrearFeesReport = async (req, res) => {
   try {
@@ -16,25 +17,40 @@ export const ArrearFeesReport = async (req, res) => {
     const schoolIdString = schoolId.trim();
     const paymentAcademicYear = academicYear.trim();
 
-
     const [startYear, endYear] = paymentAcademicYear.split('-');
     if (!startYear || !endYear || isNaN(startYear) || isNaN(endYear)) {
       return res.status(400).json({
-        message: 'Invalid academic year format. Use YYYY-YYYY (e.g., 2025-2026)',
+        message: 'Invalid academic year format. Use YYYY-YYYY',
       });
     }
 
+    const currentFeesManagementYear = await FeesManagementYear.findOne({
+      schoolId: schoolIdString,
+      academicYear: paymentAcademicYear,
+    }).lean();
 
-    const paymentStartDate = new Date(`${startYear}-04-01T00:00:00.000Z`);
-    const paymentEndDate = new Date(`${endYear}-03-31T23:59:59.999Z`);
+    const reportStartDate = currentFeesManagementYear?.startDate
+      ? new Date(currentFeesManagementYear.startDate)
+      : new Date(`${startYear}-03-31T18:30:00.000Z`);
+    const reportEndDate = currentFeesManagementYear?.endDate
+      ? new Date(currentFeesManagementYear.endDate)
+      : new Date(`${endYear}-03-30T18:30:00.000Z`);
 
+    const allFeesManagementYears = await FeesManagementYear.find({
+      schoolId: schoolIdString,
+      academicYear: { $lte: paymentAcademicYear },
+    }).lean();
+
+    const academicYearEndDateMap = allFeesManagementYears.reduce((acc, year) => {
+      acc[year.academicYear] = year.endDate ? new Date(year.endDate) : new Date(`${year.academicYear.split('-')[1]}-03-30T18:30:00.000Z`);
+      return acc;
+    }, {});
 
     const feesStructures = await FeesStructure.find({
       schoolId: schoolIdString,
       academicYear: { $lte: paymentAcademicYear },
     }).lean();
     const academicYears = [...new Set(feesStructures.map((fs) => fs.academicYear))].sort();
-
 
     const feesTypes = await FeesType.find({
       schoolId: schoolIdString,
@@ -47,7 +63,6 @@ export const ArrearFeesReport = async (req, res) => {
     }, {});
     const uniqueFeeTypes = [...new Set(feesTypes.map((type) => type.feesTypeName))].sort();
 
- 
     const classResponse = await ClassAndSection.find({ schoolId: schoolIdString }).lean();
     const classMap = classResponse.reduce((acc, cls) => {
       acc[cls._id.toString()] = cls.className;
@@ -71,7 +86,6 @@ export const ArrearFeesReport = async (req, res) => {
       label: sec,
     }));
 
-  
     const installmentOptions = [
       ...new Set(feesStructures.flatMap((fs) => fs.installments.map((inst) => inst.name))),
     ].map((inst) => ({
@@ -79,16 +93,41 @@ export const ArrearFeesReport = async (req, res) => {
       label: inst,
     }));
 
-
     const schoolFeesAggregation = await SchoolFees.aggregate([
       {
         $match: {
           schoolId: schoolIdString,
           academicYear: { $lte: paymentAcademicYear },
-          paymentDate: { $gte: paymentStartDate, $lte: paymentEndDate },
+          paymentDate: { $gte: reportStartDate, $lte: reportEndDate },
           studentAdmissionNumber: { $ne: null, $ne: '' },
           status: 'Paid',
           installments: { $exists: true, $ne: [] },
+        },
+      },
+      {
+        $addFields: {
+          isArrear: {
+            $cond: {
+              if: {
+                $gt: [
+                  '$paymentDate',
+                  {
+                    $let: {
+                      vars: { endDate: { $arrayElemAt: [Object.values(academicYearEndDateMap), { $indexOfArray: [Object.keys(academicYearEndDateMap), '$academicYear'] }] } },
+                      in: '$$endDate',
+                    },
+                  },
+                ],
+              },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          isArrear: true,
         },
       },
       {
@@ -162,7 +201,6 @@ export const ArrearFeesReport = async (req, res) => {
       },
     ]);
 
-
     const combinedData = schoolFeesAggregation.map((item) => {
       const grossPaid = item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0);
       const totalConcession = item.totalConcession || 0;
@@ -230,7 +268,6 @@ export const ArrearFeesReport = async (req, res) => {
       return acc;
     }, {});
 
-    
     const result = Object.values(groupedData).sort((a, b) => {
       const dateA = new Date(a.paymentDate.split('-').reverse().join('-'));
       const dateB = new Date(b.paymentDate.split('-').reverse().join('-'));
@@ -248,7 +285,7 @@ export const ArrearFeesReport = async (req, res) => {
     }));
 
     res.status(200).json({
-      data: result,
+      data: result.length > 0 ? result : [],
       feeTypes: uniqueFeeTypes,
       filterOptions: {
         classOptions,
@@ -259,7 +296,6 @@ export const ArrearFeesReport = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching arrear fees:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

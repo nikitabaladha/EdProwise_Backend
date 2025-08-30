@@ -26,6 +26,8 @@ import {
   getAdmissionFormsByAcdemicHistoryYear,
   updatebyAcdemicHistory,
   updateTCinactiveStatus,
+  getDataForStudentLedger ,
+  getstudentforcount,
 
 
   createTCForm,
@@ -116,6 +118,12 @@ router.get(
 );
 
 router.get(
+  "/get-admission-form-for-ledger/:schoolId",
+  roleBasedMiddleware("Admin", "School"),
+getDataForStudentLedger
+);
+
+router.get(
   "/get-admission-form-by-year-schoolId/:schoolId/:academicYear",
   roleBasedMiddleware("Admin", "School"),
   getbySchoolIdandYear
@@ -165,6 +173,12 @@ router.put(
   "/update-admission-formby-acdemichistory/:id",
   roleBasedMiddleware("Admin", "School"), admissionFileUpload,
   updatebyAcdemicHistory
+);
+
+router.get(
+  "/get-admission-form-for-count/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+getstudentforcount
 );
 
 

@@ -1,698 +1,844 @@
-import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
-import FeesType from "../../../../models/FeesModule/FeesType.js";
-import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
-import AdmissionForm from "../../../../models/FeesModule/AdmissionForm.js";
-import Fine from "../../../../models/FeesModule/Fine.js";
-import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
-import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
-import BoardExamFeePayment from "../../../../models/FeesModule/BoardExamFeePayment.js";
-import BoardRegistrationFeePayment from "../../../../models/FeesModule/BoardRegistrationFeePayment.js";
-import TCForm from "../../../../models/FeesModule/TCForm.js";
-import MasterDefineShift from "../../../../models/FeesModule/MasterDefineShift.js";
+// import mongoose from 'mongoose';
+// import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
+// import FeesType from "../../../../models/FeesModule/FeesType.js";
+// import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
+// import Fine from "../../../../models/FeesModule/Fine.js";
+// import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
+// import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
+// import BoardExamFee from "../../../../models/FeesModule/BoardExamFee.js";
+// import BoardExamFeePayment from "../../../../models/FeesModule/BoardExamFeePayment.js";
+// import BoardRegistrationFee from "../../../../models/FeesModule/BoardRegistrationFees.js";
+// import BoardRegistrationFeePayment from "../../../../models/FeesModule/BoardRegistrationFeePayment.js";
+// import TCForm from "../../../../models/FeesModule/TCForm.js";
+// import MasterDefineShift from "../../../../models/FeesModule/MasterDefineShift.js";
+// import AdmissionForm from "../../../../models/FeesModule/AdmissionForm.js";
+// import StudentRegistration from "../../../../models/FeesModule/RegistrationForm.js";
 
-export const getAllFeesInstallmentsWithConcession = async (req, res) => {
-  try {
-    const { schoolId, admissionNumber } = req.query;
-    if (!schoolId || !admissionNumber) {
-      return res.status(400).json({
-        message: "schoolId and admissionNumber are required",
-      });
-    }
+// const getCurrentAcademicYear = () => {
+//   const today = new Date();
+//   const currentYear = today.getFullYear();
+//   const currentMonth = today.getMonth();
+//   return currentMonth >= 3
+//     ? `${currentYear}-${currentYear + 1}`
+//     : `${currentYear - 1}-${currentYear}`;
+// };
 
-    const admissionData = await AdmissionForm.findOne({
-      AdmissionNumber: { $regex: `^${admissionNumber}$`, $options: "i" },
-      schoolId,
-    }).lean();
-    if (!admissionData) {
-      return res.status(404).json({ message: "Admission data not found" });
-    }
+// export const getAllFeesInstallmentsWithConcession = async (req, res) => {
+//   try {
+//     const { schoolId } = req.query;
+//     if (!schoolId) {
+//       return res.status(400).json({ message: "schoolId is required" });
+//     }
 
-    const academicHistory = admissionData.academicHistory || [];
-    if (!academicHistory.length) {
-      return res.status(404).json({ message: "No academic history found for the student" });
-    }
+//     const admissionDataList = await AdmissionForm.find({ schoolId }).lean();
+//     const registrationDataList = await StudentRegistration.find({ schoolId }).lean();
 
-    const studentData = {
-      admissionNo: admissionData.AdmissionNumber,
-      studentName: `${admissionData.firstName || ""} ${admissionData.lastName || ""}`.trim(),
-      regNo: admissionData.registrationNumber,
-      dateOfBirth: admissionData.dateOfBirth,
-      age: admissionData.age,
-      nationality: admissionData.nationality,
-      gender: admissionData.gender,
-      bloodGroup: admissionData.bloodGroup,
-      currentAddress: admissionData.currentAddress,
-      state: admissionData.state,
-      pincode: admissionData.pincode,
-      parentContactNo: admissionData.fatherContactNo,
-      motherTongue: admissionData.motherTongue,
-      previousSchool: admissionData.previousSchoolName,
-      previousSchoolBoard: admissionData.previousSchoolBoard,
-      aadharPassportNo: admissionData.aadharPassportNumber,
-      category: admissionData.studentCategory,
-      relationTypeWithSibling: admissionData.relationType,
-      siblingName: admissionData.siblingName,
-      parentalStatus: admissionData.parentalStatus,
-      fatherName: admissionData.fatherName,
-      fatherMobileNo: admissionData.fatherContactNo,
-      fatherQualification: admissionData.fatherQualification,
-      motherName: admissionData.motherName,
-      motherMobileNo: admissionData.motherContactNo,
-      motherQualification: admissionData.motherQualification,
-      fatherProfession: admissionData.fatherProfession,
-      motherProfession: admissionData.motherProfession,
-      status: admissionData.status,
-      regFeesDate: admissionData.paymentDate,
-      regFeesReceiptNo: admissionData.receiptNumber,
-      regFeesPaymentMode: admissionData.paymentMode,
-      regFeesTransactionNo: admissionData.transactionNumber,
-      regFeesDue: admissionData.admissionFees,
-      regFeesConcession: admissionData.concessionAmount,
-      regFeesPaid: admissionData.finalAmount,
-      admFeesDate: admissionData.paymentDate,
-      admFeesReceiptNo: admissionData.receiptNumber,
-      admFeesPaymentMode: admissionData.paymentMode,
-      admFeesTransactionNo: admissionData.transactionNumber,
-      admFeesDue: admissionData.admissionFees,
-      admFeesConcession: admissionData.concessionAmount,
-      admFeesPaid: admissionData.finalAmount,
-      tcNo:null,
-      tcFeesDate: null,
-      tcFeesReceiptNo: null,
-      tcFeesPaymentMode: null,
-      tcFeesTransactionNo: null,
-      tcFeesDue: 0,
-      tcFeesConcession: 0,
-      tcFeesPaid: 0,
-      boardExamFeesDate: null,
-      boardExamFeesReceiptNo: null,
-      boardExamFeesPaymentMode: null,
-      boardExamFeesTransactionNo: null,
-      boardExamFeesDue: 0,
-      boardExamFeesConcession: 0,
-      boardExamFeesPaid: 0,
-      boardRegFeesDate: null,
-      boardRegFeesReceiptNo: null,
-      boardRegFeesPaymentMode: null,
-      boardRegFeesTransactionNo: null,
-      boardRegFeesDue: 0,
-      boardRegFeesConcession: 0,
-      boardRegFeesPaid: 0,
-      transactions: [],
-    };
+//     const studentMap = new Map();
 
-    const boardExamFees = await BoardExamFeePayment.find({
-      schoolId,
-      admissionNumber: admissionData.AdmissionNumber,
-    }).lean();
-    if (boardExamFees.length) {
-      const latest = boardExamFees[0];
-      studentData.boardExamFeesDate = latest.paymentDate;
-      studentData.boardExamFeesReceiptNo = latest.receiptNumberBef;
-      studentData.boardExamFeesPaymentMode = latest.paymentMode;
-      studentData.boardExamFeesTransactionNo = latest.transactionId;
-      studentData.boardExamFeesDue = latest.amount;
-      studentData.boardExamFeesConcession = 0;
-      studentData.boardExamFeesPaid = latest.status === "Paid" ? latest.amount : 0;
-    }
+//     const getStudentKey = (data) => {
+//       const firstName = data.firstName?.toLowerCase().trim();
+//       const lastName = data.lastName?.toLowerCase().trim();
+//       const dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : '';
+//       return `${firstName}_${lastName}_${dateOfBirth}`;
+//     };
 
-    const boardRegFees = await BoardRegistrationFeePayment.find({
-      schoolId,
-      admissionNumber: admissionData.AdmissionNumber,
-    }).lean();
-    if (boardRegFees.length) {
-      const latest = boardRegFees[0];
-      studentData.boardRegFeesDate = latest.paymentDate;
-      studentData.boardRegFeesReceiptNo = latest.receiptNumberBrf;
-      studentData.boardRegFeesPaymentMode = latest.paymentMode;
-      studentData.boardRegFeesTransactionNo = latest.transactionId;
-      studentData.boardRegFeesDue = latest.amount;
-      studentData.boardRegFeesConcession = 0;
-      studentData.boardRegFeesPaid = latest.status === "Paid" ? latest.amount : 0;
-    }
+//     for (const admission of admissionDataList) {
+//       const key = getStudentKey(admission);
+//       const existing = studentMap.get(key) || {};
+//       studentMap.set(key, {
+//         ...existing,
+//         admissionData: admission,
+//         academicHistory: admission.academicHistory || existing.academicHistory || [],
+//         admissionNumber: admission.AdmissionNumber || existing.admissionNumber || "-",
+//         registrationNumber: admission.registrationNumber || existing.registrationNumber || "-",
+//       });
+//     }
 
-    const tcData = await TCForm.findOne({
-      schoolId,
-      AdmissionNumber: admissionData.AdmissionNumber,
-    }).lean();
-    if (tcData) {
-      studentData.tcNo = tcData. certificateNumber
-      studentData.tcFeesDate = tcData.paymentDate;
-      studentData.tcFeesReceiptNo = tcData.receiptNumber;
-      studentData.tcFeesPaymentMode = tcData.paymentMode;
-      studentData.tcFeesTransactionNo = tcData.transactionNumber;
-      studentData.tcFeesDue = tcData.TCfees || 0;
-      studentData.tcFeesConcession = tcData.concessionAmount || 0;
-      studentData.tcFeesPaid = tcData.finalAmount || 0;
-      studentData.tcNo = tcData.certificateNumber || admissionData.tcCertificate;
+//     for (const registration of registrationDataList) {
+//       const key = getStudentKey(registration);
+//       const existing = studentMap.get(key) || {};
+//       studentMap.set(key, {
+//         ...existing,
+//         registrationData: registration,
+//         academicHistory: existing.academicHistory || (registration.academicYear ? [{ academicYear: registration.academicYear, masterDefineClass: registration.masterDefineClass, section: registration.section, masterDefineShift: registration.masterDefineShift }] : []),
+//         admissionNumber: existing.admissionNumber || "-",
+//         registrationNumber: registration.registrationNumber || existing.registrationNumber || "-",
+//       });
+//     }
 
-      if (tcData.TCfees > 0) {
-        let balance = studentData.transactions.length
-          ? parseFloat(studentData.transactions[studentData.transactions.length - 1].balance) || 0
-          : 0;
-        balance += tcData.TCfees;
+//     if (studentMap.size === 0) {
+//       return res.status(404).json({ message: "No student data found for the school" });
+//     }
 
-        studentData.transactions.push({
-          academicYear: tcData.academicYear,
-          date: tcData.paymentDate
-            ? tcData.paymentDate.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              }).replace(/\//g, "-")
-            : "",
-          particulars: "TC Fees Due",
-          receiptNo: "",
-          paymentMode: "",
-          debit: tcData.TCfees.toFixed(0),
-          credit: "",
-          balance: balance.toFixed(0),
-          paymentDateRaw: tcData.paymentDate || new Date(),
-          dueDate: tcData.paymentDate
-            ? tcData.paymentDate.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              }).replace(/\//g, "-")
-            : "",
-          tcFeesDue: tcData.TCfees.toFixed(0),
-          tcFeesConcession: tcData.concessionAmount.toFixed(0),
-          tcFeesPaid: tcData.finalAmount.toFixed(0),
-        });
+//     const result = {};
+//     const admissionDetails = [];
 
-        if (tcData.finalAmount > 0 && tcData.status === "Approved") {
-          balance -= tcData.finalAmount;
-          studentData.transactions.push({
-            academicYear: tcData.academicYear,
-            date: tcData.paymentDate
-              ? tcData.paymentDate.toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                }).replace(/\//g, "-")
-              : "",
-            particulars: "TC Fees Received",
-            receiptNo: tcData.receiptNumber,
-            paymentMode: tcData.paymentMode,
-            debit: "",
-            credit: tcData.finalAmount.toFixed(0),
-            balance: balance.toFixed(0),
-            paymentDateRaw: tcData.paymentDate || new Date(),
-            tcFeesPaid: tcData.finalAmount.toFixed(0),
-          });
-        }
-      }
-    }
+//     for (const [studentKey, { admissionData, registrationData, academicHistory, admissionNumber, registrationNumber }] of studentMap) {
+//       const studentDataBase = {
+//         admissionNo: admissionNumber,
+//         regNo: registrationNumber,
+//         studentName: `${registrationData?.firstName || admissionData?.firstName || ""} ${registrationData?.lastName || admissionData?.lastName || ""}`.trim() || "-",
+//         dateOfBirth: registrationData?.dateOfBirth || admissionData?.dateOfBirth
+//           ? new Date(registrationData?.dateOfBirth || admissionData?.dateOfBirth).toLocaleDateString("en-GB", {
+//               day: "2-digit",
+//               month: "2-digit",
+//               year: "numeric",
+//             }).replace(/\//g, "-")
+//           : "-",
+//         age: registrationData?.age || admissionData?.age || "-",
+//         nationality: registrationData?.nationality || admissionData?.nationality || "-",
+//         gender: registrationData?.gender || admissionData?.gender || "-",
+//         bloodGroup: registrationData?.bloodGroup || admissionData?.bloodGroup || "-",
+//         currentAddress: registrationData?.currentAddress || admissionData?.currentAddress || "-",
+//         state: registrationData?.state || admissionData?.state || "-",
+//         pincode: registrationData?.pincode || admissionData?.pincode || "-",
+//         parentContactNo: registrationData?.fatherContactNo || registrationData?.parentContactNumber || admissionData?.fatherContactNo || admissionData?.parentContactNumber || "-",
+//         motherTongue: registrationData?.motherTongue || admissionData?.motherTongue || "-",
+//         previousSchool: registrationData?.previousSchoolName || admissionData?.previousSchoolName || "-",
+//         previousSchoolBoard: registrationData?.previousSchoolBoard || admissionData?.previousSchoolBoard || "-",
+//         aadharPassportNo: registrationData?.aadharPassportNumber || admissionData?.aadharPassportNumber || "-",
+//         category: registrationData?.studentCategory || admissionData?.studentCategory || "-",
+//         relationTypeWithSibling: registrationData?.relationType || admissionData?.relationType || "-",
+//         siblingName: registrationData?.siblingName || admissionData?.siblingName || "-",
+//         parentalStatus: registrationData?.parentalStatus || admissionData?.parentalStatus || "-",
+//         fatherName: registrationData?.fatherName || admissionData?.fatherName || "-",
+//         fatherMobileNo: registrationData?.fatherContactNo || admissionData?.fatherContactNo || "-",
+//         fatherQualification: registrationData?.fatherQualification || admissionData?.fatherQualification || "-",
+//         motherName: registrationData?.motherName || admissionData?.motherName || "-",
+//         motherMobileNo: registrationData?.motherContactNo || admissionData?.motherContactNo || "-",
+//         motherQualification: registrationData?.motherQualification || admissionData?.motherQualification || "-",
+//         fatherProfession: registrationData?.fatherProfession || admissionData?.fatherProfession || "-",
+//         motherProfession: registrationData?.motherProfession || admissionData?.motherProfession || "-",
+//         status: registrationData?.status || admissionData?.status || "-",
+//       };
 
-    const result = [];
+//       admissionDetails.push({
+//         firstName: registrationData?.firstName || admissionData?.firstName || "-",
+//         lastName: registrationData?.lastName || admissionData?.lastName || "-",
+//         AdmissionNumber: admissionNumber,
+//         registrationNumber: registrationNumber,
+//         regFeesDate: registrationData?.paymentDate
+//           ? new Date(registrationData.paymentDate).toLocaleDateString("en-GB", {
+//               day: "2-digit",
+//               month: "2-digit",
+//               year: "numeric",
+//             }).replace(/\//g, "-")
+//           : "-",
+//         regFeesPaymentMode: registrationData?.paymentMode || "-",
+//         regFeesDue: registrationData?.registrationFee || "0",
+//         regFeesConcession: registrationData?.concessionAmount || "0",
+//         regFeesPaid: registrationData?.finalAmount || "0",
+//         regFeesChequeNumber: registrationData?.chequeNumber || "-",
+//         regFeesBankName: registrationData?.bankName || "-",
+//         regFeesTransactionNo: registrationData?.chequeNumber ? registrationData?.chequeNumber : registrationData?.transactionNumber || "-",
+//         regFeesReceiptNo: registrationData?.receiptNumber || "-",
+//       });
 
-    for (const history of academicHistory) {
-      const { academicYear, masterDefineClass, section, masterDefineShift } = history;
+//       const academicYears = [
+//         ...(academicHistory.length ? [...new Set(academicHistory.map(h => h.academicYear))] : []),
+//         ...(registrationData?.academicYear && !academicHistory.some(h => h.academicYear === registrationData.academicYear) ? [registrationData.academicYear] : []),
+//       ].filter((year, index, self) => self.indexOf(year) === index);
 
-      const classData = await ClassAndSection.findOne({
-        schoolId,
-        academicYear,
-        "sections._id": section,
-      }).lean();
-      const classInfo = classData ? { className: classData.className } : { className: "N/A" };
-      const sectionInfo = classData?.sections?.find((s) => s._id.toString() === section.toString()) || {
-        name: "N/A",
-      };
+//       if (!academicYears.length) {
+//         const defaultYear = getCurrentAcademicYear();
+//         academicYears.push(defaultYear);
+//         console.warn(`No academic years found for student: ${studentKey}, using default: ${defaultYear}`);
+//       }
 
-   
-      const shiftData = await MasterDefineShift.findOne({
-        _id: masterDefineShift,
-        schoolId,
-        academicYear,
-      }).lean();
-      const shiftInfo = shiftData ? { shiftName: shiftData.masterDefineShiftName } : { shiftName: "N/A" };
+//       for (const academicYear of academicYears) {
+//         const history = academicHistory.find(h => h.academicYear === academicYear) || {};
+//         const classId = admissionData?.masterDefineClass || registrationData?.masterDefineClass || history.masterDefineClass || null;
+//         const sectionId = admissionData?.section || history.section || null;
+//         const shiftId = admissionData?.masterDefineShift || registrationData?.masterDefineShift || history.masterDefineShift || null;
 
-      studentData.class = classInfo.className;
-      studentData.section = sectionInfo.name;
-      studentData.shift = shiftInfo.shiftName;
+//         const studentData = {
+//           ...studentDataBase,
+//           admFeesDate: academicYear === academicHistory[0]?.academicYear && admissionData?.paymentDate
+//             ? new Date(admissionData.paymentDate).toLocaleDateString("en-GB", {
+//                 day: "2-digit",
+//                 month: "2-digit",
+//                 year: "numeric",
+//               }).replace(/\//g, "-")
+//             : "-",
+//           admFeesReceiptNo: academicYear === academicHistory[0]?.academicYear ? admissionData?.receiptNumber || "-" : "-",
+//           admFeesPaymentMode: academicYear === academicHistory[0]?.academicYear ? admissionData?.paymentMode || "-" : "-",
+//           admFeesTransactionNo: academicYear === academicHistory[0]?.academicYear ? admissionData?.transactionNumber || "-" : "-",
+//           admFeesDue: academicYear === academicHistory[0]?.academicYear ? admissionData?.admissionFees || "0" : "0",
+//           admFeesConcession: academicYear === academicHistory[0]?.academicYear ? admissionData?.concessionAmount || "0" : "0",
+//           admFeesPaid: academicYear === academicHistory[0]?.academicYear ? admissionData?.finalAmount || "0" : "0",
+//           regFeesDate: academicYear === academicHistory[0]?.academicYear && registrationData?.paymentDate
+//             ? new Date(registrationData.paymentDate).toLocaleDateString("en-GB", {
+//                 day: "2-digit",
+//                 month: "2-digit",
+//                 year: "numeric",
+//               }).replace(/\//g, "-")
+//             : "-",
+//           regFeesPaymentMode: academicYear === academicHistory[0]?.academicYear ? registrationData?.paymentMode || "-" : "-",
+//           regFeesDue: academicYear === academicHistory[0]?.academicYear ? registrationData?.registrationFee || "0" : "0",
+//           regFeesConcession: academicYear === academicHistory[0]?.academicYear ? registrationData?.concessionAmount || "0" : "0",
+//           regFeesPaid: academicYear === academicHistory[0]?.academicYear ? registrationData?.finalAmount || "0" : "0",
+//           regFeesChequeNumber: academicYear === academicHistory[0]?.academicYear ? registrationData?.chequeNumber || "-" : "-",
+//           regFeesBankName: academicYear === academicHistory[0]?.academicYear ? registrationData?.bankName || "-" : "-",
+//           regFeesTransactionNo: academicYear === academicHistory[0]?.academicYear
+//             ? registrationData?.chequeNumber ? registrationData?.chequeNumber : registrationData?.transactionNumber || "-"
+//             : "-",
+//           regFeesReceiptNo: academicYear === academicHistory[0]?.academicYear ? registrationData?.receiptNumber || "-" : "-",
+//           tcNo: "-",
+//           tcFeesDate: "-",
+//           tcFeesReceiptNo: "-",
+//           tcFeesPaymentMode: "-",
+//           tcFeesTransactionNo: "-",
+//           tcFeesDue: "0",
+//           tcFeesConcession: "0",
+//           tcFeesPaid: "0",
+//           boardExamFeesDue: "0",
+//           boardExamFeesDate: "-",
+//           boardExamFeesReceiptNo: "-",
+//           boardExamFeesPaymentMode: "-",
+//           boardExamFeesTransactionNo: "-",
+//           boardExamFeesConcession: "0",
+//           boardExamFeesPaid: "0",
+//           boardRegFeesDue: "0",
+//           boardRegFeesDate: "-",
+//           boardRegFeesReceiptNo: "-",
+//           boardRegFeesPaymentMode: "-",
+//           boardRegFeesTransactionNo: "-",
+//           boardRegFeesConcession: "0",
+//           boardRegFeesPaid: "0",
+//         };
 
-      const feeTypes = await FeesType.find({ schoolId, academicYear }).lean();
-      const feeTypeMap = feeTypes.reduce((acc, type) => {
-        acc[type._id.toString()] = type.feesTypeName || type.name;
-        return acc;
-      }, {});
+//         const yearSpecificData = {
+//           academicYear,
+//           classId,
+//           sectionId,
+//           shiftId,
+//           className: "-",
+//           sectionName: "-",
+//           shiftName: "-",
+//           feeInstallments: [],
+//           finePolicy: null,
+//           concession: null,
+//           paidInstallments: [],
+//           boardExamFees: [], // New field for board exam fees
+//           boardRegFees: [], // New field for board registration fees
+//           tcFees: [], // New field for TC fees
+//           totals: {
+//             totalSchoolFeesAmount: academicYear === academicHistory[0]?.academicYear
+//               ? parseFloat(admissionData?.admissionFees || 0) + parseFloat(registrationData?.registrationFee || 0)
+//               : 0,
+//             totalSchoolConcession: academicYear === academicHistory[0]?.academicYear
+//               ? parseFloat(admissionData?.concessionAmount || 0) + parseFloat(registrationData?.concessionAmount || 0)
+//               : 0,
+//             totalSchoolFine: 0,
+//             totalSchoolFeesPayable: academicYear === academicHistory[0]?.academicYear
+//               ? parseFloat(admissionData?.finalAmount || 0) + parseFloat(registrationData?.finalAmount || 0)
+//               : 0,
+//             totalSchoolPaidAmount: academicYear === academicHistory[0]?.academicYear
+//               ? parseFloat(admissionData?.finalAmount || 0) + parseFloat(registrationData?.finalAmount || 0)
+//               : 0,
+//             totalSchoolRemainingAmount: 0,
+//             totalBoardExamFeesAmount: 0,
+//             totalBoardExamConcession: 0,
+//             totalBoardExamPaidAmount: 0,
+//             totalBoardExamRemainingAmount: 0,
+//             totalBoardRegFeesAmount: 0,
+//             totalBoardRegConcession: 0,
+//             totalBoardRegPaidAmount: 0,
+//             totalBoardRegRemainingAmount: 0,
+//             totalTCFeesAmount: 0,
+//             totalTCConcession: 0,
+//             totalTCPaidAmount: 0,
+//             totalTCRemainingAmount: 0,
+//           },
+//           installmentsPresent: [],
+//           student: { ...studentData },
+//         };
 
-      const feesStructures = await FeesStructure.find({
-        schoolId,
-        classId: masterDefineClass,
-        sectionIds: { $in: [section] },
-        academicYear,
-      }).lean();
+//         if (classId && sectionId) {
+//           const classData = await ClassAndSection.findOne({
+//             schoolId,
+//             academicYear,
+//             "sections._id": sectionId,
+//           }).lean();
+//           if (classData) {
+//             yearSpecificData.className = classData.className || "-";
+//             const sectionInfo = classData.sections.find(s => s._id.toString() === sectionId.toString());
+//             yearSpecificData.sectionName = sectionInfo?.name || "-";
+//           }
+//         } else if (classId) {
+//           const classData = await ClassAndSection.findOne({
+//             schoolId,
+//             academicYear,
+//             _id: classId,
+//           }).lean();
+//           yearSpecificData.className = classData?.className || "-";
+//           yearSpecificData.sectionName = "-";
+//         }
 
-      if (!feesStructures.length) continue;
+//         if (shiftId) {
+//           const shiftData = await MasterDefineShift.findOne({
+//             _id: shiftId,
+//             schoolId,
+//             academicYear,
+//           }).lean();
+//           yearSpecificData.shiftName = shiftData?.masterDefineShiftName || "-";
+//         }
 
-      const concessionForm = await ConcessionFormModel.findOne({
-        schoolId,
-        AdmissionNumber: admissionData.AdmissionNumber,
-        academicYear,
-      }).lean();
-      const fineData = await Fine.findOne({ schoolId, academicYear }).lean();
-      const allPaidFeesData = await SchoolFees.find({
-        schoolId,
-        studentAdmissionNumber: admissionData.AdmissionNumber,
-        academicYear,
-      }).lean();
+//         // Handle TC Fees
+//         const tcData = await TCForm.findOne({
+//           schoolId,
+//           AdmissionNumber: admissionData?.AdmissionNumber,
+//           academicYear,
+//         }).lean();
+//         if (tcData) {
+//           yearSpecificData.student.tcNo = tcData.certificateNumber || admissionData?.tcCertificate || "-";
+//           yearSpecificData.student.tcFeesDate = tcData.paymentDate
+//             ? new Date(tcData.paymentDate).toLocaleDateString("en-GB", {
+//                 day: "2-digit",
+//                 month: "2-digit",
+//                 year: "numeric",
+//               }).replace(/\//g, "-")
+//             : "-";
+//           yearSpecificData.student.tcFeesReceiptNo = tcData.receiptNumber || "-";
+//           yearSpecificData.student.tcFeesPaymentMode = tcData.paymentMode || "-";
+//           yearSpecificData.student.tcFeesTransactionNo = tcData.chequeNumber || tcData.transactionNumber || "-";
+//           yearSpecificData.student.tcFeesDue = tcData.TCfees || "0";
+//           yearSpecificData.student.tcFeesConcession = tcData.concessionAmount || "0";
+//           yearSpecificData.student.tcFeesPaid = tcData.finalAmount || "0";
+//           yearSpecificData.tcFees.push({
+//             tcNo: tcData.certificateNumber || "-",
+//             amount: parseFloat(tcData.TCfees || 0),
+//             concessionAmount: parseFloat(tcData.concessionAmount || 0),
+//             paidAmount: parseFloat(tcData.finalAmount || 0),
+//             balanceAmount: parseFloat(tcData.TCfees || 0) - parseFloat(tcData.concessionAmount || 0) - parseFloat(tcData.finalAmount || 0),
+//             paymentDate: tcData.paymentDate
+//               ? new Date(tcData.paymentDate).toLocaleDateString("en-GB", {
+//                   day: "2-digit",
+//                   month: "2-digit",
+//                   year: "numeric",
+//                 }).replace(/\//g, "-")
+//               : "-",
+//             receiptNumber: tcData.receiptNumber || "-",
+//             paymentMode: tcData.paymentMode || "-",
+//             transactionNo: tcData.chequeNumber || tcData.transactionNumber || "-",
+//           });
+//           yearSpecificData.totals.totalTCFeesAmount += parseFloat(tcData.TCfees || 0);
+//           yearSpecificData.totals.totalTCConcession += parseFloat(tcData.concessionAmount || 0);
+//           yearSpecificData.totals.totalTCPaidAmount += parseFloat(tcData.finalAmount || 0);
+//           yearSpecificData.totals.totalTCRemainingAmount += parseFloat(tcData.TCfees || 0) - parseFloat(tcData.concessionAmount || 0) - parseFloat(tcData.finalAmount || 0);
+//         }
 
-      let totalFeesAmount = 0;
-      let totalConcession = 0;
-      let totalFine = 0;
-      let totalFeesPayable = 0;
-      let totalPaidAmount = 0;
-      let totalRemainingAmount = 0;
-      const feeInstallments = [];
-      const paidInstallments = [];
-      let hasUnpaidFees = false;
-      const cumulativePaidMap = {};
-      const installmentGroups = {};
+//         // Handle Board Exam Fees
+//         if (classId && sectionId) {
+//           const boardExam = await BoardExamFee.findOne({
+//             schoolId,
+//             academicYear,
+//             classId,
+//             sectionId,
+//           }).lean();
+//           if (boardExam) {
+//             yearSpecificData.student.boardExamFeesDue = boardExam.amount || "0";
+//             const boardExamFeesPayment = await BoardExamFeePayment.findOne({
+//               schoolId,
+//               admissionNumber: admissionData?.AdmissionNumber,
+//               academicYear,
+//             }).lean();
+//             let paymentDetails = {};
+//             if (boardExamFeesPayment) {
+//               yearSpecificData.student.boardExamFeesDate = boardExamFeesPayment.paymentDate
+//                 ? new Date(boardExamFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+//                     day: "2-digit",
+//                     month: "2-digit",
+//                     year: "numeric",
+//                   }).replace(/\//g, "-")
+//                 : "-";
+//               yearSpecificData.student.boardExamFeesReceiptNo = boardExamFeesPayment.receiptNumberBef || "-";
+//               yearSpecificData.student.boardExamFeesPaymentMode = boardExamFeesPayment.paymentMode || "-";
+//               yearSpecificData.student.boardExamFeesTransactionNo =
+//                 boardExamFeesPayment.chequeNumber || boardExamFeesPayment.transactionId || "-";
+//               yearSpecificData.student.boardExamFeesConcession = "0";
+//               yearSpecificData.student.boardExamFeesPaid =
+//                 boardExamFeesPayment.status === "Paid" ? boardExamFeesPayment.amount || "0" : "0";
+//               paymentDetails = {
+//                 paymentDate: boardExamFeesPayment.paymentDate
+//                   ? new Date(boardExamFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+//                       day: "2-digit",
+//                       month: "2-digit",
+//                       year: "numeric",
+//                     }).replace(/\//g, "-")
+//                   : "-",
+//                 receiptNumber: boardExamFeesPayment.receiptNumberBef || "-",
+//                 paymentMode: boardExamFeesPayment.paymentMode || "-",
+//                 transactionNo: boardExamFeesPayment.chequeNumber || boardExamFeesPayment.transactionId || "-",
+//                 paidAmount: boardExamFeesPayment.status === "Paid" ? parseFloat(boardExamFeesPayment.amount || 0) : 0,
+//               };
+//             }
+//             yearSpecificData.boardExamFees.push({
+//               amount: parseFloat(boardExam.amount || 0),
+//               concessionAmount: 0,
+//               paidAmount: paymentDetails.paidAmount || 0,
+//               balanceAmount: parseFloat(boardExam.amount || 0) - (paymentDetails.paidAmount || 0),
+//               ...paymentDetails,
+//             });
+//             yearSpecificData.totals.totalBoardExamFeesAmount += parseFloat(boardExam.amount || 0);
+//             yearSpecificData.totals.totalBoardExamConcession += 0;
+//             yearSpecificData.totals.totalBoardExamPaidAmount += paymentDetails.paidAmount || 0;
+//             yearSpecificData.totals.totalBoardExamRemainingAmount += parseFloat(boardExam.amount || 0) - (paymentDetails.paidAmount || 0);
+//           }
+//         }
 
-      for (const structure of feesStructures) {
-        for (let i = 0; i < structure.installments.length; i++) {
-          const inst = structure.installments[i];
-          const instNumber = inst.number !== undefined ? inst.number : i + 1;
-          let totalBalanceForInstallment = 0;
+//         // Handle Board Registration Fees
+//         if (classId && admissionData?.AdmissionNumber) {
+//           const boardReg = await BoardRegistrationFee.findOne({
+//             schoolId,
+//             academicYear,
+//             sectionIds: { $in: [sectionId] },
+//           }).lean();
+//           if (boardReg) {
+//             yearSpecificData.student.boardRegFeesDue = boardReg.amount || "0";
+//             const boardRegFeesPayment = await BoardRegistrationFeePayment.findOne({
+//               schoolId,
+//               admissionNumber: admissionData.AdmissionNumber,
+//               academicYear,
+//             }).lean();
+//             let paymentDetails = {};
+//             if (boardRegFeesPayment) {
+//               yearSpecificData.student.boardRegFeesDate = boardRegFeesPayment.paymentDate
+//                 ? new Date(boardRegFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+//                     day: "2-digit",
+//                     month: "2-digit",
+//                     year: "numeric",
+//                   }).replace(/\//g, "-")
+//                 : "-";
+//               yearSpecificData.student.boardRegFeesReceiptNo = boardRegFeesPayment.receiptNumberBrf || "-";
+//               yearSpecificData.student.boardRegFeesPaymentMode = boardRegFeesPayment.paymentMode || "-";
+//               yearSpecificData.student.boardRegFeesTransactionNo =
+//                 boardRegFeesPayment.chequeNumber || boardRegFeesPayment.transactionId || "-";
+//               yearSpecificData.student.boardRegFeesConcession = "0";
+//               yearSpecificData.student.boardRegFeesPaid =
+//                 boardRegFeesPayment.status === "Paid" ? boardRegFeesPayment.amount.toString() || "0" : "0";
+//               paymentDetails = {
+//                 paymentDate: boardRegFeesPayment.paymentDate
+//                   ? new Date(boardRegFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+//                       day: "2-digit",
+//                       month: "2-digit",
+//                       year: "numeric",
+//                     }).replace(/\//g, "-")
+//                   : "-",
+//                 receiptNumber: boardRegFeesPayment.receiptNumberBrf || "-",
+//                 paymentMode: boardRegFeesPayment.paymentMode || "-",
+//                 transactionNo: boardRegFeesPayment.chequeNumber || boardRegFeesPayment.transactionId || "-",
+//                 paidAmount: boardRegFeesPayment.status === "Paid" ? parseFloat(boardRegFeesPayment.amount || 0) : 0,
+//               };
+//             }
+//             yearSpecificData.boardRegFees.push({
+//               amount: parseFloat(boardReg.amount || 0),
+//               concessionAmount: 0,
+//               paidAmount: paymentDetails.paidAmount || 0,
+//               balanceAmount: parseFloat(boardReg.amount || 0) - (paymentDetails.paidAmount || 0),
+//               ...paymentDetails,
+//             });
+//             yearSpecificData.totals.totalBoardRegFeesAmount += parseFloat(boardReg.amount || 0);
+//             yearSpecificData.totals.totalBoardRegConcession += 0;
+//             yearSpecificData.totals.totalBoardRegPaidAmount += paymentDetails.paidAmount || 0;
+//             yearSpecificData.totals.totalBoardRegRemainingAmount += parseFloat(boardReg.amount || 0) - (paymentDetails.paidAmount || 0);
+//           }
+//         }
 
-          for (const fee of inst.fees) {
-            const feeAmount = fee.amount || 0;
-            let concessionAmount = 0;
-            let paidAmount = 0;
+//         // Fetch fee types
+//         const feeTypes = await FeesType.find({ schoolId, academicYear }).lean();
+//         const feeTypeMap = feeTypes.reduce((acc, type) => {
+//           acc[type._id.toString()] = type.feesTypeName || type.name;
+//           return acc;
+//         }, {});
 
-            if (concessionForm?.concessionDetails?.length) {
-              const concessionMatch = concessionForm.concessionDetails.find(
-                (c) =>
-                  c.installmentName === inst.name &&
-                  c.feesType.toString() === fee.feesTypeId.toString()
-              );
-              if (concessionMatch) {
-                concessionAmount = concessionMatch.concessionAmount || 0;
-              }
-            }
+//         // Fetch fees structure
+//         const feesStructures = await FeesStructure.find({
+//           schoolId,
+//           classId,
+//           sectionIds: sectionId ? { $in: [sectionId] } : { $exists: true },
+//           academicYear,
+//         }).lean();
 
-            allPaidFeesData.forEach((payment) => {
-              const matchingInst = payment?.installments?.find(
-                (instData) => instData.installmentName === inst.name
-              );
-              const matchingFeeItem = matchingInst?.feeItems?.find(
-                (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
-              );
-              if (matchingFeeItem) {
-                paidAmount += matchingFeeItem.paid || 0;
-              }
-            });
+//         const feeInstallments = [];
+//         const paidInstallments = [];
+//         const cumulativePaidMap = {};
+//         const installmentGroups = {};
 
-            totalBalanceForInstallment += feeAmount - concessionAmount - paidAmount;
-          }
+//         if (feesStructures.length) {
+//           // Fetch concession and fine data
+//           const concessionForm = await ConcessionFormModel.findOne({
+//             schoolId,
+//             AdmissionNumber: admissionData?.AdmissionNumber,
+//             academicYear,
+//           }).lean();
+//           const fineData = await Fine.findOne({ schoolId, academicYear }).lean();
+//           const allPaidFeesData = await SchoolFees.find({
+//             schoolId,
+//             studentAdmissionNumber: admissionData?.AdmissionNumber,
+//             academicYear,
+//           }).lean();
 
-          for (const fee of inst.fees) {
-            const feeAmount = fee.amount || 0;
-            let concessionAmount = 0;
-            let fineAmount = 0;
-            let paidAmount = 0;
+//           for (const structure of feesStructures) {
+//             for (let i = 0; i < structure.installments.length; i++) {
+//               const inst = structure.installments[i];
+//               const instNumber = inst.number !== undefined ? inst.number : i + 1;
+//               let totalBalanceForInstallment = 0;
 
-            if (concessionForm?.concessionDetails?.length) {
-              const concessionMatch = concessionForm.concessionDetails.find(
-                (c) =>
-                  c.installmentName === inst.name &&
-                  c.feesType.toString() === fee.feesTypeId.toString()
-              );
-              if (concessionMatch) {
-                concessionAmount = concessionMatch.concessionAmount || 0;
-              }
-            }
+//               for (const fee of inst.fees) {
+//                 const feeAmount = fee.amount || 0;
+//                 let concessionAmount = 0;
+//                 let paidAmount = 0;
 
-            const dueDate = new Date(inst.dueDate);
-            const today = new Date();
-            if (totalBalanceForInstallment > 0 && today > dueDate && fineData) {
-              const { feeType, frequency, value, maxCapFee } = fineData;
-              const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
-              let multiplier = 0;
-              const daysLate = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
-              const monthsLate =
-                today.getMonth() - dueDate.getMonth() +
-                12 * (today.getFullYear() - dueDate.getFullYear());
-              const yearsLate = today.getFullYear() - dueDate.getFullYear();
-              switch (frequency) {
-                case "Daily":
-                  multiplier = daysLate;
-                  break;
-                case "Monthly":
-                  multiplier = monthsLate;
-                  break;
-                case "Annually":
-                  multiplier = yearsLate;
-                  break;
-                case "Fixed":
-                  multiplier = 1;
-                  break;
-              }
-              fineAmount = base * multiplier;
-              if (maxCapFee) {
-                fineAmount = Math.min(fineAmount, maxCapFee);
-              }
-            }
+//                 if (concessionForm?.concessionDetails?.length) {
+//                   const concessionMatch = concessionForm.concessionDetails.find(
+//                     (c) =>
+//                       c.installmentName === inst.name &&
+//                       c.feesType.toString() === fee.feesTypeId.toString()
+//                   );
+//                   if (concessionMatch) {
+//                     concessionAmount = concessionMatch.concessionAmount || 0;
+//                   }
+//                 }
 
-            allPaidFeesData.forEach((payment) => {
-              const matchingInst = payment?.installments?.find(
-                (instData) => instData.installmentName === inst.name
-              );
-              const matchingFeeItem = matchingInst?.feeItems?.find(
-                (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
-              );
-              if (matchingFeeItem) {
-                const individualPaid = matchingFeeItem.paid || 0;
-                paidAmount += individualPaid;
-                const key = `${inst.name}_${fee.feesTypeId}`;
-                cumulativePaidMap[key] = (cumulativePaidMap[key] || 0) + individualPaid;
-                const totalPaidSoFar = cumulativePaidMap[key];
-                paidInstallments.push({
-                  feesTypeId: {
-                    _id: matchingFeeItem.feeTypeId,
-                    name: feeTypeMap[matchingFeeItem.feeTypeId.toString()],
-                  },
-                  installmentNumber: instNumber,
-                  paidAmount: individualPaid,
-                  receiptNumber: payment.receiptNumber,
-                  paymentDate: payment.paymentDate,
-                  collectorName: payment.collectorName,
-                  paymentMode: payment.paymentMode,
-                  chequeNumber: payment.chequeNumber,
-                  bankName: payment.bankName,
-                  transactionNumber: payment.transactionNumber,
-                  amount: fee.amount || 0,
-                  concession: concessionAmount || 0,
-                  fineAmount: fineAmount || 0,
-                  excessAmount: matchingInst?.excessAmount || 0,
-                  paidFine: matchingInst?.fineAmount || 0,
-                  payable: (fee.amount || 0) - (concessionAmount || 0),
-                  paid: individualPaid,
-                  balance: ((fee.amount || 0) - (concessionAmount || 0)) - totalPaidSoFar,
-                });
-              }
-            });
+//                 allPaidFeesData.forEach((payment) => {
+//                   const matchingInst = payment?.installments?.find(
+//                     (instData) => instData.installmentName === inst.name
+//                   );
+//                   const matchingFeeItem = matchingInst?.feeItems?.find(
+//                     (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
+//                   );
+//                   if (matchingFeeItem) {
+//                     paidAmount += matchingFeeItem.paid || 0;
+//                   }
+//                 });
 
-            const balanceAmount = feeAmount - concessionAmount - paidAmount;
-            if (balanceAmount > 0) {
-              hasUnpaidFees = true;
-            }
+//                 totalBalanceForInstallment += feeAmount - concessionAmount - paidAmount;
+//               }
 
-            totalFeesAmount += feeAmount;
-            totalConcession += concessionAmount;
-            totalFine += fineAmount;
-            totalFeesPayable += balanceAmount;
-            totalPaidAmount += paidAmount;
-            totalRemainingAmount += balanceAmount;
+//               for (const fee of inst.fees) {
+//                 const feeAmount = fee.amount || 0;
+//                 let concessionAmount = 0;
+//                 let fineAmount = 0;
+//                 let paidAmount = 0;
 
-            feeInstallments.push({
-              feesTypeId: {
-                _id: fee.feesTypeId,
-                name: feeTypeMap[fee.feesTypeId.toString()],
-              },
-              installmentName: inst.name,
-              dueDate: inst.dueDate,
-              amount: feeAmount,
-              concessionAmount,
-              fineAmount,
-              paidAmount,
-              balanceAmount,
-            });
-          }
-        }
-      }
+//                 if (concessionForm?.concessionDetails?.length) {
+//                   const concessionMatch = concessionForm.concessionDetails.find(
+//                     (c) =>
+//                       c.installmentName === inst.name &&
+//                       c.feesType.toString() === fee.feesTypeId.toString()
+//                   );
+//                   if (concessionMatch) {
+//                     concessionAmount = concessionMatch.concessionAmount || 0;
+//                   }
+//                 }
 
-      const installmentNameMapping = {};
-      feesStructures.forEach((structure) => {
-        structure.installments.forEach((inst, index) => {
-          installmentNameMapping[index + 1] = inst.name;
-          installmentNameMapping[inst.name] = inst.name;
-        });
-      });
+//                 const dueDate = new Date(inst.dueDate);
+//                 const today = new Date();
+//                 if (totalBalanceForInstallment > 0 && today > dueDate && fineData) {
+//                   const { feeType, frequency, value, maxCapFee } = fineData;
+//                   const base = feeType === "percentage" ? (feeAmount * value) / 100 : value;
+//                   let multiplier = 0;
+//                   const daysLate = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+//                   const monthsLate =
+//                     today.getMonth() - dueDate.getMonth() +
+//                     12 * (today.getFullYear() - dueDate.getFullYear());
+//                   const yearsLate = today.getFullYear() - dueDate.getFullYear();
+//                   switch (frequency) {
+//                     case "Daily":
+//                       multiplier = daysLate;
+//                       break;
+//                     case "Monthly":
+//                       multiplier = monthsLate;
+//                       break;
+//                     case "Annually":
+//                       multiplier = yearsLate;
+//                       break;
+//                     case "Fixed":
+//                       multiplier = 1;
+//                       break;
+//                   }
+//                   fineAmount = base * multiplier;
+//                   if (maxCapFee) {
+//                     fineAmount = Math.min(fineAmount, maxCapFee);
+//                   }
+//                 }
 
-      if (!installmentGroups[academicYear]) {
-        installmentGroups[academicYear] = {};
-      }
+//                 allPaidFeesData.forEach((payment) => {
+//                   const matchingInst = payment?.installments?.find(
+//                     (instData) => instData.installmentName === inst.name
+//                   );
+//                   const matchingFeeItem = matchingInst?.feeItems?.find(
+//                     (item) => item.feeTypeId.toString() === fee.feesTypeId.toString()
+//                   );
+//                   if (matchingFeeItem) {
+//                     const individualPaid = matchingFeeItem.paid || 0;
+//                     paidAmount += individualPaid;
+//                     const key = `${inst.name}_${fee.feesTypeId}`;
+//                     cumulativePaidMap[key] = (cumulativePaidMap[key] || 0) + individualPaid;
+//                     const totalPaidSoFar = cumulativePaidMap[key];
+//                     paidInstallments.push({
+//                       feesTypeId: {
+//                         _id: matchingFeeItem.feeTypeId,
+//                         name: feeTypeMap[matchingFeeItem.feeTypeId.toString()],
+//                       },
+//                       installmentNumber: instNumber,
+//                       paidAmount: individualPaid,
+//                       receiptNumber: payment.receiptNumber,
+//                       paymentDate: payment.paymentDate,
+//                       collectorName: payment.collectorName,
+//                       paymentMode: payment.paymentMode,
+//                       chequeNumber: payment.chequeNumber,
+//                       bankName: payment.bankName,
+//                       transactionNumber: payment.transactionNumber,
+//                       amount: fee.amount || 0,
+//                       concession: concessionAmount || 0,
+//                       fineAmount: fineAmount || 0,
+//                       excessAmount: matchingInst?.excessAmount || 0,
+//                       paidFine: matchingInst?.fineAmount || 0,
+//                       payable: (fee.amount || 0) - (concessionAmount || 0),
+//                       paid: individualPaid,
+//                       balance: ((fee.amount || 0) - (concessionAmount || 0)) - totalPaidSoFar,
+//                     });
+//                   }
+//                 });
 
-      feeInstallments.forEach((installment) => {
-        if (!installment.feesTypeId?._id) return;
+//                 const balanceAmount = feeAmount - concessionAmount - paidAmount;
 
-        const dueDate = new Date(installment.dueDate);
-        const dueMonthStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), 1);
-        if (dueMonthStart > new Date()) return;
+//                 yearSpecificData.totals.totalSchoolFeesAmount += feeAmount;
+//                 yearSpecificData.totals.totalSchoolConcession += concessionAmount;
+//                 yearSpecificData.totals.totalSchoolFine += fineAmount;
+//                 yearSpecificData.totals.totalSchoolFeesPayable += balanceAmount;
+//                 yearSpecificData.totals.totalSchoolPaidAmount += paidAmount;
+//                 yearSpecificData.totals.totalSchoolRemainingAmount += balanceAmount;
 
-        const installmentName = installment.installmentName;
-        if (!installmentGroups[academicYear][installmentName]) {
-          installmentGroups[academicYear][installmentName] = {
-            transactions: [],
-            balance: 0,
-          };
-        }
+//                 feeInstallments.push({
+//                   feesTypeId: {
+//                     _id: fee.feesTypeId,
+//                     name: feeTypeMap[fee.feesTypeId.toString()],
+//                   },
+//                   installmentName: inst.name,
+//                   dueDate: inst.dueDate,
+//                   amount: feeAmount,
+//                   concessionAmount,
+//                   fineAmount,
+//                   paidAmount,
+//                   balanceAmount,
+//                 });
+//               }
+//             }
+//           }
 
-        const group = installmentGroups[academicYear][installmentName];
+//           const installmentNameMapping = {};
+//           feesStructures.forEach((structure) => {
+//             structure.installments.forEach((inst, index) => {
+//               installmentNameMapping[index + 1] = inst.name;
+//               installmentNameMapping[inst.name] = inst.name;
+//             });
+//           });
 
-        if (installment.amount > 0) {
-          group.balance += installment.amount;
-          group.transactions.push({
-            academicYear,
-            date: dueDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }).replace(/\//g, "-"),
-            particulars: `Fees Due - ${installmentName}`,
-            receiptNo: "",
-            paymentMode: "",
-            debit: installment.amount.toFixed(0),
-            credit: "",
-            balance: group.balance.toFixed(0),
-            paymentDateRaw: dueDate,
-            dueDate: dueDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }).replace(/\//g, "-"),
-            installment: installmentName,
-            tuitionFeesDue: installment.amount.toFixed(0),
-            examFeesDue: "0",
-            totalFeesDue: installment.amount.toFixed(0),
-            concessionType: concessionForm?.concessionType || "",
-            tuitionFeesConcession: installment.concessionAmount.toFixed(0),
-            examFeesConcession: "0",
-            totalConcession: installment.concessionAmount.toFixed(0),
-          });
-        }
+//           const paymentMap = new Map();
+//           paidInstallments.forEach((pi) => {
+//             if (!pi.feesTypeId?._id) return;
 
-        if (installment.fineAmount > 0) {
-          group.balance += installment.fineAmount;
-          group.transactions.push({
-            academicYear,
-            date: dueDate.toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }).replace(/\//g, "-"),
-            particulars: "Fine",
-            receiptNo: "",
-            paymentMode: "",
-            debit: installment.fineAmount.toFixed(0),
-            credit: "",
-            balance: group.balance.toFixed(0),
-            paymentDateRaw: dueDate,
-            finePaid: installment.fineAmount.toFixed(0),
-          });
-        }
-      });
+//             const installmentName = installmentNameMapping[pi.installmentNumber] || pi.installmentNumber;
+//             const key = `${installmentName}-${pi.receiptNumber}-${pi.paymentDate}`;
 
-      const paymentMap = new Map();
-      paidInstallments.forEach((pi) => {
-        if (!pi.feesTypeId?._id) return;
+//             if (!paymentMap.has(key)) {
+//               const totalPayable = feeInstallments
+//                 .filter((fi) => fi.installmentName === installmentName)
+//                 .reduce((sum, fi) => sum + (Number(fi.amount) || 0) + (Number(fi.fineAmount) || 0), 0);
 
-        const installmentName = installmentNameMapping[pi.installmentNumber] || pi.installmentNumber;
-        const key = `${installmentName}-${pi.receiptNumber}-${pi.paymentDate}`;
+//               paymentMap.set(key, {
+//                 installmentName,
+//                 receiptNumber: pi.receiptNumber,
+//                 paymentDate: pi.paymentDate,
+//                 paymentMode: pi.paymentMode,
+//                 totalPayable: totalPayable || 0,
+//                 totalPaid: 0,
+//                 totalFinePaid: 0,
+//                 totalExcessPaid: 0,
+//                 transactionNumber: pi.transactionNumber || "",
+//               });
+//             }
 
-        if (!paymentMap.has(key)) {
-          const totalPayable = feeInstallments
-            .filter((fi) => fi.installmentName === installmentName)
-            .reduce((sum, fi) => sum + (Number(fi.amount) || 0) + (Number(fi.fineAmount) || 0), 0);
+//             const payment = paymentMap.get(key);
+//             payment.totalPaid += Number(pi.paidAmount || 0);
+//             payment.totalFinePaid += Number(pi.paidFine || 0);
+//             payment.totalExcessPaid += Number(pi.excessAmount || 0);
+//           });
 
-          paymentMap.set(key, {
-            installmentName,
-            receiptNumber: pi.receiptNumber,
-            paymentDate: pi.paymentDate,
-            paymentMode: pi.paymentMode,
-            totalPayable: totalPayable || 0,
-            totalPaid: 0,
-            totalFinePaid: 0,
-            totalExcessPaid: 0,
-          });
-        }
+//           if (!installmentGroups[academicYear]) {
+//             installmentGroups[academicYear] = {};
+//           }
 
-        const payment = paymentMap.get(key);
-        payment.totalPaid += Number(pi.paidAmount || 0);
-        payment.totalFinePaid += Number(pi.paidFine || 0);
-        payment.totalExcessPaid += Number(pi.excessAmount || 0);
-      });
+//           feeInstallments.forEach((installment) => {
+//             if (!installment.feesTypeId?._id) return;
 
-      paymentMap.forEach((payment) => {
-        const installmentName = payment.installmentName;
-        if (!installmentGroups[academicYear][installmentName]) {
-          installmentGroups[academicYear][installmentName] = {
-            transactions: [],
-            balance: 0,
-          };
-        }
+//             const dueDate = new Date(installment.dueDate);
+//             const dueMonthStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), 1);
+//             if (dueMonthStart > new Date()) return;
 
-        const group = installmentGroups[academicYear][installmentName];
-        const paymentDate = new Date(payment.paymentDate);
-        const formattedDate = paymentDate.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }).replace(/\//g, "-");
+//             const installmentName = installment.installmentName;
+//             if (!installmentGroups[academicYear][installmentName]) {
+//               installmentGroups[academicYear][installmentName] = {
+//                 transactions: [],
+//                 balance: 0,
+//               };
+//             }
 
-        if (payment.totalFinePaid > 0) {
-          group.balance += Number(payment.totalFinePaid);
-          group.transactions.push({
-            academicYear,
-            date: formattedDate,
-            particulars: "Fine",
-            receiptNo: payment.receiptNumber,
-            paymentMode: payment.paymentMode,
-            debit: payment.totalFinePaid.toFixed(0),
-            credit: "",
-            balance: group.balance.toFixed(0),
-            paymentDateRaw: paymentDate,
-            finePaid: payment.totalFinePaid.toFixed(0),
-          });
-        }
+//             const group = installmentGroups[academicYear][installmentName];
 
-        if (payment.totalExcessPaid > 0) {
-          group.balance += Number(payment.totalExcessPaid);
-          group.transactions.push({
-            academicYear,
-            date: formattedDate,
-            particulars: "Excess Amount",
-            receiptNo: payment.receiptNumber,
-            paymentMode: payment.paymentMode,
-            debit: payment.totalExcessPaid.toFixed(0),
-            credit: "",
-            balance: group.balance.toFixed(0),
-            paymentDateRaw: paymentDate,
-            excessAmtPaid: payment.totalExcessPaid.toFixed(0),
-          });
-        }
+//             if (installment.amount > 0) {
+//               group.balance += installment.amount;
+//               group.transactions.push({
+//                 academicYear,
+//                 date: dueDate.toLocaleDateString("en-GB", {
+//                   day: "2-digit",
+//                   month: "2-digit",
+//                   year: "numeric",
+//                 }).replace(/\//g, "-"),
+//                 particulars: `Fees Due - ${installmentName}`,
+//                 receiptNo: "",
+//                 paymentMode: "",
+//                 due: installment.amount.toFixed(0),
+//                 receipt: "",
+//                 balance: group.balance.toFixed(0),
+//                 paymentDateRaw: dueDate,
+//                 dueDate: dueDate.toLocaleDateString("en-GB", {
+//                   day: "2-digit",
+//                   month: "2-digit",
+//                   year: "numeric",
+//                 }).replace(/\//g, "-"),
+//                 installment: installmentName,
+//                 tuitionFeesDue: installment.amount.toFixed(0),
+//                 examFeesDue: "0",
+//                 totalFeesDue: installment.amount.toFixed(0),
+//                 concessionType: concessionForm?.concessionType || "",
+//                 tuitionFeesConcession: installment.concessionAmount || "0",
+//                 examFeesConcession: "0",
+//                 totalConcession: installment.concessionAmount || "0",
+//               });
+//             }
 
-        if (payment.totalPaid > 0 || payment.totalFinePaid > 0 || payment.totalExcessPaid > 0) {
-          const totalCredit = Number(payment.totalPaid) + Number(payment.totalFinePaid) + Number(payment.totalExcessPaid);
-          group.balance -= totalCredit;
-          group.transactions.push({
-            academicYear,
-            date: formattedDate,
-            particulars: `Fees Received - ${installmentName}`,
-            receiptNo: payment.receiptNumber,
-            paymentMode: payment.paymentMode,
-            debit: "",
-            credit: totalCredit.toFixed(0),
-            balance: group.balance.toFixed(0),
-            paymentDateRaw: paymentDate,
-            tuitionFeesPaid: payment.totalPaid.toFixed(0),
-            examFeesPaid: "0",
-            totalFeesPaid: totalCredit.toFixed(0),
-            schoolFeesDate: formattedDate,
-            schoolFeesReceiptNo: payment.receiptNumber,
-            schoolFeesPaymentMode: payment.paymentMode,
-            schoolFeesTransactionNo: payment.transactionNumber,
-          });
-        }
-      });
+//             if (installment.fineAmount > 0) {
+//               group.balance += installment.fineAmount;
+//               group.transactions.push({
+//                 academicYear,
+//                 date: dueDate.toLocaleDateString("en-GB", {
+//                   day: "2-digit",
+//                   month: "2-digit",
+//                   year: "numeric",
+//                 }).replace(/\//g, "-"),
+//                 particulars: "Fine",
+//                 receiptNo: "",
+//                 paymentMode: "",
+//                 due: installment.fineAmount.toFixed(0),
+//                 receipt: "",
+//                 balance: group.balance.toFixed(0),
+//                 paymentDateRaw: dueDate,
+//                 finePaid: installment.fineAmount.toFixed(0),
+//               });
+//             }
+//           });
 
-      Object.keys(installmentGroups[academicYear])
-        .sort((a, b) => {
-          const dueDateA = feeInstallments.find((fi) => fi.installmentName === a)?.dueDate;
-          const dueDateB = feeInstallments.find((fi) => fi.installmentName === b)?.dueDate;
-          return new Date(dueDateA || 0) - new Date(dueDateB || 0);
-        })
-        .forEach((installmentName) => {
-          const group = installmentGroups[academicYear][installmentName];
-          group.transactions.sort((a, b) => {
-            const typeOrder = {
-              "Fees Due": 1,
-              Fine: 2,
-              "Excess Amount": 3,
-              "Fees Received": 4,
-              "TC Fees Due": 5,
-              "TC Fees Received": 6,
-            };
-            const typeA = a.particulars.includes("Fees Due")
-              ? "Fees Due"
-              : a.particulars.includes("Fine")
-              ? "Fine"
-              : a.particulars.includes("Excess Amount")
-              ? "Excess Amount"
-              : a.particulars.includes("TC Fees Due")
-              ? "TC Fees Due"
-              : a.particulars.includes("TC Fees Received")
-              ? "TC Fees Received"
-              : "Fees Received";
-            const typeB = b.particulars.includes("Fees Due")
-              ? "Fees Due"
-              : b.particulars.includes("Fine")
-              ? "Fine"
-              : b.particulars.includes("Excess Amount")
-              ? "Excess Amount"
-              : b.particulars.includes("TC Fees Due")
-              ? "TC Fees Due"
-              : b.particulars.includes("TC Fees Received")
-              ? "TC Fees Received"
-              : "Fees Received";
-            if (typeA !== typeB) return typeOrder[typeA] - typeOrder[typeB];
-            return (a.paymentDateRaw || new Date(0)) - (b.paymentDateRaw || new Date(0));
-          });
-          studentData.transactions.push(...group.transactions);
-        });
+//           paymentMap.forEach((payment) => {
+//             const installmentName = payment.installmentName;
+//             if (!installmentGroups[academicYear][installmentName]) {
+//               installmentGroups[academicYear][installmentName] = {
+//                 transactions: [],
+//                 balance: 0,
+//               };
+//             }
 
-      result.push({
-        academicYear,
-        classId: masterDefineClass,
-        sectionId: section,
-        className: classInfo.className,
-        sectionName: sectionInfo.name,
-        shiftName: shiftInfo.shiftName, 
-        feeInstallments,
-        finePolicy: fineData || null,
-        concession: concessionForm || null,
-        paidInstallments,
-        totals: {
-          totalFeesAmount,
-          totalConcession,
-          totalFine,
-          totalFeesPayable,
-          totalPaidAmount,
-          totalRemainingAmount,
-        },
-        installmentsPresent: Array.from(new Set(feeInstallments.map((item) => item.installmentName))).sort(),
-        student: studentData,
-      });
-    }
+//             const group = installmentGroups[academicYear][installmentName];
+//             const paymentDate = new Date(payment.paymentDate);
+//             const formattedDate = paymentDate.toLocaleDateString("en-GB", {
+//               day: "2-digit",
+//               month: "2-digit",
+//               year: "numeric",
+//             }).replace(/\//g, "-");
 
-    if (result.length === 0) {
-      return res.status(404).json({ message: "No fee data found for any academic year" });
-    }
+//             if (payment.totalFinePaid > 0) {
+//               group.balance += Number(payment.totalFinePaid);
+//               group.transactions.push({
+//                 academicYear,
+//                 date: formattedDate,
+//                 particulars: "Fine",
+//                 receiptNo: payment.receiptNumber,
+//                 paymentMode: payment.paymentMode,
+//                 due: payment.totalFinePaid.toFixed(0),
+//                 receipt: "",
+//                 balance: group.balance.toFixed(0),
+//                 paymentDateRaw: formattedDate,
+//                 finePaid: payment.totalFinePaid.toFixed(0),
+//               });
+//             }
 
-    res.status(200).json({
-      data: result,
-      admissionDetails: {
-        firstName: admissionData?.firstName,
-        lastName: admissionData?.lastName,
-        AdmissionNumber: admissionData?.AdmissionNumber,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+//             if (payment.totalExcessPaid > 0) {
+//               group.balance += Number(payment.totalExcessPaid);
+//               group.transactions.push({
+//                 academicYear,
+//                 date: formattedDate,
+//                 particulars: "Excess Amount",
+//                 receiptNo: payment.receiptNumber,
+//                 paymentMode: payment.paymentMode,
+//                 due: payment.totalExcessPaid.toFixed(0),
+//                 receipt: "",
+//                 balance: group.balance.toFixed(0),
+//                 paymentDateRaw: paymentDate,
+//                 excessAmtPaid: payment.totalExcessPaid.toFixed(0),
+//               });
+//             }
 
-export default getAllFeesInstallmentsWithConcession;
+//             if (payment.totalPaid > 0 || payment.totalFinePaid > 0 || payment.totalExcessPaid > 0) {
+//               const totalreceipt = Number(payment.totalPaid) + Number(payment.totalFinePaid) + Number(payment.totalExcessPaid);
+//               group.balance -= totalreceipt;
+//               group.transactions.push({
+//                 academicYear,
+//                 date: formattedDate,
+//                 particulars: `Fees Received - ${installmentName}`,
+//                 receiptNo: payment.receiptNumber,
+//                 paymentMode: payment.paymentMode,
+//                 due: "",
+//                 receipt: totalreceipt.toFixed(0),
+//                 balance: group.balance.toFixed(0),
+//                 paymentDateRaw: paymentDate,
+//                 tuitionFeesPaid: payment.totalPaid.toFixed(0),
+//                 examFeesPaid: "0",
+//                 totalFeesPaid: totalreceipt.toFixed(0),
+//                 schoolFeesDate: formattedDate,
+//                 schoolFeesReceiptNo: payment.receiptNumber,
+//                 schoolFeesPaymentMode: payment.paymentMode,
+//                 schoolFeesTransactionNo: payment.transactionNumber,
+//               });
+//             }
+//           });
+
+//           yearSpecificData.feeInstallments = feeInstallments;
+//           yearSpecificData.finePolicy = fineData;
+//           yearSpecificData.concession = concessionForm;
+//           yearSpecificData.paidInstallments = paidInstallments;
+//           yearSpecificData.installmentsPresent = Array.from(new Set(feeInstallments.map((item) => item.installmentName))).sort();
+//         }
+
+//         if (!result[academicYear]) result[academicYear] = [];
+//         result[academicYear].push(yearSpecificData);
+//       }
+//     }
+
+//     if (Object.keys(result).length === 0) {
+//       return res.status(404).json({ message: "No fee data found for any students in the school" });
+//     }
+
+//     res.status(200).json({
+//       data: result,
+//       admissionDetails,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// };
+
+// export default getAllFeesInstallmentsWithConcession;

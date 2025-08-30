@@ -1,7 +1,8 @@
-import {SchoolFees} from '../../../../models/FeesModule/SchoolFees.js';
+import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
 import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
 import FeesType from '../../../../models/FeesModule/FeesType.js';
+import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 
 export const getConcessionReport = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ export const getConcessionReport = async (req, res) => {
       });
     }
 
-
+    // Fetch fee types
     const feeTypes = await FeesType.find({ academicYear, schoolId }).lean();
     const targetFeeTypes = feeTypes
       .map((type) => type.feesTypeName)
@@ -30,7 +31,45 @@ export const getConcessionReport = async (req, res) => {
       return acc;
     }, {});
 
+    // Fetch class and section data
+    const classAndSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
+    const classMap = classAndSections.reduce((acc, cls) => {
+      acc[cls._id.toString()] = cls.className || '-';
+      return acc;
+    }, {});
+    const sectionMap = classAndSections.reduce((acc, cls) => {
+      cls.sections.forEach((sec) => {
+        acc[sec._id.toString()] = sec.name || '-';
+      });
+      return acc;
+    }, {});
 
+    // Fetch admission forms to map class and section
+    const admissionFormsAll = await AdmissionForm.find({ schoolId }).lean();
+    const classSectionMap = admissionFormsAll.reduce((acc, form) => {
+      const studentId = form.AdmissionNumber;
+      if (!acc[studentId]) {
+        acc[studentId] = {};
+      }
+      form.academicHistory?.forEach((history) => {
+        if (history.academicYear === academicYear && history.masterDefineClass && history.section) {
+          acc[studentId][history.academicYear] = {
+            className: classMap[history.masterDefineClass.toString()] || '-',
+            sectionName: sectionMap[history.section.toString()] || '-',
+          };
+        }
+      });
+      return acc;
+    }, {});
+
+    const admissionNumberMap = admissionFormsAll.reduce((acc, form) => {
+      if (form.registrationNumber) {
+        acc[form.registrationNumber] = form.AdmissionNumber;
+      }
+      return acc;
+    }, {});
+
+    // Date filter for queries
     let dateFilter = {};
     if (startDate && endDate) {
       dateFilter = {
@@ -39,113 +78,150 @@ export const getConcessionReport = async (req, res) => {
       };
     }
 
+    // Fetch data
+    const [schoolFees, admissionForms, registrationForms] = await Promise.all([
+      SchoolFees.find({
+        schoolId,
+        academicYear,
+        ...(startDate && endDate ? { 'installments.dueDate': dateFilter } : {}),
+      }).lean(),
+      AdmissionForm.find({
+        schoolId,
+        academicYear,
+        concessionAmount: { $gt: 0 },
+        ...(startDate && endDate ? { paymentDate: dateFilter } : {}),
+      }).lean(),
+      StudentRegistration.find({
+        schoolId,
+        academicYear,
+        concessionAmount: { $gt: 0 },
+        ...(startDate && endDate ? { paymentDate: dateFilter } : {}),
+      }).lean(),
+    ]);
 
-    const schoolFees = await SchoolFees.find({
-      schoolId,
-      academicYear,
-      ...(startDate && endDate ? { 'installments.dueDate': dateFilter } : {}),
-    }).lean();
-
-    const admissionForms = await AdmissionForm.find({
-      schoolId,
-      academicYear,
-      concessionAmount: { $gt: 0 },
-      ...(startDate && endDate ? { paymentDate: dateFilter } : {}),
-    }).lean();
-
-    const registrationForms = await StudentRegistration.find({
-      schoolId,
-      academicYear,
-      concessionAmount: { $gt: 0 },
-      ...(startDate && endDate ? { paymentDate: dateFilter } : {}),
-    }).lean();
-
-
+    // Process concessions by date
     const concessionsByDate = {};
 
     schoolFees.forEach((form) => {
+      const studentId = admissionNumberMap[form.studentAdmissionNumber] || form.studentAdmissionNumber;
+      const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
+
       form.installments.forEach((installment) => {
         const date = installment.dueDate
           ? new Date(installment.dueDate).toLocaleDateString('en-GB')
-          : new Date(form.createdAt).toLocaleDateString('en-GB'); 
+          : new Date(form.createdAt).toLocaleDateString('en-GB');
         if (!concessionsByDate[date]) {
-          concessionsByDate[date] = {
-            date,
-            ...targetFeeTypes.reduce((acc, feeType) => {
-              acc[feeType.replace(/\s+/g, '')] = 0;
-              return acc;
-            }, {}),
-            Total: 0,
-          };
+          concessionsByDate[date] = [];
         }
 
+        let totalConcession = 0;
+        const feeBreakdown = targetFeeTypes.reduce((acc, feeType) => {
+          acc[feeType.replace(/\s+/g, '')] = 0;
+          return acc;
+        }, {});
+
         installment.feeItems.forEach((item) => {
-          const feeTypeName = feeTypeMap[item.feeTypeId.toString()];
+          const feeTypeName = feeTypeMap[item.feeTypeId?.toString()];
           if (targetFeeTypes.includes(feeTypeName)) {
             const key = feeTypeName.replace(/\s+/g, '');
-            concessionsByDate[date][key] += item.concession || 0;
-            concessionsByDate[date].Total += item.concession || 0;
+            feeBreakdown[key] += item.concession || 0;
+            totalConcession += item.concession || 0;
           }
         });
+
+        if (totalConcession > 0) {
+          concessionsByDate[date].push({
+            admissionNumber: form.studentAdmissionNumber || '-',
+            studentName: form.studentName || '-',
+            className: classSection.className,
+            sectionName: classSection.sectionName,
+            academicYear: form.academicYear,
+            installmentName: installment.installmentName || '-',
+            date,
+            ...feeBreakdown,
+            Total: totalConcession,
+          });
+        }
       });
     });
 
     admissionForms.forEach((form) => {
+      const studentId = form.AdmissionNumber;
+      const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
       const date = form.paymentDate
         ? new Date(form.paymentDate).toLocaleDateString('en-GB')
-        : new Date(form.createdAt).toLocaleDateString('en-GB'); 
+        : new Date(form.createdAt).toLocaleDateString('en-GB');
+
       if (!concessionsByDate[date]) {
-        concessionsByDate[date] = {
+        concessionsByDate[date] = [];
+      }
+
+      if (targetFeeTypes.includes('Admission Fee') && form.concessionAmount > 0) {
+        concessionsByDate[date].push({
+          admissionNumber: form.AdmissionNumber || '-',
+          studentName: `${form.firstName} ${form.middleName || ''} ${form.lastName}`.trim() || '-',
+          className: classSection.className,
+          sectionName: classSection.sectionName,
+          academicYear: form.academicYear,
+          installmentName: '-',
           date,
+          AdmissionFee: form.concessionAmount,
+          Total: form.concessionAmount,
           ...targetFeeTypes.reduce((acc, feeType) => {
-            acc[feeType.replace(/\s+/g, '')] = 0;
+            if (feeType !== 'Admission Fee') acc[feeType.replace(/\s+/g, '')] = 0;
             return acc;
           }, {}),
-          Total: 0,
-        };
-      }
-      if (targetFeeTypes.includes('Admission Fee')) {
-        concessionsByDate[date].AdmissionFee += form.concessionAmount || 0;
-        concessionsByDate[date].Total += form.concessionAmount || 0;
+        });
       }
     });
-
 
     registrationForms.forEach((form) => {
+      const studentId = admissionNumberMap[form.registrationNumber] || form.registrationNumber;
+      const classSection = classSectionMap[studentId]?.[academicYear] || { className: '-', sectionName: '-' };
       const date = form.paymentDate
         ? new Date(form.paymentDate).toLocaleDateString('en-GB')
-        : new Date(form.createdAt).toLocaleDateString('en-GB'); 
+        : new Date(form.createdAt).toLocaleDateString('en-GB');
+
       if (!concessionsByDate[date]) {
-        concessionsByDate[date] = {
+        concessionsByDate[date] = [];
+      }
+
+      if (targetFeeTypes.includes('Registration Fees') && form.concessionAmount > 0) {
+        concessionsByDate[date].push({
+          admissionNumber: admissionNumberMap[form.registrationNumber] || '-',
+          studentName: `${form.firstName} ${form.middleName || ''} ${form.lastName}`.trim() || '-',
+          className: classSection.className,
+          sectionName: classSection.sectionName,
+          academicYear: form.academicYear,
+          installmentName: '-',
           date,
+          RegistrationFees: form.concessionAmount,
+          Total: form.concessionAmount,
           ...targetFeeTypes.reduce((acc, feeType) => {
-            acc[feeType.replace(/\s+/g, '')] = 0;
+            if (feeType !== 'Registration Fees') acc[feeType.replace(/\s+/g, '')] = 0;
             return acc;
           }, {}),
-          Total: 0,
-        };
-      }
-      if (targetFeeTypes.includes('Registration Fees')) {
-        concessionsByDate[date].RegistrationFees += form.concessionAmount || 0;
-        concessionsByDate[date].Total += form.concessionAmount || 0;
+        });
       }
     });
 
-   
-    const result = Object.values(concessionsByDate).sort((a, b) => {
-      const dateA = new Date(a.date.split('/').reverse().join('-'));
-      const dateB = new Date(b.date.split('/').reverse().join('-'));
-      return dateA - dateB;
-    });
+    // Flatten and sort results
+    const result = Object.values(concessionsByDate)
+      .flat()
+      .sort((a, b) => {
+        const dateA = new Date(a.date.split('/').reverse().join('-'));
+        const dateB = new Date(b.date.split('/').reverse().join('-'));
+        return dateA - dateB;
+      });
 
-   
+    // Calculate grand totals
     const grandTotals = result.reduce(
       (acc, record) => {
         targetFeeTypes.forEach((feeType) => {
           const key = feeType.replace(/\s+/g, '');
           acc[`total${key}`] = (acc[`total${key}`] || 0) + (record[key] || 0);
         });
-        acc.total += record.Total;
+        acc.total += record.Total || 0;
         return acc;
       },
       { total: 0 }
@@ -166,4 +242,3 @@ export const getConcessionReport = async (req, res) => {
 };
 
 export default getConcessionReport;
-

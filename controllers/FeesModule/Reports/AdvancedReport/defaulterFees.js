@@ -109,7 +109,7 @@ export const UnpaidPastDueStudents = async (req, res) => {
         const today = new Date();
         if (today <= dueDate) continue;
 
-        const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+        const daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24))-1;
 
         let initialFeesDue = 0;
         for (const fee of structureInst.fees) {

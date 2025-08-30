@@ -165,6 +165,17 @@ const studentAdmissionSchema = new Schema({
   reportStatus: [{ type: String, enum: ['Paid', 'Cancelled', 'Cheque Return'] }],
   TCStatus:{ type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   TCStatusDate:{ type: Date },
+  TCStatusYear:{ type: String },
+   dropoutStatus: {
+    type: String,
+    enum: ['Dropout', null],
+    default: null
+  },
+  dropoutStatusYear:{ type: String },
+  dropoutReason: {
+    type: String,
+    default: null
+  },
 }, { timestamps: true });
 
 studentAdmissionSchema.index({ schoolId: 1, AdmissionNumber: 1 }, { unique: true, sparse: true });

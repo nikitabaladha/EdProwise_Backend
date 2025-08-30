@@ -89,7 +89,7 @@ const refundFeesSchema = new mongoose.Schema({
   paymentDate: Date,
   status: {
     type: String,
-    default: 'Pending',
+    default: 'Paid',
   },
   refundDate: {
     type: Date,

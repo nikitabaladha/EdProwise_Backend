@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 import FeesType from "../../../../models/FeesModule/FeesType.js";
@@ -13,6 +14,7 @@ import TCForm from "../../../../models/FeesModule/TCForm.js";
 import MasterDefineShift from "../../../../models/FeesModule/MasterDefineShift.js";
 import AdmissionForm from "../../../../models/FeesModule/AdmissionForm.js";
 import StudentRegistration from "../../../../models/FeesModule/RegistrationForm.js";
+import RefundFees from "../../../../models/FeesModule/RefundFees.js";
 
 const getCurrentAcademicYear = () => {
   const today = new Date();
@@ -30,13 +32,43 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       return res.status(400).json({ message: "schoolId is required" });
     }
 
- 
-    const admissionDataList = await AdmissionForm.find({ schoolId }).lean();
-    const registrationDataList = await StudentRegistration.find({ schoolId }).lean();
+
+    const refundDataList = await RefundFees.find({
+      schoolId,
+      status: { $in: ['Paid', 'Pending'] },
+    }).populate('feeTypeRefunds.feetype').lean();
+
+    const refundedAdmissionNumbers = new Set(refundDataList
+      .filter(refund => refund.admissionNumber)
+      .map(refund => refund.admissionNumber));
+    const refundedRegistrationNumbers = new Set(refundDataList
+      .filter(refund => refund.registrationNumber)
+      .map(refund => refund.registrationNumber));
+
+
+    const refundMap = new Map();
+    refundDataList.forEach(refund => {
+      if (refund.admissionNumber) {
+        refundMap.set(`${refund.admissionNumber}_${refund.academicYear}_${refund.refundType}`, refund);
+      }
+      if (refund.registrationNumber) {
+        refundMap.set(`${refund.registrationNumber}_${refund.academicYear}_${refund.refundType}`, refund);
+      }
+    });
+
+
+    const admissionDataList = await AdmissionForm.find({
+      schoolId,
+      status: { $nin: ['Cancelled', 'Cheque Return'] },
+    }).lean();
+
+    const registrationDataList = await StudentRegistration.find({
+      schoolId,
+      status: { $nin: ['Cancelled', 'Cheque Return'] },
+    }).lean();
+
 
     const studentMap = new Map();
-
-
     const getStudentKey = (data) => {
       const firstName = data.firstName?.toLowerCase().trim();
       const lastName = data.lastName?.toLowerCase().trim();
@@ -44,7 +76,6 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       return `${firstName}_${lastName}_${dateOfBirth}`;
     };
 
-  
     for (const admission of admissionDataList) {
       const key = getStudentKey(admission);
       const existing = studentMap.get(key) || {};
@@ -57,28 +88,59 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
       });
     }
 
-    
     for (const registration of registrationDataList) {
       const key = getStudentKey(registration);
       const existing = studentMap.get(key) || {};
       studentMap.set(key, {
         ...existing,
         registrationData: registration,
-        academicHistory: existing.academicHistory || (registration.academicYear ? [{ academicYear: registration.academicYear, masterDefineClass: registration.masterDefineClass, section: registration.section, masterDefineShift: registration.masterDefineShift }] : []),
+        academicHistory: existing.academicHistory || (registration.academicYear ? [{
+          academicYear: registration.academicYear,
+          masterDefineClass: registration.masterDefineClass,
+          section: registration.section,
+          masterDefineShift: registration.masterDefineShift,
+        }] : []),
         admissionNumber: existing.admissionNumber || "-",
         registrationNumber: registration.registrationNumber || existing.registrationNumber || "-",
       });
     }
 
     if (studentMap.size === 0) {
-      return res.status(404).json({ message: "No student data found for the school" });
+      return res.status(404).json({ message: "No valid student data found for the school" });
     }
 
     const result = {};
     const admissionDetails = [];
 
-  
     for (const [studentKey, { admissionData, registrationData, academicHistory, admissionNumber, registrationNumber }] of studentMap) {
+
+      const studentRefunds = refundDataList.filter(refund =>
+        refund.admissionNumber === admissionNumber || refund.registrationNumber === registrationNumber
+      );
+
+      
+      const hasPaidRefund = studentRefunds.some(refund => {
+        if (refund.status !== 'Paid') return false;
+        if ([
+          'Admission Fees',
+          'Registration Fees',
+          'Board Registration Fees',
+          'Board Exam Fees',
+          'TC Fees'
+        ].includes(refund.refundType)) {
+          return true;
+        }
+        if (refund.refundType === 'School Fees' && refund.feeTypeRefunds.length > 0) {
+          return refund.feeTypeRefunds.some(feeTypeRefund => feeTypeRefund.refundAmount > 0);
+        }
+        return false;
+      });
+
+      if (hasPaidRefund) {
+        console.log(`Excluding student ${admissionNumber || registrationNumber} due to Paid refund`);
+        continue; 
+      }
+
       const studentDataBase = {
         admissionNo: admissionNumber,
         regNo: registrationNumber,
@@ -117,28 +179,30 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         status: registrationData?.status || admissionData?.status || "-",
       };
 
+      // Add to admissionDetails only if fees are not fully refunded
+      const admissionRefund = refundMap.get(`${admissionNumber}_${academicHistory[0]?.academicYear}_Admission Fees`);
+      const registrationRefund = refundMap.get(`${registrationNumber}_${academicHistory[0]?.academicYear}_Registration Fees`);
       admissionDetails.push({
         firstName: registrationData?.firstName || admissionData?.firstName || "-",
         lastName: registrationData?.lastName || admissionData?.lastName || "-",
         AdmissionNumber: admissionNumber,
         registrationNumber: registrationNumber,
-        regFeesDate: registrationData?.paymentDate
+        regFeesDate: registrationRefund?.status === 'Paid' ? 'Refunded' : (registrationData?.paymentDate
           ? new Date(registrationData.paymentDate).toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "2-digit",
               year: "numeric",
             }).replace(/\//g, "-")
-          : "-",
-        regFeesPaymentMode: registrationData?.paymentMode || "-",
-        regFeesDue: registrationData?.registrationFee || "0",
-        regFeesConcession: registrationData?.concessionAmount || "0",
-        regFeesPaid: registrationData?.finalAmount || "0",
-        regFeesChequeNumber: registrationData?.chequeNumber || "-",
-        regFeesBankName: registrationData?.bankName || "-",
-        regFeesTransactionNo: registrationData?.chequeNumber ? registrationData?.chequeNumber : registrationData?.transactionNumber || "-",
-        regFeesReceiptNo: registrationData?.receiptNumber || "-",
+          : "-"),
+        regFeesPaymentMode: registrationRefund?.status === 'Paid' ? '-' : (registrationData?.paymentMode || "-"),
+        regFeesDue: registrationRefund?.status === 'Paid' ? "0" : (registrationData?.registrationFee || "0"),
+        regFeesConcession: registrationRefund?.status === 'Paid' ? "0" : (registrationData?.concessionAmount || "0"),
+        regFeesPaid: registrationRefund?.status === 'Paid' ? "0" : (registrationData?.finalAmount || "0"),
+        regFeesChequeNumber: registrationRefund?.status === 'Paid' ? "-" : (registrationData?.chequeNumber || "-"),
+        regFeesBankName: registrationRefund?.status === 'Paid' ? "-" : (registrationData?.bankName || "-"),
+        regFeesTransactionNo: registrationRefund?.status === 'Paid' ? "-" : (registrationData?.chequeNumber ? registrationData?.chequeNumber : registrationData?.transactionNumber || "-"),
+        regFeesReceiptNo: registrationRefund?.status === 'Paid' ? "-" : (registrationData?.receiptNumber || "-"),
       });
-
 
       const academicYears = [
         ...(academicHistory.length ? [...new Set(academicHistory.map(h => h.academicYear))] : []),
@@ -157,39 +221,38 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         const sectionId = admissionData?.section || history.section || null;
         const shiftId = admissionData?.masterDefineShift || registrationData?.masterDefineShift || history.masterDefineShift || null;
 
-       
         const studentData = {
           ...studentDataBase,
-          admFeesDate: academicYear === academicHistory[0]?.academicYear && admissionData?.paymentDate
+          admFeesDate: admissionRefund?.status === 'Paid' ? 'Refunded' : (academicYear === academicHistory[0]?.academicYear && admissionData?.paymentDate
             ? new Date(admissionData.paymentDate).toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
               }).replace(/\//g, "-")
-            : "-",
-          admFeesReceiptNo: academicYear === academicHistory[0]?.academicYear ? admissionData?.receiptNumber || "-" : "-",
-          admFeesPaymentMode: academicYear === academicHistory[0]?.academicYear ? admissionData?.paymentMode || "-" : "-",
-          admFeesTransactionNo: academicYear === academicHistory[0]?.academicYear ? admissionData?.transactionNumber || "-" : "-",
-          admFeesDue: academicYear === academicHistory[0]?.academicYear ? admissionData?.admissionFees || "0" : "0",
-          admFeesConcession: academicYear === academicHistory[0]?.academicYear ? admissionData?.concessionAmount || "0" : "0",
-          admFeesPaid: academicYear === academicHistory[0]?.academicYear ? admissionData?.finalAmount || "0" : "0",
-          regFeesDate: academicYear === academicHistory[0]?.academicYear && registrationData?.paymentDate
+            : "-"),
+          admFeesReceiptNo: admissionRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.receiptNumber || "-" : "-"),
+          admFeesPaymentMode: admissionRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.paymentMode || "-" : "-"),
+          admFeesTransactionNo: admissionRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.transactionNumber || "-" : "-"),
+          admFeesDue: admissionRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.admissionFees || "0" : "0"),
+          admFeesConcession: admissionRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.concessionAmount || "0" : "0"),
+          admFeesPaid: admissionRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? admissionData?.finalAmount || "0" : "0"),
+          regFeesDate: registrationRefund?.status === 'Paid' ? 'Refunded' : (academicYear === academicHistory[0]?.academicYear && registrationData?.paymentDate
             ? new Date(registrationData.paymentDate).toLocaleDateString("en-GB", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
               }).replace(/\//g, "-")
-            : "-",
-          regFeesPaymentMode: academicYear === academicHistory[0]?.academicYear ? registrationData?.paymentMode || "-" : "-",
-          regFeesDue: academicYear === academicHistory[0]?.academicYear ? registrationData?.registrationFee || "0" : "0",
-          regFeesConcession: academicYear === academicHistory[0]?.academicYear ? registrationData?.concessionAmount || "0" : "0",
-          regFeesPaid: academicYear === academicHistory[0]?.academicYear ? registrationData?.finalAmount || "0" : "0",
-          regFeesChequeNumber: academicYear === academicHistory[0]?.academicYear ? registrationData?.chequeNumber || "-" : "-",
-          regFeesBankName: academicYear === academicHistory[0]?.academicYear ? registrationData?.bankName || "-" : "-",
-          regFeesTransactionNo: academicYear === academicHistory[0]?.academicYear
+            : "-"),
+          regFeesPaymentMode: registrationRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.paymentMode || "-" : "-"),
+          regFeesDue: registrationRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.registrationFee || "0" : "0"),
+          regFeesConcession: registrationRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.concessionAmount || "0" : "0"),
+          regFeesPaid: registrationRefund?.status === 'Paid' ? "0" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.finalAmount || "0" : "0"),
+          regFeesChequeNumber: registrationRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.chequeNumber || "-" : "-"),
+          regFeesBankName: registrationRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.bankName || "-" : "-"),
+          regFeesTransactionNo: registrationRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear
             ? registrationData?.chequeNumber ? registrationData?.chequeNumber : registrationData?.transactionNumber || "-"
-            : "-",
-          regFeesReceiptNo: academicYear === academicHistory[0]?.academicYear ? registrationData?.receiptNumber || "-" : "-",
+            : "-"),
+          regFeesReceiptNo: registrationRefund?.status === 'Paid' ? "-" : (academicYear === academicHistory[0]?.academicYear ? registrationData?.receiptNumber || "-" : "-"),
           tcNo: "-",
           tcFeesDate: "-",
           tcFeesReceiptNo: "-",
@@ -226,21 +289,28 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
           finePolicy: null,
           concession: null,
           paidInstallments: [],
+          boardExamFees: [],
+          boardRegFees: [],
+          tcFees: [],
           totals: {
-            totalFeesAmount: academicYear === academicHistory[0]?.academicYear
-              ? parseFloat(admissionData?.admissionFees || 0) + parseFloat(registrationData?.registrationFee || 0)
-              : 0,
-            totalConcession: academicYear === academicHistory[0]?.academicYear
-              ? parseFloat(admissionData?.concessionAmount || 0) + parseFloat(registrationData?.concessionAmount || 0)
-              : 0,
-            totalFine: 0,
-            totalFeesPayable: academicYear === academicHistory[0]?.academicYear
-              ? parseFloat(admissionData?.finalAmount || 0) + parseFloat(registrationData?.finalAmount || 0)
-              : 0,
-            totalPaidAmount: academicYear === academicHistory[0]?.academicYear
-              ? parseFloat(admissionData?.finalAmount || 0) + parseFloat(registrationData?.finalAmount || 0)
-              : 0,
-            totalRemainingAmount: 0,
+            totalSchoolFeesAmount: 0,
+            totalSchoolConcession: 0,
+            totalSchoolFine: 0,
+            totalSchoolFeesPayable: 0,
+            totalSchoolPaidAmount: 0,
+            totalSchoolRemainingAmount: 0,
+            totalBoardExamFeesAmount: 0,
+            totalBoardExamConcession: 0,
+            totalBoardExamPaidAmount: 0,
+            totalBoardExamRemainingAmount: 0,
+            totalBoardRegFeesAmount: 0,
+            totalBoardRegConcession: 0,
+            totalBoardRegPaidAmount: 0,
+            totalBoardRegRemainingAmount: 0,
+            totalTCFeesAmount: 0,
+            totalTCConcession: 0,
+            totalTCPaidAmount: 0,
+            totalTCRemainingAmount: 0,
           },
           installmentsPresent: [],
           student: { ...studentData },
@@ -276,10 +346,12 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
           yearSpecificData.shiftName = shiftData?.masterDefineShiftName || "-";
         }
 
+        // Handle TC Fees
         const tcData = await TCForm.findOne({
           schoolId,
           AdmissionNumber: admissionData?.AdmissionNumber,
           academicYear,
+          status: { $nin: ['Cancelled', 'Cheque Return'] },
         }).lean();
         if (tcData) {
           yearSpecificData.student.tcNo = tcData.certificateNumber || admissionData?.tcCertificate || "-";
@@ -292,18 +364,40 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
             : "-";
           yearSpecificData.student.tcFeesReceiptNo = tcData.receiptNumber || "-";
           yearSpecificData.student.tcFeesPaymentMode = tcData.paymentMode || "-";
-         yearSpecificData.student.tcFeesTransactionNo = tcData.chequeNumber || tcData.transactionNumber || "-";
+          yearSpecificData.student.tcFeesTransactionNo = tcData.chequeNumber || tcData.transactionNumber || "-";
           yearSpecificData.student.tcFeesDue = tcData.TCfees || "0";
           yearSpecificData.student.tcFeesConcession = tcData.concessionAmount || "0";
           yearSpecificData.student.tcFeesPaid = tcData.finalAmount || "0";
+          yearSpecificData.tcFees.push({
+            tcNo: tcData.certificateNumber || "-",
+            amount: parseFloat(tcData.TCfees || 0),
+            concessionAmount: parseFloat(tcData.concessionAmount || 0),
+            paidAmount: parseFloat(tcData.finalAmount || 0),
+            balanceAmount: parseFloat(tcData.TCfees || 0) - parseFloat(tcData.concessionAmount || 0) - parseFloat(tcData.finalAmount || 0),
+            paymentDate: tcData.paymentDate
+              ? new Date(tcData.paymentDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }).replace(/\//g, "-")
+              : "-",
+            receiptNumber: tcData.receiptNumber || "-",
+            paymentMode: tcData.paymentMode || "-",
+            transactionNo: tcData.chequeNumber || tcData.transactionNumber || "-",
+          });
+          yearSpecificData.totals.totalTCFeesAmount += parseFloat(tcData.TCfees || 0);
+          yearSpecificData.totals.totalTCConcession += parseFloat(tcData.concessionAmount || 0);
+          yearSpecificData.totals.totalTCPaidAmount += parseFloat(tcData.finalAmount || 0);
+          yearSpecificData.totals.totalTCRemainingAmount += parseFloat(tcData.TCfees || 0) - parseFloat(tcData.concessionAmount || 0) - parseFloat(tcData.finalAmount || 0);
         }
 
+        // Handle Board Exam Fees
         if (classId && sectionId) {
           const boardExam = await BoardExamFee.findOne({
             schoolId,
             academicYear,
             classId,
-            sectionId
+            sectionId,
           }).lean();
           if (boardExam) {
             yearSpecificData.student.boardExamFeesDue = boardExam.amount || "0";
@@ -311,8 +405,10 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               schoolId,
               admissionNumber: admissionData?.AdmissionNumber,
               academicYear,
+              status: { $nin: ['Cancelled', 'Cheque Return'] },
             }).lean();
-            if (boardExamFeesPayment) {
+            let paymentDetails = {};
+            if (boardExamFeesPayment && boardExamFeesPayment.status === "Paid") {
               yearSpecificData.student.boardExamFeesDate = boardExamFeesPayment.paymentDate
                 ? new Date(boardExamFeesPayment.paymentDate).toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -323,50 +419,94 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               yearSpecificData.student.boardExamFeesReceiptNo = boardExamFeesPayment.receiptNumberBef || "-";
               yearSpecificData.student.boardExamFeesPaymentMode = boardExamFeesPayment.paymentMode || "-";
               yearSpecificData.student.boardExamFeesTransactionNo =
-              boardExamFeesPayment.chequeNumber || boardExamFeesPayment.transactionId || "-";
+                boardExamFeesPayment.chequeNumber || boardExamFeesPayment.transactionId || "-";
               yearSpecificData.student.boardExamFeesConcession = "0";
-              yearSpecificData.student.boardExamFeesPaid =
-                boardExamFeesPayment.status === "Paid" ? boardExamFeesPayment.amount || "0" : "0";
+              yearSpecificData.student.boardExamFeesPaid = boardExamFeesPayment.amount || "0";
+              paymentDetails = {
+                paymentDate: boardExamFeesPayment.paymentDate
+                  ? new Date(boardExamFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }).replace(/\//g, "-")
+                  : "-",
+                receiptNumber: boardExamFeesPayment.receiptNumberBef || "-",
+                paymentMode: boardExamFeesPayment.paymentMode || "-",
+                transactionNo: boardExamFeesPayment.chequeNumber || boardExamFeesPayment.transactionId || "-",
+                paidAmount: parseFloat(boardExamFeesPayment.amount || 0),
+              };
             }
+            yearSpecificData.boardExamFees.push({
+              amount: parseFloat(boardExam.amount || 0),
+              concessionAmount: 0,
+              paidAmount: paymentDetails.paidAmount || 0,
+              balanceAmount: parseFloat(boardExam.amount || 0) - (paymentDetails.paidAmount || 0),
+              ...paymentDetails,
+            });
+            yearSpecificData.totals.totalBoardExamFeesAmount += parseFloat(boardExam.amount || 0);
+            yearSpecificData.totals.totalBoardExamConcession += 0;
+            yearSpecificData.totals.totalBoardExamPaidAmount += paymentDetails.paidAmount || 0;
+            yearSpecificData.totals.totalBoardExamRemainingAmount += parseFloat(boardExam.amount || 0) - (paymentDetails.paidAmount || 0);
           }
         }
 
-  if (classId && admissionData?.AdmissionNumber) {
-  const boardReg = await BoardRegistrationFee.findOne({
-  schoolId,
-  academicYear,
-    sectionIds: { $in: [sectionId] },
-  }).lean();
-
-  if (boardReg) {
-    yearSpecificData.student.boardRegFeesDue = boardReg.amount || "0";
-  }
-
-
-  const boardRegFeesPayment = await BoardRegistrationFeePayment.findOne({
-    schoolId,
-    admissionNumber: admissionData.AdmissionNumber,
-    academicYear,
-  }).lean();
-
-  if (boardRegFeesPayment) {
-   
-    yearSpecificData.student.boardRegFeesDate = boardRegFeesPayment.paymentDate
-      ? new Date(boardRegFeesPayment.paymentDate).toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }).replace(/\//g, "-")
-      : "-";
-    yearSpecificData.student.boardRegFeesReceiptNo = boardRegFeesPayment.receiptNumberBrf || "-";
-    yearSpecificData.student.boardRegFeesPaymentMode = boardRegFeesPayment.paymentMode || "-";
-    yearSpecificData.student.boardRegFeesTransactionNo =
-      boardRegFeesPayment.chequeNumber || boardRegFeesPayment.transactionId || "-";
-    yearSpecificData.student.boardRegFeesConcession = "0"; 
-    yearSpecificData.student.boardRegFeesPaid =
-      boardRegFeesPayment.status === "Paid" ? boardRegFeesPayment.amount.toString() || "0" : "0";
-  } 
-}
+        // Handle Board Registration Fees
+        if (classId && admissionData?.AdmissionNumber) {
+          const boardReg = await BoardRegistrationFee.findOne({
+            schoolId,
+            academicYear,
+            sectionIds: { $in: [sectionId] },
+          }).lean();
+          if (boardReg) {
+            yearSpecificData.student.boardRegFeesDue = boardReg.amount || "0";
+            const boardRegFeesPayment = await BoardRegistrationFeePayment.findOne({
+              schoolId,
+              admissionNumber: admissionData.AdmissionNumber,
+              academicYear,
+              status: { $nin: ['Cancelled', 'Cheque Return'] },
+            }).lean();
+            let paymentDetails = {};
+            if (boardRegFeesPayment && boardRegFeesPayment.status === "Paid") {
+              yearSpecificData.student.boardRegFeesDate = boardRegFeesPayment.paymentDate
+                ? new Date(boardRegFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  }).replace(/\//g, "-")
+                : "-";
+              yearSpecificData.student.boardRegFeesReceiptNo = boardRegFeesPayment.receiptNumberBrf || "-";
+              yearSpecificData.student.boardRegFeesPaymentMode = boardRegFeesPayment.paymentMode || "-";
+              yearSpecificData.student.boardRegFeesTransactionNo =
+                boardRegFeesPayment.chequeNumber || boardRegFeesPayment.transactionId || "-";
+              yearSpecificData.student.boardRegFeesConcession = "0";
+              yearSpecificData.student.boardRegFeesPaid = boardRegFeesPayment.amount.toString() || "0";
+              paymentDetails = {
+                paymentDate: boardRegFeesPayment.paymentDate
+                  ? new Date(boardRegFeesPayment.paymentDate).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }).replace(/\//g, "-")
+                  : "-",
+                receiptNumber: boardRegFeesPayment.receiptNumberBrf || "-",
+                paymentMode: boardRegFeesPayment.paymentMode || "-",
+                transactionNo: boardRegFeesPayment.chequeNumber || boardRegFeesPayment.transactionId || "-",
+                paidAmount: parseFloat(boardRegFeesPayment.amount || 0),
+              };
+            }
+            yearSpecificData.boardRegFees.push({
+              amount: parseFloat(boardReg.amount || 0),
+              concessionAmount: 0,
+              paidAmount: paymentDetails.paidAmount || 0,
+              balanceAmount: parseFloat(boardReg.amount || 0) - (paymentDetails.paidAmount || 0),
+              ...paymentDetails,
+            });
+            yearSpecificData.totals.totalBoardRegFeesAmount += parseFloat(boardReg.amount || 0);
+            yearSpecificData.totals.totalBoardRegConcession += 0;
+            yearSpecificData.totals.totalBoardRegPaidAmount += paymentDetails.paidAmount || 0;
+            yearSpecificData.totals.totalBoardRegRemainingAmount += parseFloat(boardReg.amount || 0) - (paymentDetails.paidAmount || 0);
+          }
+        }
 
         // Fetch fee types
         const feeTypes = await FeesType.find({ schoolId, academicYear }).lean();
@@ -388,6 +528,19 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
         const cumulativePaidMap = {};
         const installmentGroups = {};
 
+        // Get refunded fee types for this student and academic year
+        const schoolFeesRefunds = studentRefunds.filter(refund =>
+          refund.refundType === 'School Fees' &&
+          refund.status === 'Paid' &&
+          refund.academicYear === academicYear &&
+          refund.feeTypeRefunds.length > 0
+        );
+        const refundedFeeTypeIds = new Set(
+          schoolFeesRefunds.flatMap(refund =>
+            refund.feeTypeRefunds.map(feeTypeRefund => feeTypeRefund.feetype._id.toString())
+          )
+        );
+
         if (feesStructures.length) {
           // Fetch concession and fine data
           const concessionForm = await ConcessionFormModel.findOne({
@@ -400,7 +553,19 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
             schoolId,
             studentAdmissionNumber: admissionData?.AdmissionNumber,
             academicYear,
+            status: { $nin: ['Cancelled', 'Cheque Return'] },
           }).lean();
+
+          // Filter out SchoolFees payments for refunded fee types
+          const validPaidFeesData = allPaidFeesData.map(payment => {
+            const validInstallments = payment.installments.map(installment => {
+              const validFeeItems = installment.feeItems.filter(feeItem =>
+                !refundedFeeTypeIds.has(feeItem.feeTypeId.toString())
+              );
+              return { ...installment, feeItems: validFeeItems };
+            }).filter(installment => installment.feeItems.length > 0);
+            return { ...payment, installments: validInstallments };
+          }).filter(payment => payment.installments.length > 0);
 
           for (const structure of feesStructures) {
             for (let i = 0; i < structure.installments.length; i++) {
@@ -409,6 +574,9 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               let totalBalanceForInstallment = 0;
 
               for (const fee of inst.fees) {
+                if (refundedFeeTypeIds.has(fee.feesTypeId.toString())) {
+                  continue; // Skip refunded fee types
+                }
                 const feeAmount = fee.amount || 0;
                 let concessionAmount = 0;
                 let paidAmount = 0;
@@ -424,7 +592,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   }
                 }
 
-                allPaidFeesData.forEach((payment) => {
+                validPaidFeesData.forEach((payment) => {
                   const matchingInst = payment?.installments?.find(
                     (instData) => instData.installmentName === inst.name
                   );
@@ -440,6 +608,9 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               }
 
               for (const fee of inst.fees) {
+                if (refundedFeeTypeIds.has(fee.feesTypeId.toString())) {
+                  continue; // Skip refunded fee types
+                }
                 const feeAmount = fee.amount || 0;
                 let concessionAmount = 0;
                 let fineAmount = 0;
@@ -487,7 +658,7 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
                   }
                 }
 
-                allPaidFeesData.forEach((payment) => {
+                validPaidFeesData.forEach((payment) => {
                   const matchingInst = payment?.installments?.find(
                     (instData) => instData.installmentName === inst.name
                   );
@@ -528,12 +699,12 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
 
                 const balanceAmount = feeAmount - concessionAmount - paidAmount;
 
-                yearSpecificData.totals.totalFeesAmount += feeAmount;
-                yearSpecificData.totals.totalConcession += concessionAmount;
-                yearSpecificData.totals.totalFine += fineAmount;
-                yearSpecificData.totals.totalFeesPayable += balanceAmount;
-                yearSpecificData.totals.totalPaidAmount += paidAmount;
-                yearSpecificData.totals.totalRemainingAmount += balanceAmount;
+                yearSpecificData.totals.totalSchoolFeesAmount += feeAmount;
+                yearSpecificData.totals.totalSchoolConcession += concessionAmount;
+                yearSpecificData.totals.totalSchoolFine += fineAmount;
+                yearSpecificData.totals.totalSchoolFeesPayable += balanceAmount;
+                yearSpecificData.totals.totalSchoolPaidAmount += paidAmount;
+                yearSpecificData.totals.totalSchoolRemainingAmount += balanceAmount;
 
                 feeInstallments.push({
                   feesTypeId: {
@@ -551,6 +722,31 @@ export const getAllFeesInstallmentsWithConcession = async (req, res) => {
               }
             }
           }
+
+          // Subtract refunded amounts from totals
+          studentRefunds.forEach(refund => {
+            if (refund.status === 'Paid') {
+              if (refund.refundType === 'Admission Fees' && refund.admissionNumber === admissionNumber) {
+                yearSpecificData.totals.totalSchoolFeesAmount -= parseFloat(admissionData?.admissionFees || 0);
+                yearSpecificData.totals.totalSchoolPaidAmount -= parseFloat(admissionData?.finalAmount || 0);
+                yearSpecificData.totals.totalSchoolFeesPayable -= parseFloat(admissionData?.finalAmount || 0);
+              }
+              if (refund.refundType === 'Registration Fees' && refund.registrationNumber === registrationNumber) {
+                yearSpecificData.totals.totalSchoolFeesAmount -= parseFloat(registrationData?.registrationFee || 0);
+                yearSpecificData.totals.totalSchoolPaidAmount -= parseFloat(registrationData?.finalAmount || 0);
+                yearSpecificData.totals.totalSchoolFeesPayable -= parseFloat(registrationData?.finalAmount || 0);
+              }
+              if (refund.refundType === 'School Fees' && refund.feeTypeRefunds.length > 0) {
+                refund.feeTypeRefunds.forEach(feeTypeRefund => {
+                  const refundAmount = parseFloat(feeTypeRefund.refundAmount || 0);
+                  const paidAmount = parseFloat(feeTypeRefund.paidAmount || 0);
+                  yearSpecificData.totals.totalSchoolFeesAmount -= refundAmount;
+                  yearSpecificData.totals.totalSchoolPaidAmount -= paidAmount;
+                  yearSpecificData.totals.totalSchoolFeesPayable -= paidAmount;
+                });
+              }
+            }
+          });
 
           const installmentNameMapping = {};
           feesStructures.forEach((structure) => {

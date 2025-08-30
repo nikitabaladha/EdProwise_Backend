@@ -96,6 +96,7 @@ const getAdmissionFormsByAcdemicHistoryYear = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           TCStatus:1,
+          TCStatusDate:1,
           __v: 1,
         },
       },

@@ -13,6 +13,8 @@ import getbySchoolIdandYear from './AdmissionForm/getbyyear.js'
 import getAdmissionFormsByAcdemicHistoryYear from './AdmissionForm/getbyacdemichistoryYear.js';
 import updatebyAcdemicHistory from './AdmissionForm/updateacdemichistory.js';
 import updateTCinactiveStatus from './AdmissionForm/tcstatusupdate.js';
+import getDataForStudentLedger from './AdmissionForm/getforledger.js';
+import getstudentforcount from './AdmissionForm/getstudentforcount.js'
 
 
 import createTCForm from './TCForm/create.js';
@@ -68,6 +70,8 @@ export {
   getAdmissionStatus,
   getTCStatus,
   getConcessionStatus,
+  getDataForStudentLedger ,
+  getstudentforcount
 
 
 };
