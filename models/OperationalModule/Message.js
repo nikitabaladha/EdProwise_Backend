@@ -43,7 +43,7 @@ const MessageSchema = new mongoose.Schema(
       
     },
     senderId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    receiverId: { type: mongoose.Schema.Types.ObjectId, required: false }, // only for one-to-one
+    receiverId: { type: mongoose.Schema.Types.ObjectId, required: false }, 
     message: { type: String },
     messageFile: { type: String }, 
     isRead: { type: Boolean, default: false },
