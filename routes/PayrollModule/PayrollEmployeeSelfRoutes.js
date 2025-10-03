@@ -116,12 +116,12 @@ router.put('/update-lta/:schoolId/:employeeId', updateLtaDetails);
 
 router.post('/create-telephone-allowance/:employeeId', telephoneBillFileUpload, createTelephoneAllowance);
 router.get('/get-telephone-allowance/:schoolId/:employeeId', getTelephoneAllowances);
-router.delete('/delete-telephone-allowance/:employeeId/:detailId', deleteTelephoneAllowance);
+router.delete('/delete-telephone-allowance/:detailId', deleteTelephoneAllowance);
 router.put('/update-telephone-allowance/:schoolId/:employeeId', updateTelephoneAllowanceDetails);
 
 router.post('/create-internet-allowance/:employeeId', internetBillFileUpload,createInternetAllowance);
 router.get('/get-internet-allowance/:schoolId/:employeeId', getInternetAllowances);
-router.delete('/delete-internet-allowance/:id', deleteInternetAllowance);
+router.delete("/delete-internet-allowance/:detailId", deleteInternetAllowance);
 router.put('/update-internet-allowance/:schoolId/:employeeId', updateInternetAllowanceDetails);
 
 export default router;

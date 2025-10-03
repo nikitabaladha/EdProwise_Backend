@@ -81,9 +81,16 @@ import path from 'path';
 
 const deleteTelephoneAllowance = async (req, res) => {
   try {
-    const { employeeId, detailId } = req.params;
+    const { detailId } = req.params;
+    const employeeId = req.query.employeeId;
+    console.log("detailId", detailId);
+    console.log("employeeId", employeeId);
 
-    // Validate parameters
+    console.log("req.params:", req.params);
+    console.log("req.query:", req.query);
+    console.log("req.body:", req.body);
+    // const { employeeId, detailId } = req.params;
+
     if (!employeeId || !detailId) {
       return res.status(400).json({
         success: false,
@@ -91,7 +98,6 @@ const deleteTelephoneAllowance = async (req, res) => {
       });
     }
 
-    // Validate detailId is a valid ObjectId
     if (!mongoose.isValidObjectId(detailId)) {
       return res.status(400).json({
         success: false,
@@ -99,7 +105,6 @@ const deleteTelephoneAllowance = async (req, res) => {
       });
     }
 
-    // Find the record containing the detail
     const record = await EmployeeTelephoneAllowance.findOne({
       employeeId,
       "telephoneAllowanceDetails._id": detailId,
@@ -112,12 +117,10 @@ const deleteTelephoneAllowance = async (req, res) => {
       });
     }
 
-    // Find the detail to get the file path
     const detail = record.telephoneAllowanceDetails.find(
       (d) => d._id.toString() === detailId
     );
 
-    // Delete the file from the filesystem if it exists
     if (detail.billFile && fs.existsSync(detail.billFile)) {
       try {
         fs.unlinkSync(detail.billFile);
@@ -130,10 +133,7 @@ const deleteTelephoneAllowance = async (req, res) => {
       (detail) => detail._id.toString() !== detailId
     );
 
-    // Update proofSubmitted
-    record.proofSubmitted = record.telephoneAllowanceDetails.length;
-
-    // If no details remain, delete the entire record
+   
     if (record.telephoneAllowanceDetails.length === 0) {
       await EmployeeTelephoneAllowance.deleteOne({ _id: record._id });
       return res.status(200).json({
@@ -142,13 +142,19 @@ const deleteTelephoneAllowance = async (req, res) => {
       });
     }
 
-    // Save the updated record
+     
+record.proofSubmitted = record.telephoneAllowanceDetails.reduce(
+  (sum, detail) => sum + detail.grossAmount,
+  0
+);
+      
     await record.save();
 
     return res.status(200).json({
       success: true,
       message: "Telephone allowance detail deleted successfully",
     });
+
   } catch (error) {
     console.error("Error deleting telephone allowance detail:", error);
     return res.status(500).json({

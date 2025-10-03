@@ -1,4 +1,4 @@
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
+import StudentRegistration from '../../../../models/FeesModule/RegistrationFormCopy.js';
 import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
 import mongoose from 'mongoose';
 

@@ -1,4 +1,4 @@
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
+import StudentRegistration from '../../../../models/FeesModule/RegistrationFormCopy.js';
 
 const getRegistrationsBySchoolId = async (req, res) => {
   const { schoolId,academicYear } = req.params;

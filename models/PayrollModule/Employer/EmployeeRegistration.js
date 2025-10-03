@@ -10,23 +10,28 @@ const academicYearDetailSchema = new Schema({
     type: String,
     required: true,
   },
+
   grade: {
     type: String,
     required: true,
   },
+
   jobDesignation: {
     type: String,
     required: true,
   },
+
   currentAddress: {
     type: String,
     trim: true
   },
+
   nationality: {
     type: String,
     default: 'Indian',
     enum: ['Indian', 'Nepalese', 'Bhutanese', 'Other']
   },
+  
   religion: {
     type: String,
     trim: true
@@ -296,3 +301,4 @@ employeeRegistrationSchema.pre('validate', function(next) {
 });
 
 export default mongoose.model('EmployeeRegistration', employeeRegistrationSchema);
+ 

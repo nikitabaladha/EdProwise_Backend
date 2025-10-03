@@ -57,6 +57,9 @@ import PayrollEmployerRoutes from "./PayrollModule/PayrollEmployerRoutes.js"
 import PayrollAdminSettingRoutes from "./PayrollModule/PayrollAdminSettingRoutes.js"
 import PayrollEmployeeSelfRoutes from "./PayrollModule/PayrollEmployeeSelfRoutes.js"
 
+import OperationRoutes from "./OperationalModule/OperationRoutes.js"
+
+import StudentRoutes from "./StudentRoutes/StudentRoutes.js"
 export default (app) => {
   // ==================Email Routes =========================
 
@@ -120,4 +123,12 @@ export default (app) => {
   app.use("/api", PayrollEmployerRoutes);
   app.use("/api", PayrollAdminSettingRoutes);
   app.use("/api", PayrollEmployeeSelfRoutes);
+
+  // operational Routes
+  app.use("/api", OperationRoutes);
+  
+  // Student Routes
+  app.use("/api", StudentRoutes);
+  
+  
 };

@@ -1,3 +1,152 @@
+// import dotenv from "dotenv";
+// import jwt from "jsonwebtoken";
+// import User from "../../models/User.js";
+// import Seller from "../../models/Seller.js";
+// import saltFunction from "../../validators/saltFunction.js";
+// import loginValidationSchema from "../../validators/loginValidationSchema.js";
+// import Subscription from "../../models/Subscription.js";
+// import EmployeeRegistration from "../../models/PayrollModule/Employer/EmployeeRegistration.js";
+// dotenv.config();
+ 
+// const jwtSecret = process.env.JWT_SECRET;
+// const jwtExpiration = process.env.JWT_EXPIRATION;
+ 
+// async function userLogin(req, res) {
+//   try {
+//     const { error } = loginValidationSchema.UserLoginValidationSchema.validate(
+//       req.body
+//     );
+ 
+//     if (error?.details?.length) {
+//       const errorMessages = error.details[0].message;
+//       return res.status(400).json({ message: errorMessages });
+//     }
+ 
+//     const { userId, password, emailId } = req.body;
+   
+//     let user = await User.findOne({ userId });
+//     let schemaType = "User";
+ 
+//     if (!user) {
+//       user = await Seller.findOne({ userId });
+//       schemaType = user ? "Seller" : null;
+//     }
+ 
+//      if (!user) {
+//       const employee = await EmployeeRegistration.findOne({ employeeId: userId, password: password });
+//       if (employee) {
+//         if (!emailId) {
+//           return res.status(200).json({
+//             hasError: true,
+//             needEmail: true,
+//             message: "Please enter your email ID to continue.",
+//           });
+//         }
+
+//         // const isPasswordValid = await saltFunction.validatePassword(
+//         //   password,
+//         //   employee.password,
+//         //   employee.salt
+//         // );
+
+//         const isPasswordValid = password === employee.password;
+
+//         if (!isPasswordValid) {
+//           return res.status(401).json({
+//             hasError: true,
+//             message: "Invalid Password",
+//           });
+//         }
+       
+//         if (emailId !== employee.emailId) {
+//           return res.status(401).json({
+//             hasError: true,
+//             message: "Email ID does not match",
+//           });
+//         }
+
+//         const tokenPayload = {
+//           id: employee._id,
+//           userId: employee.employeeId,
+//           schoolId: employee.schoolId,
+//           employeeName: employee.employeeName,
+//           status: employee.status,
+//           emailId: employee.emailId,
+//           role: "Employee",
+//         };
+
+//         const token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: jwtExpiration });
+
+//         return res.status(200).json({
+//           hasError: false,
+//           message: "Login Successful",
+//           token,
+//           userDetails: tokenPayload,
+//         });
+//       }
+
+//       return res.status(404).json({ hasError: true, message: "User does not exist" });
+//     }
+
+//     if (!user) {
+//       return res.status(404).json({
+//         hasError: true,
+//         message: "User does not exist",
+//       });
+//     }
+ 
+//     const isPasswordValid = await saltFunction.validatePassword(
+//       password,
+//       user.password,
+//       user.salt
+//     );
+ 
+//     if (!isPasswordValid) {
+//       return res.status(401).json({
+//         hasError: true,
+//         message: "Invalid Password",
+//       });
+//     }
+ 
+//     let tokenPayload = {
+//       id: user._id,
+//       userId: user.userId,
+//       role: user.role,
+//       status: user.status,
+//     };
+ 
+//     if (schemaType === "User") {
+//       tokenPayload.schoolId = user.schoolId;
+ 
+//       const subscriptions = await Subscription.find(
+//         { schoolId: user.schoolId },
+//         { _id: 0, subscriptionFor: 1, subscriptionStartDate: 1,subscriptionEndDate: 1 }
+//       ).lean();
+ 
+//       tokenPayload.subscription = subscriptions || [];
+//     }
+ 
+//     const token = jwt.sign(tokenPayload, jwtSecret, {
+//       expiresIn: jwtExpiration,
+//     });
+ 
+//     return res.status(200).json({
+//       hasError: false,
+//       message: "Login Successful",
+//       token,
+//       userDetails: tokenPayload,
+//     });
+//   } catch (error) {
+//     console.error("Login Error:", error.message);
+//     return res.status(500).json({
+//       hasError: true,
+//       message: "An unexpected server error occurred. Please try again later.",
+//     });
+//   }
+// }
+ 
+// export default userLogin;
+
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import User from "../../models/User.js";
@@ -6,34 +155,54 @@ import saltFunction from "../../validators/saltFunction.js";
 import loginValidationSchema from "../../validators/loginValidationSchema.js";
 import Subscription from "../../models/Subscription.js";
 import EmployeeRegistration from "../../models/PayrollModule/Employer/EmployeeRegistration.js";
+import School from "../../models/School.js";
+import Student from "../../models/Student.js";
 dotenv.config();
- 
+
 const jwtSecret = process.env.JWT_SECRET;
 const jwtExpiration = process.env.JWT_EXPIRATION;
- 
+
 async function userLogin(req, res) {
   try {
     const { error } = loginValidationSchema.UserLoginValidationSchema.validate(
       req.body
     );
- 
+
     if (error?.details?.length) {
       const errorMessages = error.details[0].message;
       return res.status(400).json({ message: errorMessages });
     }
- 
+
     const { userId, password, emailId } = req.body;
- 
-    let user = await User.findOne({ userId });
-    let schemaType = "User";
- 
+
+    let user = null;
+    let schemaType = null;
+
+    const isMobileNumber = /^\d{10}$/.test(userId);
+
+    if (isMobileNumber) {
+      user = await Student.findOne({  userId });
+      if (user) {
+        schemaType = "Student";
+      }
+    }
+
+    if (!user) {
+      user = await User.findOne({ userId });
+      schemaType = user ? "User" : null;
+    }
+
     if (!user) {
       user = await Seller.findOne({ userId });
       schemaType = user ? "Seller" : null;
     }
- 
-     if (!user) {
-      const employee = await EmployeeRegistration.findOne({ employeeId: userId, password: password });
+
+    if (!user) {
+      const employee = await EmployeeRegistration.findOne({
+        employeeId: userId,
+        password: password,
+      });
+
       if (employee) {
         if (!emailId) {
           return res.status(200).json({
@@ -43,21 +212,14 @@ async function userLogin(req, res) {
           });
         }
 
-        // const isPasswordValid = await saltFunction.validatePassword(
-        //   password,
-        //   employee.password,
-        //   employee.salt
-        // );
-
         const isPasswordValid = password === employee.password;
-
         if (!isPasswordValid) {
           return res.status(401).json({
             hasError: true,
             message: "Invalid Password",
           });
         }
-       
+
         if (emailId !== employee.emailId) {
           return res.status(401).json({
             hasError: true,
@@ -75,7 +237,9 @@ async function userLogin(req, res) {
           role: "Employee",
         };
 
-        const token = jwt.sign(tokenPayload, jwtSecret, { expiresIn: jwtExpiration });
+        const token = jwt.sign(tokenPayload, jwtSecret, {
+          expiresIn: jwtExpiration,
+        });
 
         return res.status(200).json({
           hasError: false,
@@ -85,51 +249,58 @@ async function userLogin(req, res) {
         });
       }
 
-      return res.status(404).json({ hasError: true, message: "User does not exist" });
+      return res
+        .status(404)
+        .json({ hasError: true, message: "User does not exist" });
     }
 
-    if (!user) {
-      return res.status(404).json({
-        hasError: true,
-        message: "User does not exist",
-      });
-    }
- 
-    const isPasswordValid = await saltFunction.validatePassword(
-      password,
-      user.password,
-      user.salt
-    );
- 
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        hasError: true,
-        message: "Invalid Password",
-      });
-    }
- 
+    // const isPasswordValid = await saltFunction.validatePassword(
+    //   password,
+    //   user.password,
+    //   user.salt
+    // );
+
+    // if (!isPasswordValid) {
+    //   return res.status(401).json({
+    //     hasError: true,
+    //     message: "Invalid Password",
+    //   });
+    // }
+
     let tokenPayload = {
       id: user._id,
-      userId: user.userId,
+      userId: user.userId || user.mobileNumber,
       role: user.role,
       status: user.status,
     };
- 
+
     if (schemaType === "User") {
       tokenPayload.schoolId = user.schoolId;
- 
+
+      
       const subscriptions = await Subscription.find(
         { schoolId: user.schoolId },
-        { _id: 0, subscriptionFor: 1, subscriptionStartDate: 1,subscriptionEndDate: 1 }
+        {
+          _id: 0,
+          subscriptionFor: 1,
+          subscriptionStartDate: 1,
+          subscriptionEndDate: 1,
+        }
       ).lean();
- 
+
       tokenPayload.subscription = subscriptions || [];
     }
- 
+
+    if (schemaType === "Student") {
+      tokenPayload.schoolId = user.schoolId;
+      tokenPayload.admissionNumber = user.admissionNumber;
+      tokenPayload.role = schemaType;
+    }
+    
     const token = jwt.sign(tokenPayload, jwtSecret, {
       expiresIn: jwtExpiration,
     });
- 
+
     return res.status(200).json({
       hasError: false,
       message: "Login Successful",
@@ -144,5 +315,7 @@ async function userLogin(req, res) {
     });
   }
 }
- 
+
 export default userLogin;
+ 
+ 

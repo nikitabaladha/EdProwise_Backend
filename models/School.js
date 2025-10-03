@@ -8,9 +8,9 @@ const SchoolSchema = new mongoose.Schema(
       required: true,
     },
     panFile: {
-      type: String,
+      type: String, 
       require: true,
-    },
+    }, 
     panNo: {
       type: String,
       trim: true,

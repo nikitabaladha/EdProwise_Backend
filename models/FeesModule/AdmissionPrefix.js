@@ -1,4 +1,38 @@
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
+
+// const AdmissionPrefixSchema = new mongoose.Schema(
+//   {
+//     schoolId: {
+//       type: String,
+//       required: true,
+//     },
+//     academicYear: {
+//       type: String,
+//       required: true,
+//     },
+//     type: {
+//       type: String,
+//       enum: ['numeric', 'alphanumeric'],
+//       required: true,
+//     },
+//     value: {
+//       type: String, 
+//     },
+//     prefix: {
+//       type: String, 
+//     },
+//     number: {
+//       type: Number, 
+//     },
+//   },
+//   {
+//     timestamps: true,
+//   }
+// );
+
+// export default mongoose.model('AdmissionPrefix', AdmissionPrefixSchema);
+
+import mongoose from "mongoose";
 
 const AdmissionPrefixSchema = new mongoose.Schema(
   {
@@ -12,17 +46,17 @@ const AdmissionPrefixSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['numeric', 'alphanumeric'],
+      enum: ["numeric", "alphanumeric"],
       required: true,
     },
     value: {
-      type: String, 
+      type: String,
     },
     prefix: {
-      type: String, 
+      type: String,
     },
     number: {
-      type: Number, 
+      type: Number,
     },
   },
   {
@@ -30,4 +64,4 @@ const AdmissionPrefixSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('AdmissionPrefix', AdmissionPrefixSchema);
+export default mongoose.model("AdmissionPrefix", AdmissionPrefixSchema);

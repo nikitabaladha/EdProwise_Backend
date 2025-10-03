@@ -40,7 +40,15 @@ import path from 'path';
 
 const deleteInternetAllowance = async (req, res) => {
   try {
-    const { employeeId, detailId } = req.params;
+    const { detailId } = req.params;
+    const employeeId = req.query.employeeId;
+    console.log("detailId", detailId);
+    console.log("employeeId", employeeId);
+
+    console.log("req.params:", req.params);
+    console.log("req.query:", req.query);
+    console.log("req.body:", req.body);
+
 
     // Validate parameters
     if (!employeeId || !detailId) {
@@ -90,9 +98,7 @@ const deleteInternetAllowance = async (req, res) => {
       (detail) => detail._id.toString() !== detailId
     );
 
-    // Update proofSubmitted
-    record.proofSubmitted = record.internetAllowanceDetails.length;
-
+   
     // If no details remain, delete the entire record
     if (record.internetAllowanceDetails.length === 0) {
       await EmployeeInternetAllowance.deleteOne({ _id: record._id });
@@ -102,6 +108,12 @@ const deleteInternetAllowance = async (req, res) => {
       });
     }
 
+
+     record.proofSubmitted = record.internetAllowanceDetails.reduce(
+       (sum, detail) => sum + detail.grossAmount,
+       0
+     );
+     
     // Save the updated record
     await record.save();
 

@@ -25,6 +25,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "puppeteer": "^24.7.2",
+    "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   }
 }

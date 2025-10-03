@@ -280,7 +280,7 @@
 
 import mongoose from 'mongoose';
 import AdmissionFormModel from '../../../../models/FeesModule/AdmissionForm.js';
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
+import StudentRegistration from '../../../../models/FeesModule/RegistrationFormCopy.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 import MasterDefineShift from '../../../../models/FeesModule/MasterDefineShift.js';
 import { AdmissionValidator } from '../../../../validators/FeesModule/AdmissionValidator/Admissionvalidator.js';

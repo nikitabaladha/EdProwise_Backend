@@ -18,7 +18,7 @@ createFeesManagementYear
 
 router.get(
     "/get-feesmanagment-year/:schoolId",
-    roleBasedMiddleware("Admin","School"),
+    roleBasedMiddleware("Admin","School","Student"),
     getAcademicYearsBySchoolId
   );
 export default router;
