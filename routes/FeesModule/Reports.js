@@ -31,11 +31,13 @@ Defaulterfees,
 ArrearFeesReport,
 FeesReconHeadwise,
 AdvancedFeesReport,
-OpeningAndClosingAdvancedReport
+OpeningAndClosingAdvancedReport,
+FeesvsFinanacereport,
+FeesreconFeeswise
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
-import FeesStructure from "../../models/FeesModule/FeesStructure.js";
+
 
 
 
@@ -241,6 +243,23 @@ router.get(
   roleBasedMiddleware("Admin","School"),
 OpeningAndClosingAdvancedReport
 );
+
+//-----------------------------------------------------FeesvsFinanceReport------------------------------------//
+
+router.get(
+  "/get-fees-vs-finance/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+ FeesvsFinanacereport
+);
+
+router.get(
+  "/get-fees-recon-feeswise/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+ FeesreconFeeswise
+);
+
+
+
 
 
 

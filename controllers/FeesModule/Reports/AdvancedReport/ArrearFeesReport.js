@@ -106,6 +106,13 @@ export const ArrearFeesReport = async (req, res) => {
       },
       {
         $addFields: {
+          studentName: {
+            $concat: ['$firstName', ' ', '$lastName'],
+          },
+        },
+      },
+      {
+        $addFields: {
           isArrear: {
             $cond: {
               if: {

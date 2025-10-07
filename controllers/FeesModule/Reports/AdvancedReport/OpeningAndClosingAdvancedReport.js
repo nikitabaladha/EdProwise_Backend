@@ -286,6 +286,13 @@ export const OpeningAndClosingAdvancedReport = async (req, res) => {
         },
       },
       {
+        $addFields: {
+          studentName: {
+            $concat: ['$firstName', ' ', '$lastName'],
+          },
+        },
+      },
+      {
         $unwind: '$installments',
       },
       {

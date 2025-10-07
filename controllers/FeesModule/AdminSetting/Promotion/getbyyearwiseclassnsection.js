@@ -12,47 +12,46 @@ const getAdmissionFormsWithStudentDetails = async (req, res) => {
   }
 
   try {
-  const forms = await AdmissionFormModel.aggregate([
-  {
-    $match: {
-      schoolId: schoolId.toString(),
-      'academicHistory.academicYear': academicYear.toString(),
-    },
-  },
-  {
-    $unwind: '$academicHistory',
-  },
-  {
-    $match: {
-      'academicHistory.academicYear': academicYear.toString(),
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      schoolId: 1,
-        AdmissionNumber: 1,
-      firstName: 1,
-      lastName: 1,
-      gender: 1,
-      academicYear: '$academicHistory.academicYear',
-      academicHistory: {
-        _id: '$academicHistory._id',
-        academicYear: '$academicHistory.academicYear',
-        masterDefineClass: '$academicHistory.masterDefineClass',
-        section: '$academicHistory.section',
-        masterDefineShift: '$academicHistory.masterDefineShift',
+    const forms = await AdmissionFormModel.aggregate([
+      {
+        $match: {
+          schoolId: schoolId.toString(),
+          'academicHistory.academicYear': academicYear.toString(),
+          TCStatus: 'Active', 
+        },
       },
-    },
-  },
-]);
-
-
+      {
+        $unwind: '$academicHistory',
+      },
+      {
+        $match: {
+          'academicHistory.academicYear': academicYear.toString(),
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          schoolId: 1,
+          AdmissionNumber: 1,
+          firstName: 1,
+          lastName: 1,
+          gender: 1,
+          academicYear: '$academicHistory.academicYear',
+          academicHistory: {
+            _id: '$academicHistory._id',
+            academicYear: '$academicHistory.academicYear',
+            masterDefineClass: '$academicHistory.masterDefineClass',
+            section: '$academicHistory.section',
+            masterDefineShift: '$academicHistory.masterDefineShift',
+          },
+        },
+      },
+    ]);
 
     if (!forms.length) {
       return res.status(404).json({
         hasError: true,
-        message: `No admission forms found for school ID: ${schoolId} and academic year: ${academicYear}`,
+        message: `No admission forms found for school ID: ${schoolId}, academic year: ${academicYear}, and TCStatus: Active`,
       });
     }
 

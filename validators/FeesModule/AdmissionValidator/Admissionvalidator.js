@@ -135,7 +135,7 @@
 //   concessionAmount: Joi.number().messages({
 //     "number.base": "Concession amount must be a valid number."
 //   }),
-  
+
 //   finalAmount: Joi.number().required().messages({
 //     "number.base": "Final amount must be a valid number.",
 //     "any.required": "Final amount is required."
@@ -304,54 +304,88 @@ export const AdmissionValidator = {
         "any.only": "Agreement must be checked.",
         "any.required": "Agreement is required."
       }),
-      admissionFees: Joi.number().required().messages({
-        "number.base": "Admission fees must be a valid number.",
-        "any.required": "Admission fees is required."
+      // Payment fields
+      admissionFees: Joi.number().min(0).allow(null).optional().messages({
+        'number.base': 'Admission fee must be a valid number.',
+        'number.min': 'Admission fee cannot be negative.',
       }),
-        concessionType: Joi.when('concessionAmount', {
-         is: Joi.number().greater(0),
-          then: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').required().messages({
-            "string.base": "Concession type must be a string.",
-            "any.only": "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
-            "any.required": "Concession type is required when concession amount is greater than zero."
+      concessionType: Joi.when('concessionAmount', {
+        is: Joi.number().greater(0),
+        then: Joi.string()
+          .valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other')
+          .allow(null, '')
+          .optional()
+          .messages({
+            'string.base': 'Concession type must be a string.',
+            'any.only': "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
           }),
-          otherwise: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').allow(null, "").optional()
+        otherwise: Joi.string()
+          .valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other')
+          .allow(null, '')
+          .optional()
+          .messages({
+            'string.base': 'Concession type must be a string.',
+            'any.only': "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
+          }),
+      }),
+      concessionAmount: Joi.number().min(0).allow(null).optional().messages({
+        'number.base': 'Concession amount must be a valid number.',
+        'number.min': 'Concession amount cannot be negative.',
+      }),
+      finalAmount: Joi.number().min(0).allow(null).optional().messages({
+        'number.base': 'Final amount must be a valid number.',
+        'number.min': 'Final amount cannot be negative.',
+      }),
+      name: Joi.string().allow(null, '').optional().messages({
+        'string.base': 'Name must be a string.',
+      }),
+      paymentMode: Joi.string()
+        .valid('Cash', 'Cheque', 'Online', 'null')
+        .allow(null, '')
+        .optional()
+        .messages({
+          'any.only': "Payment mode must be one of 'Cash', 'Cheque', 'Online', or 'null'.",
         }),
-      concessionAmount: Joi.number().allow(null).messages({
-        "number.base": "Concession amount must be a valid number."
-      }),
-      finalAmount: Joi.number().required().messages({
-        "number.base": "Final amount must be a valid number.",
-        "any.required": "Final amount is required."
-      }),
-      name: Joi.string().required().messages({
-        "any.required": "Name is required."
-      }),
-      paymentMode: Joi.string().valid("Cash", "Cheque", "Online","null").required().messages({
-     "any.only": "Payment mode must be one of 'Cash', 'Cheque', 'Online'",
-        "any.required": "Payment mode is required."
-      }),
       chequeNumber: Joi.when('paymentMode', {
         is: 'Cheque',
-        then: Joi.string().required().pattern(/^[0-9]{6,}$/).messages({
-          "string.pattern.base": "Cheque number must be at least 6 digits",
-          "any.required": "Cheque number is required for cheque payments"
-        }),
-        otherwise: Joi.string().allow(null, "").optional()
+        then: Joi.string()
+          .required()
+          .pattern(/^[0-9]{6,}$/)
+          .messages({
+            'string.pattern.base': 'Cheque number must be at least 6 digits.',
+            'any.required': 'Cheque number is required for cheque payments.',
+          }),
+        otherwise: Joi.string().allow(null, '').optional(),
       }),
       bankName: Joi.when('paymentMode', {
         is: 'Cheque',
-        then: Joi.string().required().min(3).messages({
-          "string.min": "Bank name must be at least 3 characters",
-          "any.required": "Bank name is required for cheque payments"
-        }),
-        otherwise: Joi.string().allow(null, "").optional()
+        then: Joi.string()
+          .required()
+          .min(3)
+          .messages({
+            'string.min': 'Bank name must be at least 3 characters.',
+            'any.required': 'Bank name is required for cheque payments.',
+          }),
+        otherwise: Joi.string().allow(null, '').optional(),
       }),
-      transactionNumber: Joi.string().allow(null, ""),
-      receiptNumber: Joi.string().allow(null, ""),
-      status: Joi.string().valid("Pending", "Approved", "Rejected").allow(null, ""),
-      applicationDate: Joi.date().allow(null, ""),
-      paymentDate: Joi.string().allow(null, ""),
+      transactionNumber: Joi.string().allow(null, '').optional().messages({
+        'string.base': 'Transaction number must be a string.',
+      }),
+      receiptNumber: Joi.string().allow(null, '').optional().messages({
+        'string.base': 'Receipt number must be a string.',
+      }),
+      registrationNumber: Joi.string().allow(null, '').optional().messages({
+        'string.base': 'Registration number must be a string.',
+      }),
+      paymentDate: Joi.date().allow(null).optional().messages({
+        'date.base': 'Payment date must be a valid date.',
+      }),
+      status: Joi.string()
+        .valid('Pending', 'Paid')
+        .optional()
+        .messages({
+          'any.only': "Status must be 'Pending' or 'Paid'.",
+        }),
     });
 
     return schema.validate(data, { abortEarly: false });

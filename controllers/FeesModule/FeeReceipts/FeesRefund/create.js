@@ -1,3 +1,5 @@
+
+
 import mongoose from 'mongoose';
 import RefundFees from '../../../../models/FeesModule/RefundFees.js';
 import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
@@ -24,28 +26,30 @@ const createRefundRequest = async (req, res) => {
       sectionId,
       paidAmount,
       refundAmount,
+      cancelledAmount,
       paymentMode,
       chequeNumber,
       bankName,
       paymentDate,
+      refundDate,
+      cancelledDate,
       feeTypeRefunds,
+      installmentName,
+      existancereceiptNumber,
+      status,
+      balance,
+      cancelReason,
+      chequeSpecificReason,
+      additionalComment,
     } = req.body;
 
-    const validRefundTypes = ['Registration Fees', 'Admission Fees', 'School Fees', 'Board Registration Fees', 'Board Exam Fees'];
     const validPaymentModes = ['Cash', 'Cheque', 'Online'];
+    const validStatuses = ['Paid', 'Cancelled', 'Cheque Return', 'Refund'];
 
- 
-    if (!schoolId || !academicYear || !refundType || !firstName || !lastName || !classId || !refundAmount || !paymentMode) {
+    if (!schoolId || !academicYear || !refundType || !firstName || !lastName || !classId || !paymentMode || !existancereceiptNumber) {
       return res.status(400).json({
         hasError: true,
-        message: 'Missing required fields: schoolId, academicYear, refundType, firstName, lastName, classId, refundAmount, and paymentMode are required.',
-      });
-    }
-
-    if (!validRefundTypes.includes(refundType)) {
-      return res.status(400).json({
-        hasError: true,
-        message: `Invalid refund type. Must be one of: ${validRefundTypes.join(', ')}.`,
+        message: 'Missing required fields: schoolId, academicYear, refundType, firstName, lastName, classId, paymentMode, and existancereceiptNumber are required.',
       });
     }
 
@@ -56,6 +60,71 @@ const createRefundRequest = async (req, res) => {
       });
     }
 
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        hasError: true,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}.`,
+      });
+    }
+
+    if (status === 'Refund') {
+      if (typeof paidAmount !== 'number' || paidAmount <= 0) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Paid amount must be a positive number when status is Refund.',
+        });
+      }
+      if (typeof refundAmount !== 'number' || refundAmount <= 0) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Refund amount must be a positive number when status is Refund.',
+        });
+      }
+      if (typeof cancelledAmount !== 'number' || cancelledAmount !== 0) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Cancelled amount must be 0 when status is Refund.',
+        });
+      }
+      if (cancelledDate !== null) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Cancelled date must be null when status is Refund.',
+        });
+      }
+    } else if (status === 'Cancelled' || status === 'Cheque Return') {
+      if (typeof cancelledAmount !== 'number' || cancelledAmount <= 0) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Cancelled amount must be a positive number when status is Cancelled or Cheque Return.',
+        });
+      }
+      if (typeof refundAmount !== 'number' || refundAmount !== 0) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Refund amount must be 0 when status is Cancelled or Cheque Return.',
+        });
+      }
+      if (refundDate !== null) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Refund date must be null when status is Cancelled or Cheque Return.',
+        });
+      }
+      if (!cancelReason) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Cancel reason is required for Cancelled or Cheque Return status.',
+        });
+      }
+      if (status === 'Cheque Return' && !chequeSpecificReason) {
+        return res.status(400).json({
+          hasError: true,
+          message: 'Cheque-specific reason is required for Cheque Return status.',
+        });
+      }
+    }
+
     if (paymentMode === 'Cheque' && (!chequeNumber || !bankName)) {
       return res.status(400).json({
         hasError: true,
@@ -63,34 +132,20 @@ const createRefundRequest = async (req, res) => {
       });
     }
 
-    if (typeof refundAmount !== 'number' || refundAmount <= 0) {
+    // Update refundType to match the payload
+    if (refundType === 'Registration Fee' && !registrationNumber) {
       return res.status(400).json({
         hasError: true,
-        message: 'Refund amount must be a positive number.',
+        message: 'Registration number is required for Registration Fee refund type.',
       });
     }
 
-    if (typeof paidAmount !== 'number' || paidAmount < 0) {
+    if (typeof balance !== 'number') {
       return res.status(400).json({
         hasError: true,
-        message: 'Paid amount must be a non-negative number.',
+        message: 'Balance must be a number.',
       });
     }
-
-    if (refundType === 'Registration Fees' && !registrationNumber) {
-      return res.status(400).json({
-        hasError: true,
-        message: 'Registration number is required for Registration Fees refund type.',
-      });
-    }
-
-    if (refundType !== 'Registration Fees' && !admissionNumber) {
-      return res.status(400).json({
-        hasError: true,
-        message: 'Admission number is required for non-Registration Fees refund types.',
-      });
-    }
-
 
     let processedFeeTypeRefunds = [];
     if (refundType === 'School Fees') {
@@ -105,128 +160,226 @@ const createRefundRequest = async (req, res) => {
         (sum, refund) => sum + (refund.refundAmount || 0),
         0
       );
-      if (totalFeeTypeRefund !== refundAmount) {
+      const totalFeeTypeCancelled = feeTypeRefunds.reduce(
+        (sum, refund) => sum + (refund.cancelledAmount || 0),
+        0
+      );
+
+      if (status === 'Refund' && refundAmount !== undefined && totalFeeTypeRefund !== refundAmount) {
         return res.status(400).json({
           hasError: true,
           message: `Sum of feeTypeRefunds amounts (${totalFeeTypeRefund}) does not match refundAmount (${refundAmount}).`,
         });
       }
+      if ((status === 'Cancelled' || status === 'Cheque Return') && cancelledAmount !== undefined && totalFeeTypeCancelled !== cancelledAmount) {
+        return res.status(400).json({
+          hasError: true,
+          message: `Sum of feeTypeRefunds cancelled amounts (${totalFeeTypeCancelled}) does not match cancelledAmount (${cancelledAmount}).`,
+        });
+      }
+
+      // for (const refund of feeTypeRefunds) {
+      //   const feeTypeExists = await FeesType.findById(refund.feetype);
+      //   if (!feeTypeExists) {
+      //     return res.status(400).json({
+      //       hasError: true,
+      //       message: `FeesType not found for ID: ${refund.feetype}.`,
+      //     });
+      //   }
+
+      //   if (refundType === 'School Fees') {
+      //     const schoolFee = await SchoolFees.findOne({
+      //       schoolId,
+      //       academicYear,
+      //       studentAdmissionNumber: admissionNumber,
+      //       'installments.feeItems.feeTypeId': refund.feetype,
+      //     });
+
+      //     if (!schoolFee) {
+      //       return res.status(400).json({
+      //         hasError: true,
+      //         message: `No fee record found for feeType ${refund.feetype}.`,
+      //       });
+      //     }
+
+      //     let paidAmountForFeeType = 0;
+      //     let totalRefundedForFeeType = 0;
+      //     let totalCancelledForFeeType = 0;
+      //     schoolFee.installments.forEach((installment) => {
+      //       const feeItem = installment.feeItems.find(
+      //         (item) => item.feeTypeId.toString() === refund.feetype.toString()
+      //       );
+      //       if (feeItem) {
+      //         paidAmountForFeeType += feeItem.paidAmount || 0;
+      //       }
+      //     });
+
+      //     const existingFeeTypeRefunds = await RefundFees.find({
+      //       schoolId,
+      //       academicYear,
+      //       refundType,
+      //       admissionNumber,
+      //       'feeTypeRefunds.feetype': refund.feetype,
+      //     });
+
+      //     totalRefundedForFeeType = existingFeeTypeRefunds.reduce((sum, r) => {
+      //       const feeTypeRefund = r.feeTypeRefunds.find(
+      //         (ftr) => ftr.feetype.toString() === refund.feetype.toString()
+      //       );
+      //       return sum + (feeTypeRefund ? feeTypeRefund.refundAmount : 0);
+      //     }, 0);
+
+      //     totalCancelledForFeeType = existingFeeTypeRefunds.reduce((sum, r) => {
+      //       const feeTypeRefund = r.feeTypeRefunds.find(
+      //         (ftr) => ftr.feetype.toString() === refund.feetype.toString()
+      //       );
+      //       return sum + (feeTypeRefund ? ftr.cancelledAmount : 0);
+      //     }, 0);
+
+      //     processedFeeTypeRefunds.push({
+      //       feetype: refund.feetype,
+      //       refundAmount: refund.refundAmount || 0,
+      //       cancelledAmount: refund.cancelledAmount || 0,
+      //       paidAmount: refund.paidAmount,
+      //       balance: refund.balance,
+      //     });
+      //   }
+      // }
 
       for (const refund of feeTypeRefunds) {
-        if (!mongoose.Types.ObjectId.isValid(refund.feetype)) {
-          return res.status(400).json({
-            hasError: true,
-            message: `Invalid feeType ID: ${refund.feetype}.`,
-          });
-        }
-
-        const feeTypeExists = await FeesType.findById(refund.feetype);
+        const feeTypeExists = await FeesType.findById(refund.feeType);
         if (!feeTypeExists) {
           return res.status(400).json({
             hasError: true,
-            message: `FeesType not found for ID: ${refund.feetype}.`,
+            message: `FeesType not found for ID: ${refund.feeType}.`,
           });
         }
 
-        const schoolFee = await SchoolFees.findOne({
-          schoolId,
-          academicYear,
-          studentAdmissionNumber: admissionNumber,
-          'installments.feeItems.feeTypeId': refund.feetype,
-        });
-
-        if (!schoolFee) {
-          return res.status(400).json({
-            hasError: true,
-            message: `No fee record found for feeType ${refund.feetype}.`,
+        if (refundType === 'School Fees') {
+          const schoolFee = await SchoolFees.findOne({
+            schoolId,
+            academicYear,
+            studentAdmissionNumber: admissionNumber,
+            'installments.feeItems.feeTypeId': refund.feeType,
           });
-        }
 
-        let paidAmountForFeeType = 0;
-        let totalRefundedForFeeType = 0;
-        schoolFee.installments.forEach((installment) => {
-          const feeItem = installment.feeItems.find(
-            (item) => item.feeTypeId.toString() === refund.feetype.toString()
-          );
-          if (feeItem) {
-            paidAmountForFeeType += feeItem.paidAmount || 0;
+          if (!schoolFee) {
+            return res.status(400).json({
+              hasError: true,
+              message: `No fee record found for feeType ${refund.feeType}.`,
+            });
           }
-        });
 
- 
-        const existingFeeTypeRefunds = await RefundFees.find({
-          schoolId,
-          academicYear,
-          refundType,
-          admissionNumber,
-          'feeTypeRefunds.feetype': refund.feetype,
-        });
+          let paidAmountForFeeType = 0;
+          let totalRefundedForFeeType = 0;
+          let totalCancelledForFeeType = 0;
+          schoolFee.installments.forEach((installment) => {
+            const feeItem = installment.feeItems.find(
+              (item) => item.feeTypeId.toString() === refund.feeType.toString()
+            );
+            if (feeItem) {
+              paidAmountForFeeType += feeItem.paid || 0;
+            }
+          });
 
-        totalRefundedForFeeType = existingFeeTypeRefunds.reduce((sum, r) => {
-          const feeTypeRefund = r.feeTypeRefunds.find(
-            (ftr) => ftr.feetype.toString() === refund.feetype.toString()
-          );
-          return sum + (feeTypeRefund ? feeTypeRefund.refundAmount : 0);
-        }, 0);
-        processedFeeTypeRefunds.push({
-          feetype: refund.feetype,
-          refundAmount: refund.refundAmount,
-          paidAmount: refund.paidAmount,
-          balance:refund.balance ,
-        });
+          const existingFeeTypeRefunds = await RefundFees.find({
+            schoolId,
+            academicYear,
+            refundType,
+            admissionNumber,
+            'feeTypeRefunds.feeType': refund.feeType,
+          });
+
+          totalRefundedForFeeType = existingFeeTypeRefunds.reduce((sum, r) => {
+            const feeTypeRefund = r.feeTypeRefunds.find(
+              (ftr) => ftr.feeType.toString() === refund.feeType.toString()
+            );
+            return sum + (feeTypeRefund ? feeTypeRefund.refundAmount : 0);
+          }, 0);
+
+          totalCancelledForFeeType = existingFeeTypeRefunds.reduce((sum, r) => {
+            const feeTypeRefund = r.feeTypeRefunds.find(
+              (ftr) => ftr.feeType.toString() === refund.feeType.toString()
+            );
+            return sum + (feeTypeRefund ?feeTypeRefund.cancelledAmount : 0);
+          }, 0);
+
+          processedFeeTypeRefunds.push({
+            feeType: refund.feeType,
+            refundAmount: refund.refundAmount || 0,
+            cancelledAmount: refund.cancelledAmount || 0,
+            paidAmount: refund.paidAmount,
+            balance: refund.balance,
+          });
+        }
       }
     }
-
 
     const existingRefunds = await RefundFees.find({
       schoolId,
       academicYear,
       refundType,
-      ...(refundType === 'Registration Fees'
+      ...(refundType === 'Registration Fee'
         ? { registrationNumber }
         : { admissionNumber }),
     });
 
-    const totalRefundedAmount = existingRefunds.reduce(
-      (sum, refund) => sum + (refund.refundAmount || 0),
-      0
-    );
+    if (paidAmount !== undefined && (refundAmount !== undefined || cancelledAmount !== undefined)) {
+      const totalRefundedAmount = existingRefunds.reduce(
+        (sum, refund) => sum + (refund.refundAmount || 0),
+        0
+      );
+      const totalCancelledAmount = existingRefunds.reduce(
+        (sum, refund) => sum + (refund.cancelledAmount || 0),
+        0
+      );
 
-    const remainingBalance = paidAmount - totalRefundedAmount;
-    if (remainingBalance <= 0) {
-      return res.status(400).json({
-        hasError: true,
-        message: 'No balance remaining for this refund type and student.',
-      });
+      const remainingBalance = paidAmount - totalRefundedAmount - totalCancelledAmount;
     }
 
-    if (refundAmount > remainingBalance) {
-      return res.status(400).json({
-        hasError: true,
-        message: `Refund amount (${refundAmount}) exceeds remaining balance (${remainingBalance}).`,
-      });
-    }
+    console.log("Creating RefundFees with values:", {
+      schoolId,
+      academicYear,
+      refundType,
+      paidAmount,
+      refundAmount,
+      cancelledAmount,
+      balance,
+      feeTypeRefunds: processedFeeTypeRefunds,
+      registrationNumber, // Log to verify
+    });
 
     const refundRequest = new RefundFees({
       schoolId,
       academicYear,
       refundType,
-      registrationNumber: refundType === 'Registration Fees' ? registrationNumber : null,
-      admissionNumber: refundType !== 'Registration Fees' ? admissionNumber : null,
+      registrationNumber: refundType === 'Registration Fee' ? registrationNumber : null, // Updated here
+      admissionNumber: refundType !== 'Registration Fee' ? admissionNumber : null,
       firstName,
       lastName,
       classId,
       sectionId: sectionId || null,
       paidAmount,
-      refundAmount,
+      refundAmount: refundAmount || 0,
+      cancelledAmount: cancelledAmount || 0,
+      balance,
       feeTypeRefunds: refundType === 'School Fees' ? processedFeeTypeRefunds : [],
       paymentMode,
       chequeNumber: paymentMode === 'Cheque' ? chequeNumber : null,
       bankName: paymentMode === 'Cheque' ? bankName : null,
       paymentDate: paymentDate || null,
+      refundDate: refundDate || null,
+      cancelledDate: cancelledDate || null,
+      installmentName: installmentName || null,
+      existancereceiptNumber,
+      status,
+      cancelReason,
+      chequeSpecificReason,
+      additionalComment,
     });
 
     const savedRefund = await refundRequest.save();
+    console.log("Saved RefundFees:", savedRefund);
 
     return res.status(201).json({
       hasError: false,

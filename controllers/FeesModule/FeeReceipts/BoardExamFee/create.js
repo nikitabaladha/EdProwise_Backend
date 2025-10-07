@@ -27,12 +27,12 @@ export const submitExamFees = async (req, res) => {
       admissionId: { $in: payments.map((p) => p.studentId) },
     });
 
-    if (existingPayments.length > 0) {
-      return res.status(409).json({
-        hasError: true,
-        message: "Some payments already exist for the given students in this academic year.",
-      });
-    }
+    // if (existingPayments.length > 0) {
+    //   return res.status(409).json({
+    //     hasError: true,
+    //     message: "Some payments already exist for the given students in this academic year.",
+    //   });
+    // }
 
     const createdPayments = [];
 
@@ -42,12 +42,13 @@ export const submitExamFees = async (req, res) => {
         academicYear: payment.academicYear,
         admissionId: payment.studentId,
         admissionNumber: payment.admissionNumber,
-        studentName: payment.studentName,
+         firstName: payment.firstName,
+        lastName: payment.lastName,
         classId: payment.classId,
         sectionId: payment.sectionId,
         className: payment.className,
         sectionName: payment.sectionName,
-        amount: payment.amount,
+        finalAmount: payment.finalAmount,
         paymentMode: payment.paymentMode,
         chequeNumber: payment.chequeNumber || '',
         bankName: payment.bankName || '',

@@ -58,6 +58,13 @@ export const AdvancedFeesReport = async (req, res) => {
         },
       },
       {
+        $addFields: {
+          studentName: {
+            $concat: ['$firstName', ' ', '$lastName'],
+          },
+        },
+      },
+      {
         $unwind: '$installments',
       },
       {

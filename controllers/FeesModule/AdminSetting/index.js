@@ -59,7 +59,8 @@ import getAdmissionFormsByYearClassnsection from '../AdminSetting/Promotion/getb
 import promotestudent from '../AdminSetting/Promotion/promotestudent.js';
 import promoteStudentsBulk from '../AdminSetting/Promotion/promotestudentbulk.js';
 import deleteAcademicHistoryById from "./Promotion/deletebyacademicHistory.js";
-import updateAcademicHistoryById from "./Promotion/Updatepromotion.js";
+import updateAcademicHistoryById from "./Promotion/Updatepromotion.js"; 
+import  getbySchoolIdandYearonlyActive from "./Promotion/getbyyearonlyactive.js"
 
 
 
@@ -114,6 +115,7 @@ export {
   promoteStudentsBulk,
   deleteAcademicHistoryById,
   updateAcademicHistoryById,
+   getbySchoolIdandYearonlyActive
 
 
 

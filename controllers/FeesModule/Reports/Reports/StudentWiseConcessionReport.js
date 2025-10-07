@@ -124,7 +124,7 @@ export const studentwiseConcessionReport = async (req, res) => {
       if (!concessionsByStudent[studentId]) {
         concessionsByStudent[studentId] = {
           admissionNumber: form.studentAdmissionNumber || '-',
-          studentName: form.studentName || '-',
+          studentName: `${form.firstName || ''} ${form.lastName || ''}`.trim() || '-',
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
@@ -231,7 +231,7 @@ export const studentwiseConcessionReport = async (req, res) => {
           className: classSection.className,
           sectionName: classSection.sectionName,
           academicYear: form.academicYear,
-          concessionType: form.concessionType || concessionTypeMap[studentId] || '-', // Use form's concessionType first
+          concessionType: form.concessionType || concessionTypeMap[studentId] || '-', 
           transactions: [],
         };
       }

@@ -28,6 +28,8 @@ import ArrearFeesReport from './AdvancedReport/ArrearFeesReport.js';
 import FeesReconHeadwise from './ReconFees/headwise.js';
 import AdvancedFeesReport from './AdvancedReport/AdvancedFeesReport.js';
 import OpeningAndClosingAdvancedReport from './AdvancedReport/OpeningAndClosingAdvancedReport.js'
+import FeesvsFinanacereport from './ReconFees/FeesVsFinance.js'
+import FeesreconFeeswise from './ReconFees/FeesReconFeeswise.js'
 
 export {
 getall,
@@ -57,5 +59,7 @@ Defaulterfees,
 ArrearFeesReport,
 FeesReconHeadwise,
 AdvancedFeesReport,
-OpeningAndClosingAdvancedReport
+OpeningAndClosingAdvancedReport,
+FeesvsFinanacereport,
+FeesreconFeeswise
 };

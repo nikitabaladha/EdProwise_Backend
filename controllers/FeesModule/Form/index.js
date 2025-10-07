@@ -4,6 +4,8 @@ import deleteRegistrationbyid from './RegistrationForm/delete.js';
 import updateRegistrationForm from './RegistrationForm/update.js';
 import getRegistrationsBySchoolId from './RegistrationForm/getBySchoolId.js';
 import downloadreceipts from './RegistrationForm/downloadreceipts.js';
+import creatregistrationpayment from './RegistrationForm/payment.js';
+import getstudentbystudentidandreceiptnumber from './RegistrationForm/getbystudentidandreceiptnum.js'
 
 import createAdmissionForm from './AdmissionForm/create.js'
 import getAdmissionFormsBySchoolId from './AdmissionForm/get.js';
@@ -14,13 +16,18 @@ import getAdmissionFormsByAcdemicHistoryYear from './AdmissionForm/getbyacdemich
 import updatebyAcdemicHistory from './AdmissionForm/updateacdemichistory.js';
 import updateTCinactiveStatus from './AdmissionForm/tcstatusupdate.js';
 import getDataForStudentLedger from './AdmissionForm/getforledger.js';
-import getstudentforcount from './AdmissionForm/getstudentforcount.js'
+import getstudentforcount from './AdmissionForm/getstudentforcount.js';
+import getbySchoolIdandYearCpy from './AdmissionForm/getbyyearCpy.js';
+import createadmissionpayment from './AdmissionForm/payment.js';
+import getadmissionbystudentidandreceiptnumber from './AdmissionForm/getbystudentidandreceiptnum.js'
 
 
 import createTCForm from './TCForm/create.js';
 import getTCForm from './TCForm/get.js';
 import deleteTCFormById from './TCForm/delete.js';
 import updateTCForm from './TCForm/update.js'
+import creattcpayment from './TCForm/payment.js';
+import gettcstudentbystudentidandreceiptnumber from './TCForm/getbystudentidandreceiptnum.js'
 
 import createConcessionForm from './ConcessionForm/create.js';
 import getConcessionFormsBySchoolId from './ConcessionForm/get.js';
@@ -44,6 +51,8 @@ export {
   deleteRegistrationbyid,
   updateRegistrationForm, 
   getRegistrationsBySchoolIdandyear,
+  creatregistrationpayment,
+  getstudentbystudentidandreceiptnumber,
   downloadreceipts,
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -51,12 +60,17 @@ export {
   updateAdmissionForm,
   getbySchoolIdandYear,
   getAdmissionFormsByAcdemicHistoryYear,
+  getbySchoolIdandYearCpy,
+  createadmissionpayment,
+  getadmissionbystudentidandreceiptnumber,
   updatebyAcdemicHistory,
   updateTCinactiveStatus,
   createTCForm,
   getTCForm,
   deleteTCFormById,
   updateTCForm,
+  creattcpayment,
+  gettcstudentbystudentidandreceiptnumber ,
   createConcessionForm,
   getConcessionFormsBySchoolId,
   deleteConcessionFormById,

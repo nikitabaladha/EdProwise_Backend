@@ -61,7 +61,8 @@ import {
   promotestudent,
   promoteStudentsBulk,
   deleteAcademicHistoryById,
-  updateAcademicHistoryById
+  updateAcademicHistoryById,
+   getbySchoolIdandYearonlyActive
 } from "../../controllers/FeesModule/AdminSetting/index.js";
 
 
@@ -362,7 +363,13 @@ router.post(
   "/promote-students-bulk",
   roleBasedMiddleware("Admin","School"),
   promoteStudentsBulk
-)
+);
+
+router.get(
+  "/get-admission-form-by-year-schoolId-active/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getbySchoolIdandYearonlyActive
+);
 
 router.get(
   "/get-admission-form-by-year-classnsection/:schoolId/:academicYear",

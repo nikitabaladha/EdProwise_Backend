@@ -15,6 +15,8 @@ import {
   downloadreceipts,
   updatestatus,
   getRegistrationStatus,
+  creatregistrationpayment,
+  getstudentbystudentidandreceiptnumber,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -28,6 +30,9 @@ import {
   updateTCinactiveStatus,
   getDataForStudentLedger ,
   getstudentforcount,
+  getbySchoolIdandYearCpy,
+  createadmissionpayment,
+  getadmissionbystudentidandreceiptnumber,
 
 
   createTCForm,
@@ -36,6 +41,8 @@ import {
   updateTCForm,
   updateTCstatus,
   getTCStatus,
+  creattcpayment,
+  gettcstudentbystudentidandreceiptnumber,
 
   createConcessionForm,
   getConcessionFormsBySchoolId,
@@ -88,6 +95,26 @@ router.post(
   downloadreceipts
 );
 
+router.post(
+  "/create-registration-receipts",
+  roleBasedMiddleware("Admin", "School"),
+  downloadreceipts
+);
+
+router.post(
+  "/create-registration-payments/:studentId",
+  roleBasedMiddleware("Admin", "School"),
+    creatregistrationpayment,
+);
+
+router.get(
+  "/get-registration-data/:studentId/:receiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+  getstudentbystudentidandreceiptnumber
+);
+
+
+
 router.put(
   "/update-registartion-status/:id",
   roleBasedMiddleware("Admin", "School"),
@@ -127,6 +154,12 @@ router.get(
   "/get-admission-form-by-year-schoolId/:schoolId/:academicYear",
   roleBasedMiddleware("Admin", "School"),
   getbySchoolIdandYear
+);
+
+router.get(
+  "/get-admission-form-by-year-schoolId-cpy/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getbySchoolIdandYearCpy
 );
 
 
@@ -181,6 +214,20 @@ router.get(
 getstudentforcount
 );
 
+router.post(
+  "/create-admission-payments/:studentId",
+  roleBasedMiddleware("Admin", "School"),
+    createadmissionpayment
+);
+
+router.get(
+  "/get-admission-data/:studentId/:receiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+   getadmissionbystudentidandreceiptnumber
+);
+
+ 
+
 
 
 
@@ -220,6 +267,19 @@ router.get(
   roleBasedMiddleware("Admin", "School"),
   getTCStatus
 );
+
+router.post(
+  "/create-tc-payment/:tcFormId",
+  roleBasedMiddleware("Admin", "School"),
+    creattcpayment,
+);
+
+router.get(
+  "/get-tc-data/:tcFormId/:receiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+    gettcstudentbystudentidandreceiptnumber
+);
+
 
 
 //--------------------------------------Concession Form --------------------------------------------------//

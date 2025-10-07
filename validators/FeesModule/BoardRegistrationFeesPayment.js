@@ -12,8 +12,12 @@ export const BoardRegistrationFeePaymentValidator = Joi.object({
                 'string.empty': 'Admission number is required',
                 'any.required': 'Admission number is required',
             }),
-            studentName: Joi.string().required().messages({
-                'string.empty': 'Student name is required',
+            firstName: Joi.string().required().messages({
+                'string.empty': 'first name is required',
+                'any.required': 'Student name is required',
+            }),
+             lastName: Joi.string().required().messages({
+                'string.empty': 'last name is required',
                 'any.required': 'Student name is required',
             }),
             classId: Joi.string().required().messages({
@@ -32,7 +36,7 @@ export const BoardRegistrationFeePaymentValidator = Joi.object({
                 'string.empty': 'Section name is required',
                 'any.required': 'Section name is required',
             }),
-            amount: Joi.number().min(0).required().messages({
+            finalAmount: Joi.number().min(0).required().messages({
                 'number.base': 'Amount must be a number',
                 'number.min': 'Amount cannot be negative',
                 'any.required': 'Amount is required',

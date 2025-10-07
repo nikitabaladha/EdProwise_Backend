@@ -21,13 +21,23 @@ import {
   getcreaterefund,
   deleterefund,
   getreaminbalance,
+  getrefunddataforledger,
 
   updateboardexamstatus,
   updateboardregsiatrtionstatus,
   updateschoolfeesstatus,
   updatestatusbyadmno,
 
-  getSchoolFeesforreceipt
+  getschoolfeesreceiptbyschholidandreceiptno,
+  getSchoolFeesforreceipt,
+  getboardregistartiondata,
+  deleteBoardRegistrationFeePayment,
+  getboardexamdata,
+  deleteBoardExamFeePayment,
+  getrefundandcancelledbyreceiptnumber,
+  getCRNbyreceiptnumber,
+  getregistrationreceiptbyschholidandreceiptno,
+  getexamreceiptbyschholidandreceiptno
 
 
 } from "../../controllers/FeesModule/FeeReceipts/index.js";
@@ -76,12 +86,26 @@ router.get(
     getSchoolFeesforreceipt
 );
 
+router.get(
+  "/get-school-fees-data/:schoolId/:receiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+  getschoolfeesreceiptbyschholidandreceiptno
+);
+
+
+
 //----------------------BoardRegistrationFees--------------------//
 
 router.get(
   "/admission-forms/:schoolId/:academicYear/:masterDefineClass/:section",
   roleBasedMiddleware("Admin", "School"),
   getAdmissionForms
+);
+
+router.get(
+  "/get-board-registration-fee-payments/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getboardregistartiondata
 );
 
 router.post(
@@ -101,12 +125,30 @@ router.get(
   getboardregsitartionstatus
 );
 
+router.delete(
+  "/delete-board-registration-fee/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardRegistrationFeePayment
+);
+
+router.get(
+  "/get-board-registration-payment-data/:schoolId/:receiptNumberBrf(.+)",
+  roleBasedMiddleware("Admin", "School"),
+   getregistrationreceiptbyschholidandreceiptno
+);
+
 //----------------------BoardExamFees--------------------//
 
 router.get(
   "/admission-forms-board-exam/:schoolId/:academicYear/:masterDefineClass/:section",
   roleBasedMiddleware("Admin", "School"),
   getAdmissionFormsBordExam,
+);
+
+router.get(
+  "/get-board-exam-fee-payments/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+   getboardexamdata
 );
 
 router.post(
@@ -126,6 +168,17 @@ router.get(
   getboardexamstatus
 );
 
+router.delete(
+  "/delete-board-exam-fee/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardExamFeePayment
+);
+router.get(
+  "/get-board-exam-payment-data/:schoolId/:receiptNumberBef(.+)",
+  roleBasedMiddleware("Admin", "School"),
+   getexamreceiptbyschholidandreceiptno
+);
+
 
 //----------------------Refund-------------------//
 
@@ -135,8 +188,16 @@ router.get(
   getrefunddata
 );
 
+router.get(
+  "/get-all-fees-refund-ledeger/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+getrefunddataforledger
+);
+
+
+
 router.post(
-  "/create-refund",
+  "/create-cancelled-refund",
   roleBasedMiddleware("Admin", "School"),
   createrefund
 );
@@ -156,6 +217,18 @@ router.get(
   "/get-remaining-balance",
   roleBasedMiddleware("Admin", "School"),
   getreaminbalance
+);
+
+router.get(
+  "/get-all-cancelled-refund/:schoolId/:existancereceiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+ getrefundandcancelledbyreceiptnumber
+);
+
+router.get(
+  "/get-all-crn-no/:schoolId/:receiptNumber(.+)",
+  roleBasedMiddleware("Admin", "School"),
+   getCRNbyreceiptnumber
 );
 
 

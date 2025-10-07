@@ -82,6 +82,7 @@ const getAllFeesBySchoolId = async (req, res) => {
           _id: {
             studentAdmissionNumber: '$studentAdmissionNumber',
             feeTypeId: '$installments.feeItems.feeTypeId',
+              
           },
           studentName: { $first: '$studentName' },
           className: { $first: '$className' },

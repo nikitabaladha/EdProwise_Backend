@@ -1,16 +1,16 @@
 import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
 import FeesType from '../../../../models/FeesModule/FeesType.js';
-import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import TCForm from '../../../../models/FeesModule/TCForm.js';
+import { AdmissionPayment } from '../../../../models/FeesModule/AdmissionForm.js';
+import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
+import { TCPayment } from '../../../../models/FeesModule/TCForm.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
 import FeesManagementYear from '../../../../models/FeesModule/FeesManagementYear.js';
-import BoardRegistrationFeePayment from '../../../../models/FeesModule/BoardRegistrationFeePayment.js';
 import BoardExamFeePayment from '../../../../models/FeesModule/BoardExamFeePayment.js';
-import mongoose from 'mongoose';
+import BoardRegistrationFeePayment from '../../../../models/FeesModule/BoardRegistrationFeePayment.js';
+import RefundFees from '../../../../models/FeesModule/RefundFees.js';
 
-export const getStudentWiseFees = async (req, res) => {
+export const CollectionExcConcession = async (req, res) => {
   try {
     const { schoolId, academicYear } = req.query;
 
@@ -22,7 +22,6 @@ export const getStudentWiseFees = async (req, res) => {
 
     const schoolIdString = schoolId.trim();
 
-    // Fetch academic year date range
     const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
     if (!academicYearData) {
       return res.status(400).json({
@@ -31,32 +30,37 @@ export const getStudentWiseFees = async (req, res) => {
     }
     const { startDate, endDate } = academicYearData;
 
-    // Fetch fee types
-    const feesTypes = await FeesType.find({ schoolId: schoolIdString }).lean();
-    const feeTypeMap = feesTypes.reduce((acc, type) => {
+    const feeTypes = await FeesType.find({ schoolId: schoolIdString });
+    const feeTypeMap = feeTypes.reduce((acc, type) => {
       acc[type._id.toString()] = type.feesTypeName;
       return acc;
     }, {});
-    feeTypeMap['Admission Fees'] = 'Admission Fees';
-    feeTypeMap['Registration Fees'] = 'Registration Fees';
-    feeTypeMap['TC Fees'] = 'TC Fees';
-    feeTypeMap['Board Registration Fees'] = 'Board Registration Fees';
-    feeTypeMap['Board Exam Fees'] = 'Board Exam Fees';
+    feeTypeMap['Admission Fees'] = 'Admission Fee';
+    feeTypeMap['Registration Fees'] = 'Registration Fee';
+    feeTypeMap['TC Fees'] = 'TC Fee';
+    feeTypeMap['Board Exam Fees'] = 'Board Exam Fee';
+    feeTypeMap['Board Registration Fees'] = 'Board Registration Fee';
 
-    // Fetch class and section options
+    const academicYears = await FeesStructure.distinct('academicYear', { schoolId: schoolIdString });
+    const academicYearOptions = academicYears
+      .sort((a, b) => a.localeCompare(b))
+      .map((year) => ({
+        value: year,
+        label: year.split('-').length === 2 ? `${year.split('-')[0]}-${year.split('-')[1].slice(-2)}` : year,
+      }));
+
     const classResponse = await ClassAndSection.find({ schoolId: schoolIdString, academicYear }).lean();
     const classOptions = [...new Set(classResponse.map((cls) => cls.className))].map((cls) => ({
       value: cls,
       label: cls,
     }));
     const sectionOptions = [
-      ...new Set(classResponse.flatMap((cls) => cls.sections.map((sec) => sec.name).filter(Boolean))),
+      ...new Set(classResponse.flatMap((cls) => cls.sections.map((sec) => sec.name).filter((sec) => sec))),
     ].map((sec) => ({
       value: sec,
       label: sec,
     }));
 
-    // Fetch fees structures
     const feesStructures = await FeesStructure.find({ schoolId: schoolIdString }).lean();
     const installmentOptions = [
       ...new Set(feesStructures.flatMap((fs) => fs.installments.map((inst) => inst.name))),
@@ -65,143 +69,106 @@ export const getStudentWiseFees = async (req, res) => {
       label: inst,
     }));
 
-    // School Fees Aggregation
+
+
+
+    // ----------------- School Fees -----------------
     const schoolFeesAggregation = await SchoolFees.aggregate([
       {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
-          studentAdmissionNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
-      {
-        $lookup: {
-          from: 'admissionforms',
-          localField: 'studentAdmissionNumber',
-          foreignField: 'AdmissionNumber',
-          as: 'admissionData',
-        },
-      },
-      {
-        $unwind: { path: '$admissionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $addFields: {
-          academicHistory: {
-            $filter: {
-              input: '$admissionData.academicHistory',
-              as: 'history',
-              cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-            },
-          },
-        },
-      },
-      {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
-      },
+
       {
         $lookup: {
           from: 'classandsections',
-          let: { classId: '$academicHistory.masterDefineClass', academicYear: '$academicYear', schoolId: schoolIdString },
+          let: { classId: { $toObjectId: '$className' } },
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
+                $expr: { $eq: ['$_id', '$$classId'] }
+              }
+            }
           ],
           as: 'classData',
         },
       },
+      { $unwind: { path: '$classData', preserveNullAndEmptyArrays: true } },
+
       {
         $lookup: {
           from: 'classandsections',
-          let: { sectionId: '$academicHistory.section', academicYear: '$academicYear', schoolId: schoolIdString },
+          let: {
+            classId: { $toObjectId: '$className' },
+            sectionId: { $toObjectId: '$section' }
+          },
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
+                $expr: { $eq: ['$_id', '$$classId'] }
+              }
             },
+            { $unwind: '$sections' },
             {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
-                },
-              },
+              $match: {
+                $expr: { $eq: ['$sections._id', '$$sectionId'] }
+              }
             },
+            { $project: { sectionName: '$sections.name' } }
           ],
           as: 'sectionData',
         },
       },
-      {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: '$installments',
-      },
-      {
-        $unwind: '$installments.feeItems',
-      },
+      { $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true } },
+      { $unwind: '$installments' },
       {
         $group: {
           _id: {
-            admissionNumber: '$studentAdmissionNumber',
-            studentName: '$studentName',
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: '$installments.installmentName',
-            paymentMode: '$paymentMode',
-            receiptNumber: '$receiptNumber',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
-            feeTypeId: '$installments.feeItems.feeTypeId',
             academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
+            paymentMode: '$paymentMode',
+            className: { $ifNull: ['$classData.className', '$className'] },
+            sectionName: { $ifNull: ['$sectionData.sectionName', '$section'] },
+            installmentName: '$installments.installmentName',
+            status: '$status',
+            studentAdmissionNumber: '$studentAdmissionNumber',
+             studentName: { $concat: ["$firstName", " ", "$lastName"] },
+            receiptNumber: '$receiptNumber',
           },
-          totalPaid: { $sum: { $subtract: ['$installments.feeItems.paid', { $ifNull: ['$installments.feeItems.concession', 0] }] } },
           fineAmount: { $first: '$installments.fineAmount' },
           excessAmount: { $first: '$installments.excessAmount' },
+          feeItems: { $push: '$installments.feeItems' },
         },
       },
+      { $unwind: '$feeItems' },
+      { $unwind: '$feeItems' },
       {
         $group: {
           _id: {
-            admissionNumber: '$_id.admissionNumber',
-            studentName: '$_id.studentName',
+            academicYear: '$_id.academicYear',
+            paymentDate: '$_id.paymentDate',
+            cancelledDate: '$_id.cancelledDate',
+            paymentMode: '$_id.paymentMode',
+            feeTypeId: '$feeItems.feeTypeId',
             className: '$_id.className',
             sectionName: '$_id.sectionName',
             installmentName: '$_id.installmentName',
-            paymentMode: '$_id.paymentMode',
+            status: '$_id.status',
+            studentAdmissionNumber: '$_id.studentAdmissionNumber',
+            studentName: '$_id.studentName',
             receiptNumber: '$_id.receiptNumber',
-            paymentDate: '$_id.paymentDate',
-            academicYear: '$_id.academicYear',
           },
-          feeTypes: {
-            $push: {
-              feeTypeId: '$_id.feeTypeId',
-              totalPaid: '$totalPaid',
+          totalPaid: {
+            $sum: {
+              $cond: [
+                { $eq: ['$_id.status', 'Paid'] },
+                { $subtract: ['$feeItems.paid', { $ifNull: ['$feeItems.concession', 0] }] },
+                '$feeItems.cancelledPaidAmount',
+              ],
             },
           },
           fineAmount: { $first: '$fineAmount' },
@@ -210,174 +177,43 @@ export const getStudentWiseFees = async (req, res) => {
       },
     ]);
 
-    // Admission Fees Aggregation
-    const admissionFeesAggregation = await AdmissionForm.aggregate([
+    // ----------------- Admission Fees -----------------
+    const admissionFeesAggregation = await AdmissionPayment.aggregate([
       {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
           admissionFees: { $gt: 0 },
-          AdmissionNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
-        },
-      },
-      {
-        $addFields: {
-          academicHistory: {
-            $filter: {
-              input: '$academicHistory',
-              as: 'history',
-              cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-            },
-          },
-        },
-      },
-      {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $lookup: {
-          from: 'classandsections',
-          let: { classId: '$academicHistory.masterDefineClass', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'classData',
-        },
-      },
-      {
-        $lookup: {
-          from: 'classandsections',
-          let: { sectionId: '$academicHistory.section', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-            {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
-                },
-              },
-            },
-          ],
-          as: 'sectionData',
-        },
-      },
-      {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $project: {
-          _id: {
-            admissionNumber: '$AdmissionNumber',
-            studentName: { $concat: ['$firstName', ' ', { $ifNull: ['$middleName', ''] }, ' ', '$lastName'] },
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: null,
-            paymentMode: '$paymentMode',
-            receiptNumber: '$receiptNumber',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
-            academicYear: '$academicYear',
-          },
-          feeTypes: [
-            {
-              feeTypeId: 'Admission Fees',
-              totalPaid: { $subtract: ['$admissionFees', { $ifNull: ['$concessionAmount', 0] }] },
-            },
-          ],
-          fineAmount: { $literal: 0 },
-          excessAmount: { $literal: 0 },
-        },
-      },
-    ]);
-
-    // Registration Fees Aggregation
-    const registrationFeesAggregation = await StudentRegistration.aggregate([
-      {
-        $match: {
-          schoolId: schoolIdString,
-          paymentDate: { $gte: startDate, $lte: endDate },
-          registrationFee: { $gt: 0 },
-          registrationNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
       {
         $lookup: {
           from: 'admissionforms',
-          localField: 'registrationNumber',
-          foreignField: 'registrationNumber',
-          as: 'admissionRecord',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'admissionForm',
         },
       },
-      {
-        $unwind: { path: '$admissionRecord', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $addFields: {
-          academicHistory: {
-            $cond: {
-              if: { $eq: [{ $size: { $ifNull: ['$admissionRecord.academicHistory', []] } }, 0] },
-              then: [],
-              else: {
-                $filter: {
-                  input: '$admissionRecord.academicHistory',
-                  as: 'history',
-                  cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
-      },
+      { $unwind: { path: '$admissionForm', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$admissionForm.academicHistory', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'classandsections',
-          let: { classId: '$academicHistory.masterDefineClass', academicYear: '$academicYear', schoolId: schoolIdString },
+          let: { classId: '$admissionForm.academicHistory.masterDefineClass', academicYear: '$academicYear' },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
+                    { $eq: ['$_id', '$$classId'] },
                     { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
+                    { $eq: ['$schoolId', schoolIdString] },
                   ],
                 },
               },
             },
+            { $project: { className: 1 } },
           ],
           as: 'classData',
         },
@@ -385,609 +221,736 @@ export const getStudentWiseFees = async (req, res) => {
       {
         $lookup: {
           from: 'classandsections',
-          let: { sectionId: '$academicHistory.section', academicYear: '$academicYear', schoolId: schoolIdString },
+          let: { sectionId: '$admissionForm.academicHistory.section', academicYear: '$academicYear' },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
                     { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
+                    { $eq: ['$schoolId', schoolIdString] },
                   ],
                 },
               },
             },
+            { $unwind: '$sections' },
             {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
-                },
+              $match: {
+                $expr: { $eq: ['$sections._id', '$$sectionId'] },
               },
             },
+            { $project: { sectionName: '$sections.name' } },
           ],
           as: 'sectionData',
         },
       },
+      { $unwind: { path: '$classData', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true } },
+
       {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $project: {
+        $group: {
           _id: {
-            registrationNumber: '$registrationNumber',
-            admissionNumber: { $ifNull: ['$admissionRecord.AdmissionNumber', '-'] },
-            studentName: { $concat: ['$firstName', ' ', { $ifNull: ['$middleName', ''] }, ' ', '$lastName'] },
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: null,
-            paymentMode: '$paymentMode',
-            receiptNumber: '$receiptNumber',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
             academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
+            paymentMode: '$paymentMode',
+            className: '$classData.className',
+            sectionName: '$sectionData.sectionName',
+            status: '$status',
+           studentAdmissionNumber: '$admissionForm.AdmissionNumber',
+            studentName: { $concat: ["$admissionForm.firstName", " ", "$admissionForm.lastName"] },
+            receiptNumber: '$receiptNumber',
           },
-          feeTypes: [
-            {
-              feeTypeId: 'Registration Fees',
-              totalPaid: { $subtract: ['$registrationFee', { $ifNull: ['$concessionAmount', 0] }] },
-            },
-          ],
-          fineAmount: { $literal: 0 },
-          excessAmount: { $literal: 0 },
+          totalPaid: { 
+            $sum: { 
+              $subtract: ['$admissionFees', { $ifNull: ['$concessionAmount', 0] }] 
+            } 
+          },
+        },
+      },
+      {
+        $addFields: {
+          feeTypeId: 'Admission Fees',
+          installmentName: null,
+          fineAmount: 0,
+          excessAmount: 0,
         },
       },
     ]);
 
-    // TC Fees Aggregation
-    const tcFeesAggregation = await TCForm.aggregate([
+
+    // ----------------- Registration Fees -----------------
+    const registrationFeesAggregation = await RegistrationPayment.aggregate([
+      {
+        $match: {
+          schoolId: schoolIdString,
+          $or: [
+            { paymentDate: { $gte: startDate, $lte: endDate } },
+            { cancelledDate: { $gte: startDate, $lte: endDate } },
+          ],
+          registrationFee: { $gt: 0 },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'studentregistrations',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'registrationForm',
+        },
+      },
+      { $unwind: { path: '$registrationForm', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "classandsections",
+          localField: "registrationForm.masterDefineClass",
+          foreignField: "_id",
+          as: "classData"
+        }
+      },
+      { $unwind: { path: "$classData", preserveNullAndEmptyArrays: true } },
+
+      {
+        $group: {
+          _id: {
+            academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
+            paymentMode: '$paymentMode',
+            className: '$classData.className',
+            sectionName: null,
+            status: '$status',
+            studentAdmissionNumber: '$registrationForm.registrationNumber',
+            studentName: { $concat: ["$registrationForm.firstName", " ", "$registrationForm.lastName"] },
+            receiptNumber: '$receiptNumber',
+          },
+          totalPaid: { 
+            $sum: { 
+              $subtract: ['$registrationFee', { $ifNull: ['$concessionAmount', 0] }] 
+            } 
+          },
+        },
+      },
+      { $addFields: { feeTypeId: 'Registration Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
+    ]);
+
+    // ----------------- TC Fees -----------------
+    const tcFeesAggregation = await TCPayment.aggregate([
       {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
           TCfees: { $gt: 0 },
-          AdmissionNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
       {
         $lookup: {
-          from: 'admissionforms',
-          localField: 'AdmissionNumber',
-          foreignField: 'AdmissionNumber',
-          as: 'admissionData',
+          from: 'tcforms',
+          localField: 'tcFormId',
+          foreignField: '_id',
+          as: 'tcForm',
         },
       },
-      {
-        $unwind: { path: '$admissionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $addFields: {
-          academicHistory: {
-            $filter: {
-              input: '$admissionData.academicHistory',
-              as: 'history',
-              cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-            },
-          },
-        },
-      },
-      {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
-      },
+      { $unwind: { path: '$tcForm', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: 'classandsections',
-          let: { classId: '$academicHistory.masterDefineClass', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'classData',
-        },
+          from: "classandsections",
+          localField: "tcForm.masterDefineClass",
+          foreignField: "_id",
+          as: "classData"
+        }
       },
+      { $unwind: { path: "$classData", preserveNullAndEmptyArrays: true } },
       {
-        $lookup: {
-          from: 'classandsections',
-          let: { sectionId: '$academicHistory.section', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-            {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
-                },
-              },
-            },
-          ],
-          as: 'sectionData',
-        },
-      },
-      {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $project: {
+        $group: {
           _id: {
-            admissionNumber: '$AdmissionNumber',
-            studentName: { $concat: ['$firstName', ' ', { $ifNull: ['$middleName', ''] }, ' ', '$lastName'] },
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: null,
+            academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
             paymentMode: '$paymentMode',
+            className: '$classData.className',
+            sectionName: null,
+            status: '$status',
+            studentAdmissionNumber: '$tcForm.AdmissionNumber',
+            studentName: { $concat: ["$tcForm.firstName", " ", "$tcForm.lastName"] },
             receiptNumber: '$receiptNumber',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
-            academicYear: '$academicYear',
           },
-          feeTypes: [
-            {
-              feeTypeId: 'TC Fees',
-              totalPaid: { $subtract: ['$TCfees', { $ifNull: ['$concessionAmount', 0] }] },
-            },
-          ],
-          fineAmount: { $literal: 0 },
-          excessAmount: { $literal: 0 },
+          totalPaid: { 
+            $sum: { 
+              $subtract: ['$TCfees', { $ifNull: ['$concessionAmount', 0] }] 
+            } 
+          },
         },
       },
+      { $addFields: { feeTypeId: 'TC Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
     ]);
 
-    // Board Registration Fees Aggregation
-    const boardRegistrationFeesAggregation = await BoardRegistrationFeePayment.aggregate([
-      {
-        $match: {
-          schoolId: schoolIdString,
-          paymentDate: { $gte: startDate, $lte: endDate },
-          amount: { $gt: 0 },
-          admissionNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
-        },
-      },
-      {
-        $lookup: {
-          from: 'admissionforms',
-          localField: 'admissionNumber',
-          foreignField: 'AdmissionNumber',
-          as: 'admissionData',
-        },
-      },
-      {
-        $unwind: { path: '$admissionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $addFields: {
-          academicHistory: {
-            $filter: {
-              input: '$admissionData.academicHistory',
-              as: 'history',
-              cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-            },
-          },
-        },
-      },
-      {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $lookup: {
-          from: 'classandsections',
-          let: { classId: '$classId', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'classData',
-        },
-      },
-      {
-        $lookup: {
-          from: 'classandsections',
-          let: { sectionId: '$sectionId', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
-            {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
-                },
-              },
-            },
-          ],
-          as: 'sectionData',
-        },
-      },
-      {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $project: {
-          _id: {
-            admissionNumber: '$admissionNumber',
-            studentName: '$studentName',
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: null,
-            paymentMode: '$paymentMode',
-            receiptNumber: '$receiptNumberBrf',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
-            academicYear: '$academicYear',
-          },
-          feeTypes: [
-            {
-              feeTypeId: 'Board Registration Fees',
-              totalPaid: { $subtract: ['$amount', { $ifNull: ['$concessionAmount', 0] }] },
-            },
-          ],
-          fineAmount: { $literal: 0 },
-          excessAmount: { $literal: 0 },
-        },
-      },
-    ]);
-
-    // Board Exam Fees Aggregation
+    // ----------------- Board Exam Fees -----------------
     const boardExamFeesAggregation = await BoardExamFeePayment.aggregate([
       {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
           amount: { $gt: 0 },
-          admissionNumber: { $ne: null, $ne: '' },
-          status: { $in: ['Paid'] },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
       {
         $lookup: {
-          from: 'admissionforms',
-          localField: 'admissionNumber',
-          foreignField: 'AdmissionNumber',
-          as: 'admissionData',
+          from: "classandsections",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classData"
+        }
+      },
+      { $unwind: { path: "$classData", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$classData.sections", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          $expr: { $eq: ["$classData.sections._id", "$sectionId"] }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
+            paymentMode: '$paymentMode',
+            className: '$classData.className',
+            sectionName: '$classData.sections.name',
+            status: '$status',
+            studentAdmissionNumber: '$admissionNumber',
+            studentName: '$studentName',
+            receiptNumber: '$receiptNumberBef',
+          },
+          totalPaid: { 
+            $sum: { 
+              $subtract: ['$amount', { $ifNull: ['$concessionAmount', 0] }] 
+            } 
+          },
+        },
+      },
+      { $addFields: { feeTypeId: 'Board Exam Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
+    ]);
+
+    // ----------------- Board Registration Fees -----------------
+    const boardRegistrationFeesAggregation = await BoardRegistrationFeePayment.aggregate([
+      {
+        $match: {
+          schoolId: schoolIdString,
+          paymentDate: { $gte: startDate, $lte: endDate },
+          amount: { $gt: 0 },
+          status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
       {
-        $unwind: { path: '$admissionData', preserveNullAndEmptyArrays: true },
+        $lookup: {
+          from: "classandsections",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classData"
+        }
+      },
+      { $unwind: { path: "$classData", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$classData.sections", preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          $expr: { $eq: ["$classData.sections._id", "$sectionId"] }
+        }
       },
       {
         $addFields: {
-          academicHistory: {
-            $filter: {
-              input: '$admissionData.academicHistory',
-              as: 'history',
-              cond: { $eq: ['$$history.academicYear', '$academicYear'] },
-            },
+          className: "$classData.className",
+          sectionName: "$classData.sections.name"
+        }
+      },
+
+
+      {
+        $group: {
+          _id: {
+            academicYear: '$academicYear',
+            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
+            cancelledDate: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } },
+            paymentMode: '$paymentMode',
+            className: '$className',
+            sectionName: '$sectionName',
+            status: '$status',
+            studentAdmissionNumber: '$admissionNumber',
+            studentName: '$studentName',
+            receiptNumber: '$receiptNumberBrf',
+          },
+          totalPaid: { 
+            $sum: { 
+              $subtract: ['$amount', { $ifNull: ['$concessionAmount', 0] }] 
+            } 
           },
         },
       },
+      { $addFields: { feeTypeId: 'Board Registration Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
+    ]);
+
+    // ----------------- Refund Fees -----------------
+    const refundFeesAggregation = await RefundFees.aggregate([
       {
-        $unwind: { path: '$academicHistory', preserveNullAndEmptyArrays: true },
+        $match: {
+          schoolId: schoolIdString,
+          $or: [
+            { refundAmount: { $gt: 0 } },
+            { cancelledAmount: { $gt: 0 } }
+          ],
+        },
       },
       {
         $lookup: {
-          from: 'classandsections',
-          let: { classId: '$classId', academicYear: '$academicYear', schoolId: schoolIdString },
+          from: "classandsections",
+          let: { classId: "$classId", academicYear: "$academicYear" },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ['$_id', { $toObjectId: '$$classId' }] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
-                },
-              },
-            },
+                    { $eq: ["$_id", "$$classId"] },
+                    { $eq: ["$academicYear", "$$academicYear"] },
+                    { $eq: ["$schoolId", schoolIdString] }
+                  ]
+                }
+              }
+            }
           ],
-          as: 'classData',
-        },
+          as: "classData"
+        }
+      },
+      { $unwind: { path: "$classData", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          className: "$classData.className",
+          sectionData: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$classData.sections",
+                  as: "sec",
+                  cond: { $eq: ["$$sec._id", "$sectionId"] }
+                }
+              },
+              0
+            ]
+          }
+        }
       },
       {
-        $lookup: {
-          from: 'classandsections',
-          let: { sectionId: '$sectionId', academicYear: '$academicYear', schoolId: schoolIdString },
-          pipeline: [
+        $addFields: {
+          sectionName: "$sectionData.name"
+        }
+      },
+      {
+        $match: {
+          $or: [
+            { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
+            { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
+          ]
+        }
+      },
+      {
+        $addFields: {
+          totalAmount: {
+            $cond: {
+              if: { $eq: ['$status', 'Refund'] },
+              then: '$refundAmount',
+              else: '$cancelledAmount'
+            }
+          },
+          effectiveDate: {
+            $cond: {
+              if: { $eq: ['$status', 'Refund'] },
+              then: { $dateToString: { format: '%d-%m-%Y', date: '$refundDate' } },
+              else: { $dateToString: { format: '%d-%m-%Y', date: '$cancelledDate' } }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          totalAmount: { $gt: 0 }
+        }
+      },
+      {
+        $facet: {
+          schoolFeesRefunds: [
+            { $match: { refundType: 'School Fees', feeTypeRefunds: { $ne: [] } } },
+            { $unwind: '$feeTypeRefunds' },
+            {
+              $lookup: {
+                from: 'feestypes',
+                localField: 'feeTypeRefunds.feeType',
+                foreignField: '_id',
+                as: 'feeTypeData',
+              },
+            },
+            { $unwind: { path: '$feeTypeData', preserveNullAndEmptyArrays: true } },
+            {
+              $addFields: {
+                feeRefundAmount: {
+                  $cond: {
+                    if: { $eq: ['$status', 'Refund'] },
+                    then: '$feeTypeRefunds.refundAmount',
+                    else: '$feeTypeRefunds.cancelledAmount'
+                  }
+                }
+              }
+            },
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $in: [{ $toObjectId: '$$sectionId' }, '$sections._id'] },
-                    { $eq: ['$academicYear', '$$academicYear'] },
-                    { $eq: ['$schoolId', '$$schoolId'] },
-                  ],
+                feeRefundAmount: { $gt: 0 }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  academicYear: '$academicYear',
+                  refundDate: '$effectiveDate',
+                  paymentMode: '$paymentMode',
+                  className: '$className',
+                  sectionName: '$sectionName',
+                  status: '$status',
+                  studentAdmissionNumber: { $ifNull: ['$admissionNumber', '$registrationNumber'] },
+                  studentName: { $concat: ['$firstName', ' ', '$lastName'] },
+                  receiptNumber: '$receiptNumber',
+                  installmentName: '$installmentName',
+                  feeTypeId: '$feeTypeRefunds.feeType',
                 },
+                totalRefund: { $sum: '$feeRefundAmount' },
+                fineAmount: { $sum: 0 },
+                excessAmount: { $sum: 0 },
+                feeTypeName: { $first: '$feeTypeData.feesTypeName' },
               },
             },
             {
-              $project: {
-                sections: {
-                  $filter: {
-                    input: '$sections',
-                    as: 'section',
-                    cond: { $eq: ['$$section._id', { $toObjectId: '$$sectionId' }] },
-                  },
+              $addFields: {
+                academicYear: '$_id.academicYear',
+                feeTypeId: '$_id.feeTypeId',
+                installmentName: '$_id.installmentName',
+                feeTypeName: {
+                  $cond: {
+                    if: { $and: ['$feeTypeName', { $ne: ['$feeTypeName', ''] }] },
+                    then: '$feeTypeName',
+                    else: 'Unknown School Fee'
+                  }
                 },
               },
             },
           ],
-          as: 'sectionData',
+
+          otherFeesRefunds: [
+            {
+              $match: {
+                refundType: {
+                  $in: [
+                    'Admission Fee',
+                    'Registration Fee',
+                    'Transfer Certificate Fee',
+                    'Board Exam Fee',
+                    'Board Registration Fee'
+                  ]
+                }
+              }
+            },
+            {
+              $addFields: {
+                refundAmountToUse: {
+                  $cond: {
+                    if: { $eq: ['$status', 'Refund'] },
+                    then: '$refundAmount',
+                    else: '$cancelledAmount'
+                  }
+                }
+              }
+            },
+            {
+              $match: {
+                refundAmountToUse: { $gt: 0 }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  academicYear: '$academicYear',
+                  refundDate: '$effectiveDate',
+                  paymentMode: '$paymentMode',
+                  className: '$className',
+                  sectionName: '$sectionName',
+                  status: '$status',
+                  studentAdmissionNumber: { $ifNull: ['$admissionNumber', '$registrationNumber'] },
+                  studentName: { $concat: ['$firstName', ' ', '$lastName'] },
+                  receiptNumber: '$receiptNumber',
+                  installmentName: '$installmentName',
+                  refundType: '$refundType', 
+                },
+                totalRefund: { $sum: '$refundAmountToUse' },
+                fineAmount: { $sum: 0 },
+                excessAmount: { $sum: 0 },
+              },
+            },
+            {
+              $addFields: {
+                academicYear: '$_id.academicYear',
+                feeTypeId: null,
+                feeTypeName: '$_id.refundType', 
+                installmentName: '$_id.installmentName',
+              },
+            },
+          ],
+
+
+          schoolFeesWithoutBreakdown: [
+            { $match: { refundType: 'School Fees', feeTypeRefunds: { $eq: [] } } },
+            {
+              $addFields: {
+                refundAmountToUse: {
+                  $cond: {
+                    if: { $eq: ['$status', 'Refund'] },
+                    then: '$refundAmount',
+                    else: '$cancelledAmount'
+                  }
+                }
+              }
+            },
+            {
+              $match: {
+                refundAmountToUse: { $gt: 0 }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  academicYear: '$academicYear',
+                  refundDate: '$effectiveDate',
+                  paymentMode: '$paymentMode',
+                  className: '$className',
+                  sectionName: '$sectionName',
+                  status: '$status',
+                  studentAdmissionNumber: '$admissionNumber' || '$registrationNumber',
+                  studentName: { $concat: ['$firstName', ' ', '$lastName'] },
+                  receiptNumber: '$receiptNumber',
+                  installmentName: '$installmentName',
+                },
+                totalRefund: { $sum: '$refundAmountToUse' },
+                fineAmount: { $sum: 0 },
+                excessAmount: { $sum: 0 },
+              },
+            },
+            {
+              $addFields: {
+                academicYear: '$_id.academicYear',
+                feeTypeId: null,
+                feeTypeName: 'School Fees',
+                installmentName: '$_id.installmentName',
+              },
+            },
+          ],
         },
-      },
-      {
-        $unwind: { path: '$classData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData', preserveNullAndEmptyArrays: true },
-      },
-      {
-        $unwind: { path: '$sectionData.sections', preserveNullAndEmptyArrays: true },
       },
       {
         $project: {
-          _id: {
-            admissionNumber: '$admissionNumber',
-            studentName: '$studentName',
-            className: { $ifNull: ['$classData.className', '-'] },
-            sectionName: { $ifNull: ['$sectionData.sections.name', '-'] },
-            installmentName: null,
-            paymentMode: '$paymentMode',
-            receiptNumber: '$receiptNumberBef',
-            paymentDate: { $dateToString: { format: '%d-%m-%Y', date: '$paymentDate' } },
-            academicYear: '$academicYear',
-          },
-          feeTypes: [
-            {
-              feeTypeId: 'Board Exam Fees',
-              totalPaid: { $subtract: ['$amount', { $ifNull: ['$concessionAmount', 0] }] },
-            },
-          ],
-          fineAmount: { $literal: 0 },
-          excessAmount: { $literal: 0 },
-        },
+          combined: {
+            $concatArrays: [
+              '$schoolFeesRefunds',
+              '$otherFeesRefunds',
+              '$schoolFeesWithoutBreakdown'
+            ]
+          }
+        }
       },
+      { $unwind: '$combined' },
+      { $replaceRoot: { newRoot: '$combined' } },
+      { $match: { academicYear: { $exists: true, $ne: null } } },
     ]);
 
-    // Combine Data
+    // ----------------- Combine All -----------------
     const combinedData = [
-      ...schoolFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
+    ...schoolFeesAggregation.map((item) => ({
         academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          const feeTypeName = feeTypeMap[fee.feeTypeId] || fee.feeTypeId;
-          acc[feeTypeName] = (acc[feeTypeName] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item._id.feeTypeId.toString(),
+        feeTypeName: feeTypeMap[item._id.feeTypeId.toString()] || item._id.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item._id.installmentName || null,
+        totalPaid: item.totalPaid,
         fineAmount: item.fineAmount || 0,
         excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
       })),
       ...admissionFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
         academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          acc[fee.feeTypeId] = (acc[fee.feeTypeId] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: feeTypeMap[item.feeTypeId] || item.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item.installmentName,
+        totalPaid: item.totalPaid,
         fineAmount: item.fineAmount || 0,
         excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+         studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
       })),
       ...registrationFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: item._id.registrationNumber || '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
         academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          acc[fee.feeTypeId] = (acc[fee.feeTypeId] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: feeTypeMap[item.feeTypeId] || item.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item.installmentName,
+        totalPaid: item.totalPaid,
         fineAmount: item.fineAmount || 0,
         excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
       })),
       ...tcFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
         academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          acc[fee.feeTypeId] = (acc[fee.feeTypeId] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: feeTypeMap[item.feeTypeId] || item.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item.installmentName,
+        totalPaid: item.totalPaid,
         fineAmount: item.fineAmount || 0,
         excessAmount: item.excessAmount || 0,
-      })),
-      ...boardRegistrationFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
-        academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          acc[fee.feeTypeId] = (acc[fee.feeTypeId] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
-        fineAmount: item.fineAmount || 0,
-        excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
       })),
       ...boardExamFeesAggregation.map((item) => ({
-        admissionNumber: item._id.admissionNumber || '-',
-        registrationNumber: '-',
-        studentName: item._id.studentName || '-',
-        className: item._id.className || '-',
-        sectionName: item._id.sectionName || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentMode: item._id.paymentMode || '-',
-        receiptNumber: item._id.receiptNumber || '-',
-        paymentDate: item._id.paymentDate || '-',
         academicYear: item._id.academicYear,
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          acc[fee.feeTypeId] = (acc[fee.feeTypeId] || 0) + fee.totalPaid;
-          return acc;
-        }, {}),
-        totalPaid: item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0),
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: feeTypeMap[item.feeTypeId] || item.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item.installmentName,
+        totalPaid: item.totalPaid,
         fineAmount: item.fineAmount || 0,
         excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
       })),
-    ].filter((item) => (item.admissionNumber && item.admissionNumber !== '-') || (item.registrationNumber && item.registrationNumber !== '-'));
+      ...boardRegistrationFeesAggregation.map((item) => ({
+        academicYear: item._id.academicYear,
+        paymentDate: item._id.paymentDate,
+        cancelledDate: item._id.cancelledDate || null,
+        refundDate: null,
+        paymentMode: item._id.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: feeTypeMap[item.feeTypeId] || item.feeTypeId,
+        className: item._id.className || null,
+        sectionName: item._id.sectionName || null,
+        installmentName: item.installmentName,
+        totalPaid: item.totalPaid,
+        fineAmount: item.fineAmount || 0,
+        excessAmount: item.excessAmount || 0,
+        status: item._id.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id.studentName,
+        receiptNumber: item._id.receiptNumber,
+      })),
+      ...refundFeesAggregation.map((item) => ({
+        academicYear: item.academicYear,
+        paymentDate: item._id ? item._id.refundDate : item.refundDate,
+        cancelledDate: null,
+        refundDate: item._id ? item._id.refundDate : item.refundDate,
+        paymentMode: item._id ? item._id.paymentMode : item.paymentMode,
+        feeTypeId: item.feeTypeId,
+        feeTypeName: item.feeTypeName || 'Unknown Refund',
+        className: item._id ? (item._id.className || item.className) || null : item.className || null,
+        sectionName: item._id ? (item._id.sectionName || item.sectionName) || null : item.sectionName || null,
+        installmentName: item.installmentName || null,
+        totalPaid: - (item.totalRefund || 0),
+        fineAmount: item.fineAmount || 0,
+        excessAmount: item.excessAmount || 0,
+        status: item._id ? item._id.status : item.status,
+        studentAdmissionNumber: item._id.studentAdmissionNumber,
+        studentName: item._id ? item._id.studentName : item.studentName,
+        receiptNumber: item._id ? item._id.receiptNumber : item.receiptNumber,
+      })),
+    ];
 
+    // ----------------- Group Final Data -----------------
     const groupedData = combinedData.reduce((acc, item) => {
-      const key = `${item.admissionNumber}_${item.paymentDate}_${item.receiptNumber}`;
+      const key = `${item.academicYear}_${(item.paymentDate || item.refundDate) || 'none'}_${item.cancelledDate || 'none'}_${item.paymentMode || 'none'}_${item.installmentName || 'none'}_${item.status || 'none'}_${item.studentAdmissionNumber || 'none'}_${item.receiptNumber || 'none'}`;
       if (!acc[key]) {
         acc[key] = {
+          academicYear: item.academicYear,
           paymentDate: item.paymentDate,
-          admissionNumber: item.admissionNumber,
-          registrationNumber: item.registrationNumber,
-          studentName: item.studentName,
+          cancelledDate: item.cancelledDate,
+          refundDate: item.refundDate,
+          paymentMode: item.paymentMode,
+          feeTypes: {},
           className: item.className,
           sectionName: item.sectionName,
           installmentName: item.installmentName,
-          paymentMode: item.paymentMode,
-          receiptNumber: item.receiptNumber,
-          academicYear: item.academicYear,
-          feeTypes: { ...item.feeTypes },
-          totalPaid: item.totalPaid,
           fineAmount: item.fineAmount || 0,
           excessAmount: item.excessAmount || 0,
+          status: item.status,
+          studentAdmissionNumber: item.studentAdmissionNumber,
+          studentName: item.studentName,
+          receiptNumber: item.receiptNumber,
         };
-      } else {
-        Object.entries(item.feeTypes).forEach(([feeType, amount]) => {
-          acc[key].feeTypes[feeType] = (acc[key].feeTypes[feeType] || 0) + amount;
-        });
-        acc[key].totalPaid += item.totalPaid;
-        acc[key].fineAmount = (acc[key].fineAmount || 0) + (item.fineAmount || 0);
-        acc[key].excessAmount = (acc[key].excessAmount || 0) + (item.excessAmount || 0);
       }
+      acc[key].feeTypes[item.feeTypeName] = (acc[key].feeTypes[item.feeTypeName] || 0) + item.totalPaid;
       return acc;
     }, {});
 
     const result = Object.values(groupedData).sort((a, b) => {
-      const dateA = new Date(a.paymentDate.split('-').reverse().join('-'));
-      const dateB = new Date(b.paymentDate.split('-').reverse().join('-'));
+      const dateA = new Date((a.paymentDate || a.refundDate).split('-').reverse().join('-'));
+      const dateB = new Date((b.paymentDate || b.refundDate).split('-').reverse().join('-'));
       return dateA - dateB;
     });
 
-    const paymentModeOptions = [...new Set(combinedData.map((item) => item.paymentMode).filter(Boolean))].map(
-      (mode) => ({
-        value: mode,
-        label: mode,
-      })
-    );
+    // ----------------- Build Filters -----------------
+    const paymentModeOptions = [...new Set(combinedData.map((item) => item.paymentMode).filter(Boolean))].map((mode) => ({
+      value: mode,
+      label: mode,
+    }));
 
-    const feeTypeOptions = [...new Set(combinedData.flatMap((item) => Object.keys(item.feeTypes)))].map((type) => ({
+    const feeTypeOptions = [...new Set(combinedData.map((item) => item.feeTypeName))].map((type) => ({
       value: type,
       label: type,
     }));
 
-    const uniqueFeeTypes = [...new Set(combinedData.flatMap((item) => Object.keys(item.feeTypes)))].sort();
-
-    const academicYearOptions = feesStructures
-      .map((fs) => fs.academicYear)
-      .filter((year, index, self) => self.indexOf(year) === index)
-      .sort()
-      .map((year) => ({
-        value: year,
-        label: year.split('-').length === 2 ? `${year.split('-')[0]}-${year.split('-')[1].slice(-2)}` : year,
-      }));
+    const uniqueFeeTypes = [...new Set(combinedData.map((item) => item.feeTypeName))].sort();
 
     res.status(200).json({
       data: result,
@@ -1002,9 +965,9 @@ export const getStudentWiseFees = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching student-wise fees:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error fetching total paid fee types:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-export default getStudentWiseFees;
+export default CollectionExcConcession;

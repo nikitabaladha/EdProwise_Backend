@@ -18,11 +18,10 @@ export const getSchoolFees= async (req, res) => {
       schoolId,
       studentAdmissionNumber: admissionNumber,
       academicYear,
-      status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
       'installments.installmentName': installmentName,
     })
       .select(
-        'receiptNumber paymentDate collectorName paymentMode transactionNumber bankName chequeNumber status cancelReason cancelledDate installments'
+        'receiptNumber paymentDate collectorName paymentMode transactionNumber bankName chequeNumber reportStatus  refundReceiptNumbers installments'
       )
       .lean();
 
@@ -45,9 +44,8 @@ export const getSchoolFees= async (req, res) => {
         transactionNumber: receipt.transactionNumber || '',
         bankName: receipt.bankName || '',
         chequeNumber: receipt.chequeNumber || '',
-        status: receipt.status,
-        cancelReason: receipt.cancelReason || '',
-        cancelledDate: receipt.cancelledDate || null,
+        status:receipt.reportStatus || '',
+        refundReceiptNumber:receipt.refundReceiptNumbers || '',
         installmentName: targetInstallment.installmentName,
         fineAmount: targetInstallment.fineAmount || 0,
         excessAmount: targetInstallment.excessAmount || 0,
