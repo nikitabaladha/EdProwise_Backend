@@ -3,6 +3,7 @@ import FeesType from '../../../../models/FeesModule/FeesType.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
 import FeesManagementYear from '../../../../models/FeesModule/FeesManagementYear.js';
+import ConcessionFormModel from '../../../../models/FeesModule/ConcessionForm.js';
 
 export const ArrearFeesReport = async (req, res) => {
   try {
@@ -29,12 +30,14 @@ export const ArrearFeesReport = async (req, res) => {
       academicYear: paymentAcademicYear,
     }).lean();
 
-    const reportStartDate = currentFeesManagementYear?.startDate
-      ? new Date(currentFeesManagementYear.startDate)
-      : new Date(`${startYear}-03-31T18:30:00.000Z`);
-    const reportEndDate = currentFeesManagementYear?.endDate
-      ? new Date(currentFeesManagementYear.endDate)
-      : new Date(`${endYear}-03-30T18:30:00.000Z`);
+    if (!currentFeesManagementYear) {
+      return res.status(400).json({
+        message: `Academic year ${paymentAcademicYear} not found for schoolId ${schoolIdString}`,
+      });
+    }
+
+    const reportStartDate = new Date(currentFeesManagementYear.startDate || `${startYear}-03-31T18:30:00.000Z`);
+    const reportEndDate = new Date(currentFeesManagementYear.endDate || `${endYear}-03-30T18:30:00.000Z`);
 
     const allFeesManagementYears = await FeesManagementYear.find({
       schoolId: schoolIdString,
@@ -109,10 +112,6 @@ export const ArrearFeesReport = async (req, res) => {
           studentName: {
             $concat: ['$firstName', ' ', '$lastName'],
           },
-        },
-      },
-      {
-        $addFields: {
           isArrear: {
             $cond: {
               if: {
@@ -156,6 +155,36 @@ export const ArrearFeesReport = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: ConcessionFormModel.collection.name,
+          let: { admissionNumber: '$studentAdmissionNumber', academicYear: '$academicYear', installmentName: '$installments.installmentName' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$AdmissionNumber', '$$admissionNumber'] },
+                    { $eq: ['$academicYear', '$$academicYear'] },
+                    { $eq: ['$installmentName', '$$installmentName'] },
+                  ],
+                },
+              },
+            },
+            {
+              $unwind: '$concessionDetails',
+            },
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$concessionDetails.feesType', '$installments.feeItems.feeTypeId'],
+                },
+              },
+            },
+          ],
+          as: 'concessionData',
+        },
+      },
+      {
         $group: {
           _id: {
             admissionNumber: '$studentAdmissionNumber',
@@ -174,7 +203,7 @@ export const ArrearFeesReport = async (req, res) => {
           },
           totalAmount: { $sum: '$installments.feeItems.amount' },
           totalPaid: { $sum: '$installments.feeItems.paid' },
-          totalConcession: { $sum: '$installments.feeItems.concession' },
+          totalConcession: { $sum: { $arrayElemAt: ['$concessionData.concessionDetails.concessionAmount', 0] } },
           fineAmount: { $sum: '$installments.fineAmount' },
         },
       },
@@ -209,11 +238,16 @@ export const ArrearFeesReport = async (req, res) => {
     ]);
 
     const combinedData = schoolFeesAggregation.map((item) => {
-      const grossPaid = item.feeTypes.reduce((sum, fee) => sum + fee.totalPaid, 0);
-      const totalConcession = item.totalConcession || 0;
-      const totalAmount = item.totalAmount || 0;
-      const totalDue = totalAmount;
-      const netCollection = grossPaid - totalConcession;
+      const feeTypesBreakdown = item.feeTypes.reduce((acc, fee) => {
+        const feeTypeName = feeTypeMap[fee.feeTypeId] || fee.feeTypeId;
+        acc[feeTypeName] = {
+          totalPaid: fee.totalPaid || 0,
+        };
+        return acc;
+      }, {});
+
+      const totalDue = item.totalAmount || 0;
+      const netCollection = (item.totalPaid || 0) - (item.totalConcession || 0);
 
       return {
         admissionNumber: item._id.admissionNumber || '-',
@@ -226,18 +260,12 @@ export const ArrearFeesReport = async (req, res) => {
         transactionNumber: item._id.transactionNumber || '-',
         receiptNumber: item._id.receiptNumber || '-',
         paymentDate: item._id.paymentDate || '-',
-        feeTypes: item.feeTypes.reduce((acc, fee) => {
-          const feeTypeName = feeTypeMap[fee.feeTypeId] || fee.feeTypeId;
-          acc[feeTypeName] = {
-            totalAmount: fee.totalAmount,
-            totalPaid: fee.totalPaid,
-            totalConcession: fee.totalConcession || 0,
-          };
-          return acc;
-        }, {}),
-        totalDue: totalDue,
+        feeTypes: feeTypesBreakdown,
+        totalDue,
         totalPaid: netCollection,
-        totalConcession: totalConcession,
+        totalConcession: item.totalConcession || 0,
+        fineAmount: item.fineAmount || 0,
+        totalBalance: totalDue - netCollection,
       };
     }).filter((item) => item.admissionNumber && item.admissionNumber !== '-');
 
@@ -259,18 +287,20 @@ export const ArrearFeesReport = async (req, res) => {
           totalDue: item.totalDue,
           totalPaid: item.totalPaid,
           totalConcession: item.totalConcession,
+          fineAmount: item.fineAmount,
+          totalBalance: item.totalBalance,
         };
       } else {
         Object.entries(item.feeTypes).forEach(([feeType, amounts]) => {
           acc[key].feeTypes[feeType] = {
-            totalAmount: (acc[key].feeTypes[feeType]?.totalAmount || 0) + amounts.totalAmount,
             totalPaid: (acc[key].feeTypes[feeType]?.totalPaid || 0) + amounts.totalPaid,
-            totalConcession: (acc[key].feeTypes[feeType]?.totalConcession || 0) + amounts.totalConcession,
           };
         });
         acc[key].totalDue += item.totalDue;
         acc[key].totalPaid += item.totalPaid;
         acc[key].totalConcession += item.totalConcession;
+        acc[key].fineAmount += item.fineAmount;
+        acc[key].totalBalance += item.totalBalance;
       }
       return acc;
     }, {});
@@ -303,6 +333,7 @@ export const ArrearFeesReport = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Error fetching arrear fees report:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

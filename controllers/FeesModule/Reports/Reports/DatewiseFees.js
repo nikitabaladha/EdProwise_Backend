@@ -364,7 +364,7 @@ export const CollectionIncConcession = async (req, res) => {
           totalPaid: { $sum: '$TCfees' },
         },
       },
-      { $addFields: { feeTypeId: 'TC Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
+      { $addFields: { feeTypeId: 'Transfer Certificate Fee', installmentName: null, fineAmount: 0, excessAmount: 0 } },
     ]);
 
     // ----------------- Board Exam Fees -----------------
@@ -373,7 +373,7 @@ export const CollectionIncConcession = async (req, res) => {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
-          amount: { $gt: 0 },
+          finalAmount: { $gt: 0 },
           status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
@@ -406,10 +406,10 @@ export const CollectionIncConcession = async (req, res) => {
             studentName: '$studentName',
             receiptNumber: '$receiptNumberBef',
           },
-          totalPaid: { $sum: '$amount' },
+          totalPaid: { $sum: '$finalAmount' },
         },
       },
-      { $addFields: { feeTypeId: 'Board Exam Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },
+      { $addFields: { feeTypeId: 'Board Exam Fee', installmentName: null, fineAmount: 0, excessAmount: 0 } },
     ]);
 
     // ----------------- Board Registration Fees -----------------
@@ -418,7 +418,7 @@ export const CollectionIncConcession = async (req, res) => {
         $match: {
           schoolId: schoolIdString,
           paymentDate: { $gte: startDate, $lte: endDate },
-          amount: { $gt: 0 },
+          finalAmount: { $gt: 0 },
           status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
@@ -457,7 +457,7 @@ export const CollectionIncConcession = async (req, res) => {
             studentName: '$studentName',
             receiptNumber: '$receiptNumberBrf',
           },
-          totalPaid: { $sum: '$amount' },
+          totalPaid: { $sum: '$finalAmount' },
         },
       },
       { $addFields: { feeTypeId: 'Board Registration Fees', installmentName: null, fineAmount: 0, excessAmount: 0 } },

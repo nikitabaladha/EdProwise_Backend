@@ -30,6 +30,7 @@ import AdvancedFeesReport from './AdvancedReport/AdvancedFeesReport.js';
 import OpeningAndClosingAdvancedReport from './AdvancedReport/OpeningAndClosingAdvancedReport.js'
 import FeesvsFinanacereport from './ReconFees/FeesVsFinance.js'
 import FeesreconFeeswise from './ReconFees/FeesReconFeeswise.js'
+import SchoolFeesPaidAndConcession from "./ReconFees/SchoolFees.js"
 
 export {
 getall,
@@ -61,5 +62,6 @@ FeesReconHeadwise,
 AdvancedFeesReport,
 OpeningAndClosingAdvancedReport,
 FeesvsFinanacereport,
-FeesreconFeeswise
+FeesreconFeeswise,
+SchoolFeesPaidAndConcession 
 };

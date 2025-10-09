@@ -1,151 +1,16 @@
-// // // controllers/feesController.js
-// // import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
-// // import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
-// // import FeesType from '../../../../models/FeesModule/FeesType.js';
-
-// // const getFeesReconFeeswise = async (req, res) => {
-// //   try {
-// //     const { schoolId, academicYear } = req.params;
-// //     const { installment } = req.query;
-
-// //     if (!schoolId || !academicYear) {
-// //       return res.status(400).json({ error: 'schoolId and academicYear are required in route params' });
-// //     }
-
-// //     const studentCountsAgg = await AdmissionForm.aggregate([
-// //       {
-// //         $match: {
-// //           schoolId,
-// //           academicYear,
-// //           TCStatus: 'Active',
-// //           dropoutStatus: { $ne: 'Dropout' }
-// //         }
-// //       },
-// //       { $unwind: '$academicHistory' },
-// //       {
-// //         $match: {
-// //           'academicHistory.academicYear': academicYear
-// //         }
-// //       },
-// //       {
-// //         $group: {
-// //           _id: {
-// //             classId: '$academicHistory.masterDefineClass',
-// //             sectionId: '$academicHistory.section'
-// //           },
-// //           count: { $sum: 1 }
-// //         }
-// //       }
-// //     ]);
-
-// //     const studentCountsMap = {};
-// //     studentCountsAgg.forEach(item => {
-// //       const key = `${item._id.classId}_${item._id.sectionId}`;
-// //       studentCountsMap[key] = item.count;
-// //     });
-
-// //     const feeStructures = await FeesStructure.find({ schoolId, academicYear })
-// //       .populate({
-// //         path: 'installments.fees.feesTypeId',
-// //         model: 'FeesType',
-// //         match: { groupOfFees: 'School Fees' }
-// //       })
-// //       .lean();
-
-// //     const feeTypeTotals = new Map();
-
-// //     feeStructures.forEach(structure => {
-// //       let numStudentsForStructure = 0;
-
-// //       structure.sectionIds.forEach(sectionId => {
-// //         const key = `${structure.classId}_${sectionId}`;
-// //         numStudentsForStructure += studentCountsMap[key] || 0;
-// //       });
-
-// //       if (numStudentsForStructure === 0) return;
-
-// //       let filteredInstallments = structure.installments;
-// //       if (installment) {
-// //         filteredInstallments = structure.installments.filter(inst => inst.name === installment);
-// //       }
-
-// //       filteredInstallments.forEach(installment => {
-// //         installment.fees.forEach(fee => {
-// //           const feeType = fee.feesTypeId;
-// //           if (feeType && feeType.groupOfFees === 'School Fees') {
-// //             const currentTotal = feeTypeTotals.get(feeType._id.toString()) || 0;
-// //             feeTypeTotals.set(feeType._id.toString(), currentTotal + (numStudentsForStructure * fee.amount));
-// //           }
-// //         });
-// //       });
-// //     });
-
-// //     const uniqueFeeTypeIds = Array.from(feeTypeTotals.keys());
-// //     const feeTypes = await FeesType.find({
-// //       _id: { $in: uniqueFeeTypeIds },
-// //       schoolId,
-// //       academicYear,
-// //       groupOfFees: 'School Fees'
-// //     }).lean();
-
-// //     const response = {};
-// //     feeTypes.forEach(ft => {
-// //       response[ft.feesTypeName] = feeTypeTotals.get(ft._id.toString()) || 0;
-// //     });
-
-// //     const totalofSchoolfees = Object.values(response).reduce((sum, val) => sum + val, 0);
-// //     let presentInstallment = null;
-// //     const currentDate = new Date();
-
-// //     if (feeStructures.length > 0 && feeStructures[0].installments.length > 0) {
-// //       const installments = [...feeStructures[0].installments];
-// //       installments.sort((a, b) => a.dueDate - b.dueDate);
-
-// //       for (let inst of installments) {
-// //         if (inst.dueDate >= currentDate) {
-// //           presentInstallment = inst.name;
-// //           break;
-// //         }
-// //       }
-
-// //       if (!presentInstallment) {
-
-// //     presentInstallment = installments.map(inst => inst.name);
-// //       }
-// //     }
-
-// //     res.status(200).json({
-// //       message: 'Fees due for school fees calculated successfully',
-// //       success: true,
-// //       Schoolfees: response,
-// //       totalofSchoolfees,
-// //       totalFeeTypes: Object.keys(response).length,
-// //       academicYear,
-// //       schoolId,
-// //       installmentFilter: installment || 'All',
-// //       presentInstallment: presentInstallment || 'None'
-// //     });
-// //   } catch (error) {
-// //     console.error('Error calculating fees due:', error);
-// //     res.status(500).json({
-// //       success: false,
-// //       error: 'Internal server error while calculating fees due',
-// //       details: error.message
-// //     });
-// //   }
-// // };
-
-// // export default getFeesReconFeeswise;
-
-// import OneTimeFees from '../../../../models/FeesModule/OneTimeFees.js';
+// import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
 // import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
+// import FeesType from '../../../../models/FeesModule/FeesType.js';
+// import OneTimeFees from '../../../../models/FeesModule/OneTimeFees.js';
 // import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
 // import BoardRegistrationFees from '../../../../models/FeesModule/BoardRegistrationFees.js';
 // import BoardExamFees from '../../../../models/FeesModule/BoardExamFee.js';
+// import ClassAndSection from '../../../../models/FeesModule/Class&Section.js'; 
 
-// const getFeesReconOnetime = async (req, res) => {
+// const getFeesReconCombined = async (req, res) => {
 //   try {
 //     const { schoolId, academicYear } = req.params;
+//     const { installment } = req.query;
 
 //     if (!schoolId || !academicYear) {
 //       return res.status(400).json({ error: 'schoolId and academicYear are required in route params' });
@@ -185,6 +50,112 @@
 
 //     const totalActiveStudents = studentCountsAgg.reduce((sum, item) => sum + item.count, 0);
 
+//     // Fetch class and section details for naming
+//     const classSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
+//     const classSectionMap = {};
+//     classSections.forEach(cs => {
+//       classSectionMap[cs._id] = { className: cs.className };
+//       cs.sections.forEach(sec => {
+//         classSectionMap[`${cs._id}_${sec._id}`] = {
+//           ...classSectionMap[cs._id],
+//           sectionName: sec.name
+//         };
+//       });
+//     });
+
+//     // School Fees Calculation - Breakdown by Class > Section > Installment > FeeType
+//     const feeStructures = await FeesStructure.find({ schoolId, academicYear })
+//       .populate({
+//         path: 'installments.fees.feesTypeId',
+//         model: 'FeesType',
+//         match: { groupOfFees: 'School Fees' }
+//       })
+//       .lean();
+
+//     const schoolFeesBreakdown = {}; // { classId: { className: '', sections: { sectionId: { sectionName: '', installments: { name: { fees: [{name, amount}], total: num} }, total: num } }, total: num } }
+
+//     feeStructures.forEach(structure => {
+//       const classId = structure.classId.toString();
+//       if (!schoolFeesBreakdown[classId]) {
+//         schoolFeesBreakdown[classId] = {
+//           className: classSectionMap[classId]?.className || 'Unknown Class',
+//           sections: {},
+//           total: 0
+//         };
+//       }
+
+//       let filteredInstallments = structure.installments;
+//       if (installment) {
+//         filteredInstallments = structure.installments.filter(inst => inst.name === installment);
+//       }
+
+//       structure.sectionIds.forEach(sectionId => {
+//         const sectionIdStr = sectionId.toString();
+//         const key = `${classId}_${sectionIdStr}`;
+//         const numStudentsForSection = studentCountsMap[key] || 0;
+
+//         if (numStudentsForSection === 0) return;
+
+//         if (!schoolFeesBreakdown[classId].sections[sectionIdStr]) {
+//           schoolFeesBreakdown[classId].sections[sectionIdStr] = {
+//             sectionName: classSectionMap[key]?.sectionName || 'Unknown Section',
+//             installments: {},
+//             total: 0
+//           };
+//         }
+
+//         filteredInstallments.forEach(installmentObj => {
+//           const instName = installmentObj.name;
+//           if (!schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName]) {
+//             schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName] = {
+//               fees: [],
+//               total: 0
+//             };
+//           }
+
+//           installmentObj.fees.forEach(fee => {
+//             const feeType = fee.feesTypeId;
+//             if (feeType && feeType.groupOfFees === 'School Fees') {
+//               const feeTotal = numStudentsForSection * fee.amount;
+//               schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].fees.push({
+//                 feesTypeName: feeType.feesTypeName,
+//                 amountPerStudent: fee.amount,
+//                 totalAmount: feeTotal
+//               });
+//               schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].total += feeTotal;
+//             }
+//           });
+
+//           // Update section total
+//           schoolFeesBreakdown[classId].sections[sectionIdStr].total += schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].total;
+//         });
+
+//         // Update class total
+//         schoolFeesBreakdown[classId].total += schoolFeesBreakdown[classId].sections[sectionIdStr].total;
+//       });
+//     });
+
+//     // Flatten for summary (original aggregated view)
+//     const feeTypeTotals = new Map();
+//     Object.values(schoolFeesBreakdown).forEach(classData => {
+//       Object.values(classData.sections).forEach(sectionData => {
+//         Object.values(sectionData.installments).forEach(instData => {
+//           instData.fees.forEach(fee => {
+//             const currentTotal = feeTypeTotals.get(fee.feesTypeName) || 0;
+//             feeTypeTotals.set(fee.feesTypeName, currentTotal + fee.totalAmount);
+//           });
+//         });
+//       });
+//     });
+
+//     const schoolFeesResponse = {};
+//     feeTypeTotals.forEach((total, name) => {
+//       schoolFeesResponse[name] = total;
+//     });
+
+//     const totalofSchoolfees = Object.values(schoolFeesResponse).reduce((sum, val) => sum + val, 0);
+
+//     // One-Time Fees Calculation (unchanged)
 //     const regCount = await StudentRegistration.countDocuments({
 //       schoolId,
 //       academicYear,
@@ -267,7 +238,7 @@
 //       boardExamTotal += numStudentsForStructure * struct.amount;
 //     });
 
-//     const response = {
+//     const oneTimeFeesResponse = {
 //       'Registration Fee': regTotal,
 //       'Admission Fee': admTotal,
 //       'TC Fee': tcTotal,
@@ -275,39 +246,69 @@
 //       'Board Exam Fee': boardExamTotal
 //     };
 
-//     const totalofOneTimefees = Object.values(response).reduce((sum, val) => sum + val, 0);
+//     const totalofOneTimefees = Object.values(oneTimeFeesResponse).reduce((sum, val) => sum + val, 0);
+
+//     // Combined Totals
+//     const grandTotal = totalofSchoolfees + totalofOneTimefees;
+
+//     // Present Installment Logic (unchanged)
+//     let presentInstallment = null;
+//     const currentDate = new Date();
+
+//     if (feeStructures.length > 0 && feeStructures[0].installments.length > 0) {
+//       const installments = [...feeStructures[0].installments];
+//       installments.sort((a, b) => a.dueDate - b.dueDate);
+
+//       for (let inst of installments) {
+//         if (inst.dueDate >= currentDate) {
+//           presentInstallment = inst.name;
+//           break;
+//         }
+//       }
+
+//       if (!presentInstallment) {
+//         presentInstallment = installments.map(inst => inst.name);
+//       }
+//     }
 
 //     res.status(200).json({
-//       message: 'One time fees due calculated successfully',
+//       message: 'Combined fees due calculated successfully',
 //       success: true,
-//       OneTimefees: response,
+//       Schoolfees: schoolFeesResponse,
+//       totalofSchoolfees,
+//       totalSchoolFeeTypes: Object.keys(schoolFeesResponse).length,
+//       // New: Detailed breakdown by class > section > installment
+//       schoolFeesBreakdown,
+//       OneTimefees: oneTimeFeesResponse,
 //       totalofOneTimefees,
-//       totalFeeTypes: Object.keys(response).length,
+//       totalOneTimeFeeTypes: Object.keys(oneTimeFeesResponse).length,
+//       grandTotal,
+//       totalFeeTypes: Object.keys(schoolFeesResponse).length + Object.keys(oneTimeFeesResponse).length,
 //       academicYear,
 //       schoolId,
-//       installmentFilter: 'All',
-//       presentInstallment: 'None'
+//       installmentFilter: installment || 'All',
+//       presentInstallment: presentInstallment || 'None'
 //     });
 //   } catch (error) {
-//     console.error('Error calculating one time fees due:', error);
+//     console.error('Error calculating combined fees due:', error);
 //     res.status(500).json({
 //       success: false,
-//       error: 'Internal server error while calculating one time fees due',
+//       error: 'Internal server error while calculating combined fees due',
 //       details: error.message
 //     });
 //   }
 // };
 
-// export default getFeesReconOnetime;
+// export default getFeesReconCombined;
 
-// controllers/feesController.js
 import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
 import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
-import FeesType from '../../../../models/FeesModule/FeesType.js';
 import OneTimeFees from '../../../../models/FeesModule/OneTimeFees.js';
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
 import BoardRegistrationFees from '../../../../models/FeesModule/BoardRegistrationFees.js';
 import BoardExamFees from '../../../../models/FeesModule/BoardExamFee.js';
+import ClassAndSection from '../../../../models/FeesModule/Class&Section.js'; 
+import TCForm from '../../../../models/FeesModule/TCForm.js';
 
 const getFeesReconCombined = async (req, res) => {
   try {
@@ -352,7 +353,20 @@ const getFeesReconCombined = async (req, res) => {
 
     const totalActiveStudents = studentCountsAgg.reduce((sum, item) => sum + item.count, 0);
 
-    // School Fees Calculation
+    // Fetch class and section details for naming
+    const classSections = await ClassAndSection.find({ schoolId, academicYear }).lean();
+    const classSectionMap = {};
+    classSections.forEach(cs => {
+      classSectionMap[cs._id] = { className: cs.className };
+      cs.sections.forEach(sec => {
+        classSectionMap[`${cs._id}_${sec._id}`] = {
+          ...classSectionMap[cs._id],
+          sectionName: sec.name
+        };
+      });
+    });
+
+    // School Fees Calculation - Breakdown by Class > Section > Installment > FeeType
     const feeStructures = await FeesStructure.find({ schoolId, academicYear })
       .populate({
         path: 'installments.fees.feesTypeId',
@@ -361,77 +375,97 @@ const getFeesReconCombined = async (req, res) => {
       })
       .lean();
 
-    const feeTypeTotals = new Map();
+    const schoolFeesBreakdown = {}; // { classId: { className: '', sections: { sectionId: { sectionName: '', installments: { name: { fees: [{name, amount}], total: num} }, total: num } }, total: num } }
 
     feeStructures.forEach(structure => {
-      let numStudentsForStructure = 0;
-
-      structure.sectionIds.forEach(sectionId => {
-        const key = `${structure.classId}_${sectionId}`;
-        numStudentsForStructure += studentCountsMap[key] || 0;
-      });
-
-      if (numStudentsForStructure === 0) return;
+      const classId = structure.classId.toString();
+      if (!schoolFeesBreakdown[classId]) {
+        schoolFeesBreakdown[classId] = {
+          className: classSectionMap[classId]?.className || 'Unknown Class',
+          sections: {},
+          total: 0
+        };
+      }
 
       let filteredInstallments = structure.installments;
       if (installment) {
         filteredInstallments = structure.installments.filter(inst => inst.name === installment);
       }
 
-      filteredInstallments.forEach(installment => {
-        installment.fees.forEach(fee => {
-          const feeType = fee.feesTypeId;
-          if (feeType && feeType.groupOfFees === 'School Fees') {
-            const currentTotal = feeTypeTotals.get(feeType._id.toString()) || 0;
-            feeTypeTotals.set(feeType._id.toString(), currentTotal + (numStudentsForStructure * fee.amount));
+      structure.sectionIds.forEach(sectionId => {
+        const sectionIdStr = sectionId.toString();
+        const key = `${classId}_${sectionIdStr}`;
+        const numStudentsForSection = studentCountsMap[key] || 0;
+
+        if (numStudentsForSection === 0) return;
+
+        if (!schoolFeesBreakdown[classId].sections[sectionIdStr]) {
+          schoolFeesBreakdown[classId].sections[sectionIdStr] = {
+            sectionName: classSectionMap[key]?.sectionName || 'Unknown Section',
+            installments: {},
+            total: 0
+          };
+        }
+
+        filteredInstallments.forEach(installmentObj => {
+          const instName = installmentObj.name;
+          if (!schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName]) {
+            schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName] = {
+              fees: [],
+              total: 0
+            };
           }
+
+          installmentObj.fees.forEach(fee => {
+            const feeType = fee.feesTypeId;
+            if (feeType && feeType.groupOfFees === 'School Fees') {
+              const feeTotal = numStudentsForSection * fee.amount;
+              schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].fees.push({
+                feesTypeName: feeType.feesTypeName,
+                amountPerStudent: fee.amount,
+                totalAmount: feeTotal
+              });
+              schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].total += feeTotal;
+            }
+          });
+
+          // Update section total
+          schoolFeesBreakdown[classId].sections[sectionIdStr].total += schoolFeesBreakdown[classId].sections[sectionIdStr].installments[instName].total;
+        });
+
+        // Update class total
+        schoolFeesBreakdown[classId].total += schoolFeesBreakdown[classId].sections[sectionIdStr].total;
+      });
+    });
+
+    // Flatten for summary (original aggregated view)
+    const feeTypeTotals = new Map();
+    Object.values(schoolFeesBreakdown).forEach(classData => {
+      Object.values(classData.sections).forEach(sectionData => {
+        Object.values(sectionData.installments).forEach(instData => {
+          instData.fees.forEach(fee => {
+            const currentTotal = feeTypeTotals.get(fee.feesTypeName) || 0;
+            feeTypeTotals.set(fee.feesTypeName, currentTotal + fee.totalAmount);
+          });
         });
       });
     });
 
-    const uniqueFeeTypeIds = Array.from(feeTypeTotals.keys());
-    const feeTypes = await FeesType.find({
-      _id: { $in: uniqueFeeTypeIds },
-      schoolId,
-      academicYear,
-      groupOfFees: 'School Fees'
-    }).lean();
-
     const schoolFeesResponse = {};
-    feeTypes.forEach(ft => {
-      schoolFeesResponse[ft.feesTypeName] = feeTypeTotals.get(ft._id.toString()) || 0;
+    feeTypeTotals.forEach((total, name) => {
+      schoolFeesResponse[name] = total;
     });
 
     const totalofSchoolfees = Object.values(schoolFeesResponse).reduce((sum, val) => sum + val, 0);
 
-    // One-Time Fees Calculation
+    // One-Time Fees Calculation (unchanged)
     const regCount = await StudentRegistration.countDocuments({
       schoolId,
       academicYear,
     });
 
-    const tcCountAgg = await AdmissionForm.aggregate([
-      {
-        $match: {
-          schoolId,
-          academicYear,
-          TCStatus: 'Inactive'
-        }
-      },
-      { $unwind: '$academicHistory' },
-      {
-        $match: {
-          'academicHistory.academicYear': academicYear
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-    const tcCount = tcCountAgg[0]?.count || 0;
+    // Fixed: countDocuments expects an object filter, not an array
+    const tcCount = await TCForm.countDocuments({ schoolId, academicYear });
 
     const sampleOneTime = await OneTimeFees.findOne({ schoolId, academicYear })
       .populate({
@@ -500,7 +534,7 @@ const getFeesReconCombined = async (req, res) => {
     // Combined Totals
     const grandTotal = totalofSchoolfees + totalofOneTimefees;
 
-    // Present Installment Logic (from school fees)
+    // Present Installment Logic (unchanged)
     let presentInstallment = null;
     const currentDate = new Date();
 
@@ -526,6 +560,8 @@ const getFeesReconCombined = async (req, res) => {
       Schoolfees: schoolFeesResponse,
       totalofSchoolfees,
       totalSchoolFeeTypes: Object.keys(schoolFeesResponse).length,
+      // New: Detailed breakdown by class > section > installment
+      schoolFeesBreakdown,
       OneTimefees: oneTimeFeesResponse,
       totalofOneTimefees,
       totalOneTimeFeeTypes: Object.keys(oneTimeFeesResponse).length,
@@ -546,4 +582,4 @@ const getFeesReconCombined = async (req, res) => {
   }
 };
 
-export default getFeesReconCombined;
+export default getFeesReconCombined;  
