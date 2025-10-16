@@ -714,7 +714,7 @@ const admissionPaymentSchema = new Schema({
     academicYear: {
     type: String,
   },
-  receiptNumber: { type: String, unique: true },
+  receiptNumber: { type: String,},
   name: { type: String, required: true },
   admissionFees: { type: Number, required: true, default: 0 },
   concessionType: {
@@ -950,7 +950,7 @@ const studentAdmissionSchema = new Schema({
   dropoutReason: { type: String, default: null },
 }, { timestamps: true });
 
-studentAdmissionSchema.index({ schoolId: 1, AdmissionNumber: 1 }, { unique: true, sparse: true });
+// studentAdmissionSchema.index({ schoolId: 1, AdmissionNumber: 1 }, { unique: true, sparse: true });
 
 studentAdmissionSchema.pre('save', async function (next) {
   try {

@@ -1,4 +1,3 @@
-
 // import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 // import FeesType from "../../../../models/FeesModule/FeesType.js";
 // import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
@@ -7,6 +6,7 @@
 // import { SchoolFees } from "../../../../models/FeesModule/SchoolFees.js";
 // import Refund from "../../../../models/FeesModule/RefundFees.js";
 // import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
+// import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js";
 
 // const formatDate = (date) => {
 //   if (!date) return '-';
@@ -15,7 +15,7 @@
 
 // export const getAllStudentsFeesWithLateFees = async (req, res) => {
 //   try {
-//     const { schoolId, academicYear, startDate, endDate } = req.query;
+//     const { schoolId, academicYear, startDates, endDates } = req.query;
 
 //     if (!schoolId || !academicYear) {
 //       return res.status(400).json({
@@ -23,22 +23,49 @@
 //       });
 //     }
 
+//           if (!schoolId || !academicYear) {
+//              return res.status(400).json({
+//                message: 'schoolId and academicYear are required',
+//              });
+//            }
+//            const schoolIdString = schoolId.trim();
+       
+//            const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
+//            if (!academicYearData) {
+//              return res.status(400).json({
+//                message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
+//              });
+//            }
+//            const { startDate, endDate } = academicYearData;
+
 //     const admissionData = await AdmissionForm.find({ schoolId }).lean();
 //     if (!admissionData.length) {
 //       return res.status(404).json({ message: "No admission data found" });
 //     }
 
-//     const feeTypes = await FeesType.find({ academicYear }).lean();
+//     const feeTypes = await FeesType.find().lean();
 //     const feeTypeMap = feeTypes.reduce((acc, type) => {
 //       acc[type._id.toString()] = type.name;
 //       return acc;
 //     }, {});
 
-//     const fineData = await Fine.findOne({ schoolId, academicYear }).lean();
+//     const fineData = await Fine.findOne(
+//       { schoolId, 
+//         // academicYear 
+//          paymentDate: { $gte: startDate, $lte: endDate},
+//       }).lean();
 
-//     const refunds = await Refund.find({ schoolId, academicYear, refundType: 'School Fees' }).lean();
+//     const refunds = await Refund.find(
+//       { schoolId, 
+//         // academicYear, 
+//          $or: [
+//           { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
+//           { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
+//         ],
+//         refundType: 'School Fees' }
+//     ).lean();
 
-//     const classAndSectionData = await ClassAndSection.find({ schoolId, academicYear }).lean();
+//     const classAndSectionData = await ClassAndSection.find({ schoolId }).lean();
 //     const classMap = classAndSectionData.reduce((acc, cls) => {
 //       acc[cls._id.toString()] = cls.className;
 //       cls.sections.forEach((sec) => {
@@ -51,7 +78,7 @@
 //     const seenPayments = new Set(); 
 
 //     for (const admission of admissionData) {
-//       const { AdmissionNumber, firstName, lastName, academicHistory } = admission;
+//       const { AdmissionNumber, firstName, lastName, academicHistory,  academicYear } = admission;
 //       if (!academicHistory?.length) continue;
 
 //       const history = academicHistory.find((h) => h.academicYear === academicYear);
@@ -63,7 +90,7 @@
 //         schoolId,
 //         classId: masterDefineClass,
 //         sectionIds: { $in: [section] },
-//         academicYear,
+//         // academicYear,
 //       }).lean();
 
 //       if (!feesStructures.length) continue;
@@ -76,7 +103,8 @@
 //       const paidFeesData = await SchoolFees.find({
 //         schoolId,
 //         studentAdmissionNumber: AdmissionNumber,
-//         academicYear,
+//         // academicYear,
+//           paymentDate: { $gte: startDate, $lte: endDate },
 //       }).lean();
 
 //       for (const structure of feesStructures) {
@@ -122,8 +150,8 @@
 //             if (!matchingInst || !payment.paymentDate) continue;
 
 //             const paymentDate = new Date(payment.paymentDate);
-//             const start = startDate ? new Date(startDate) : null;
-//             const end = endDate ? new Date(endDate) : null;
+//             const start = startDates ? new Date(startDates) : null;
+//             const end = endDates ? new Date(endDates) : null;
 
 //             if (
 //               (!start || paymentDate >= start) &&
@@ -193,7 +221,7 @@
 //                     studentName: `${firstName} ${lastName || ''}`,
 //                     className: classMap[masterDefineClass.toString()] || '-',
 //                     sectionName: classMap[section.toString()] || '-',
-//                     academicYear,
+//                     academicYear:payment.academicYear,
 //                     installmentName: inst.name,
 //                     paymentDate: formatDate(payment.paymentDate),
 //                     cancelledDate,
@@ -252,8 +280,6 @@
 // export default getAllStudentsFeesWithLateFees;
 
 
-
-
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 import FeesType from "../../../../models/FeesModule/FeesType.js";
 import ConcessionFormModel from "../../../../models/FeesModule/ConcessionForm.js";
@@ -279,20 +305,15 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
       });
     }
 
-          if (!schoolId || !academicYear) {
-             return res.status(400).json({
-               message: 'schoolId and academicYear are required',
-             });
-           }
-           const schoolIdString = schoolId.trim();
-       
-           const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
-           if (!academicYearData) {
-             return res.status(400).json({
-               message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
-             });
-           }
-           const { startDate, endDate } = academicYearData;
+    const schoolIdString = schoolId.trim();
+    
+    const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
+    if (!academicYearData) {
+      return res.status(400).json({
+        message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
+      });
+    }
+    const { startDate, endDate } = academicYearData;
 
     const admissionData = await AdmissionForm.find({ schoolId }).lean();
     if (!admissionData.length) {
@@ -307,13 +328,11 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
 
     const fineData = await Fine.findOne(
       { schoolId, 
-        // academicYear 
-         paymentDate: { $gte: startDate, $lte: endDate},
+        paymentDate: { $gte: startDate, $lte: endDate},
       }).lean();
 
     const refunds = await Refund.find(
       { schoolId, 
-        // academicYear, 
          $or: [
           { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
           { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
@@ -334,7 +353,7 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
     const seenPayments = new Set(); 
 
     for (const admission of admissionData) {
-      const { AdmissionNumber, firstName, lastName, academicHistory,  academicYear } = admission;
+      const { AdmissionNumber, firstName, lastName, academicHistory } = admission;
       if (!academicHistory?.length) continue;
 
       const history = academicHistory.find((h) => h.academicYear === academicYear);
@@ -346,7 +365,6 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
         schoolId,
         classId: masterDefineClass,
         sectionIds: { $in: [section] },
-        // academicYear,
       }).lean();
 
       if (!feesStructures.length) continue;
@@ -359,7 +377,6 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
       const paidFeesData = await SchoolFees.find({
         schoolId,
         studentAdmissionNumber: AdmissionNumber,
-        // academicYear,
           paymentDate: { $gte: startDate, $lte: endDate },
       }).lean();
 
@@ -367,7 +384,6 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
         for (const inst of structure.installments) {
           let totalBalanceForInstallment = 0;
 
-       
           for (const fee of inst.fees) {
             const feeAmount = fee.amount || 0;
             let concessionAmount = 0;
@@ -459,6 +475,8 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
                   seenPayments.add(paymentKey);
 
                   let cancelledDate = '-';
+                  let refundReceiptNumbers = payment.refundReceiptNumbers || []; // Get refund receipt numbers from payment
+                  
                   if (payment.reportStatus && ['Cancelled', 'Cheque Return'].some(status => payment.reportStatus.includes(status))) {
                     const relevantRefunds = refunds.filter(r => 
                       r.existancereceiptNumber === payment.receiptNumber && 
@@ -469,6 +487,29 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
                         new Date(b.cancelledDate) - new Date(a.cancelledDate)
                       )[0];
                       cancelledDate = formatDate(latestRefund.cancelledDate);
+                      
+         
+                      if (latestRefund.refundReceiptNumber) {
+                        refundReceiptNumbers = [...new Set([...refundReceiptNumbers, latestRefund.refundReceiptNumber])];
+                      }
+                    }
+                  }
+
+
+                  if (payment.reportStatus && payment.reportStatus.includes('Refund')) {
+                    const relevantRefunds = refunds.filter(r => 
+                      r.existancereceiptNumber === payment.receiptNumber && 
+                      r.status === 'Refund'
+                    );
+                    if (relevantRefunds.length > 0) {
+                      const refundData = relevantRefunds.sort((a, b) => 
+                        new Date(b.refundDate) - new Date(a.refundDate)
+                      )[0];
+                      cancelledDate = formatDate(refundData.refundDate);
+                      
+                      if (refundData.refundReceiptNumber) {
+                        refundReceiptNumbers = [...new Set([...refundReceiptNumbers, refundData.refundReceiptNumber])];
+                      }
                     }
                   }
 
@@ -481,6 +522,7 @@ export const getAllStudentsFeesWithLateFees = async (req, res) => {
                     installmentName: inst.name,
                     paymentDate: formatDate(payment.paymentDate),
                     cancelledDate,
+                    refundReceiptNumbers: refundReceiptNumbers.length > 0 ? refundReceiptNumbers.join(', ') : '-', // Show refund receipt numbers as comma-separated
                     reportStatus:payment.reportStatus,
                     paymentMode: payment.paymentMode || '-',
                     chequeNoOrTransactionNo:

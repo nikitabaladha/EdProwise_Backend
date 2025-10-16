@@ -175,7 +175,7 @@ const registrationPaymentSchema = new Schema({
   studentId: { type: Schema.Types.ObjectId, required: true, ref: 'StudentRegistration' },
   schoolId: { type: String, required: true, ref: 'School' },
   academicYear: { type: String, },
-  receiptNumber: { type: String, unique: true },
+  receiptNumber: { type: String, },
   name: { type: String, required: true },
   registrationFee: { type: Number, required: true, default: 0 },
   concessionType: {
@@ -197,6 +197,9 @@ const registrationPaymentSchema = new Schema({
   refundReceiptNumbers: [{ type: String }],
   status: { type: String, enum: ['Pending', 'Paid'], default: 'Paid' },
   reportStatus: [{ type: String, enum: ['Paid', 'Cancelled', 'Cheque Return', 'Refund'] }],
+  razorpayPaymentId: { type: String }, 
+  razorpayOrderId: { type: String }, 
+  razorpaySignature: { type: String }
 }, { timestamps: true });
 
 // registrationPaymentSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true, sparse: true });

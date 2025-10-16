@@ -193,7 +193,7 @@
                         name: feeTypeMap[matchingFeeItem.feeTypeId.toString()],
                       },
                       installmentName: inst.name,
-                      paidAmount: individualPaid,
+                      paidAmount: individualPaid+concessionAmount ,
                       receiptNumber: payment.receiptNumber,
                       paymentDate: payment.paymentDate,
                       cancelledDate: payment.cancelledDate,
@@ -209,7 +209,7 @@
                       excessAmount: matchingInst?.excessAmount || 0,
                       paidFine: matchingInst?.fineAmount || 0,
                       payable: (fee.amount || 0) - (concessionAmount || 0),
-                      paid: individualPaid,
+                      paid: individualPaid+concessionAmount,
                       balance: ((fee.amount || 0) - (concessionAmount || 0)) - totalPaidSoFar,
                       cancelledPaidAmount: matchingFeeItem.cancelledPaidAmount || 0,
                       

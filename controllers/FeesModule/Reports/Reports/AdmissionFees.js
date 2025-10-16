@@ -273,8 +273,9 @@ export const getAllAdmissionFees = async (req, res) => {
             admFeesStatus: refund.status || '-',
             admFeesPaymentMode: refund.paymentMode || '-',
             admFeesReceiptNo: refund.receiptNumber || '-',
-            admFeesDue: refund.paidAmount?.toString() || '0',
-            admFeesPaid: refund.paidAmount?.toString() || '0',
+            admFeesDue: -(refund.paidAmount+refund.concessionAmount)?.toString() || '0',
+            // admFeesPaid: refund.paidAmount?.toString() || '0',
+            admFeesConcession: -(refund.concessionAmount?.toString()) || '0',
             admFeesRefundAmount: refund.refundAmount > 0
               ? refund.refundAmount.toString()
               : refund.cancelledAmount?.toString() || '0',
@@ -282,7 +283,7 @@ export const getAllAdmissionFees = async (req, res) => {
             admFeesChequeNumber: refund.chequeNumber || '-',
             admFeesBankName: refund.bankName || '-',
             admFeesTransactionNo: refund.transactionNumber || '-',
-            admFeesConcession: '0',
+            // admFeesConcession: '0',
           };
         })
       );

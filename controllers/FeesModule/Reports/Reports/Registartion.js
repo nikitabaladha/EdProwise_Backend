@@ -346,8 +346,9 @@ export const getAllRegistrationFees = async (req, res) => {
             regFeesStatus: refund.status || "-",
             regFeesPaymentMode: refund.paymentMode || "-",
             regFeesReceiptNo: refund.receiptNumber || "-",
-            regFeesDue: refund.paidAmount?.toString() || "0",
-            regFeesPaid: refund.paidAmount?.toString() || "0",
+            regFeesDue: -(refund.paidAmount+refund.concessionAmount)?.toString() || "0",
+            // regFeesPaid: refund.paidAmount?.toString() || "0",
+            regFeesConcession: -(refund.concessionAmount?.toString()) || '0',
             regFeesrefundAmount: refund.refundAmount > 0
               ? refund.refundAmount.toString()
               : refund.cancelledAmount?.toString() || "",
@@ -358,7 +359,7 @@ export const getAllRegistrationFees = async (req, res) => {
             regFeesChequeNumber: refund.chequeNumber || "-",
             regFeesBankName: refund.bankName || "-",
             regFeesTransactionNo: refund.transactionNumber || "-",
-            regFeesConcession: "0",
+            // regFeesConcession: "0",
           };
         })
       );

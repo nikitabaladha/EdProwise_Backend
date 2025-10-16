@@ -386,8 +386,9 @@ export const getAllTCFees = async (req, res) => {
             tcFeesStatus: refund.status || '-',
             tcFeesPaymentMode: refund.paymentMode || '-',
             tcFeesReceiptNo: refund.receiptNumber || '-',
-            tcFeesDue: refund.paidAmount?.toString() || '0',
-            tcFeesPaid: refund.paidAmount?.toString() || '0',
+            tcFeesDue: -(refund.paidAmount+refund.concessionAmount)?.toString() || '0',
+             tcFeesConcession: -(refund.concessionAmount?.toString()) || '0',
+            // tcFeesPaid: refund.paidAmount?.toString() || '0',
             tcFeesRefundAmount: refund.refundAmount > 0
               ? refund.refundAmount.toString()
               : refund.cancelledAmount?.toString() || '0',
@@ -395,7 +396,7 @@ export const getAllTCFees = async (req, res) => {
             tcFeesChequeNumber: refund.chequeNumber || '-',
             tcFeesBankName: refund.bankName || '-',
             tcFeesTransactionNo: refund.transactionNumber || '-',
-            tcFeesConcession: '0',
+            // tcFeesConcession: '0',
           };
         })
       );

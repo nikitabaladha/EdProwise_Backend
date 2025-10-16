@@ -34,7 +34,8 @@ AdvancedFeesReport,
 OpeningAndClosingAdvancedReport,
 FeesvsFinanacereport,
 FeesreconFeeswise,
-SchoolFeesPaidAndConcession 
+SchoolFeesPaidAndConcession,
+FeesReconStudentWise
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
@@ -266,8 +267,14 @@ router.get(
 );
 
 
+//------------------------------------------------FeesReconStudentWise----------------------------//
 
 
+router.get(
+  "/get-fees-recon-student-wise",
+  roleBasedMiddleware("Admin","School"),
+FeesReconStudentWise
+);
 
 
 
