@@ -350,8 +350,8 @@ export const getAllRegistrationFees = async (req, res) => {
             // regFeesPaid: refund.paidAmount?.toString() || "0",
             regFeesConcession: -(refund.concessionAmount?.toString()) || '0',
             regFeesrefundAmount: refund.refundAmount > 0
-              ? refund.refundAmount.toString()
-              : refund.cancelledAmount?.toString() || "",
+              ? -(refund.refundAmount).toString()
+              :-(refund.cancelledAmount)?.toString() || "",
 
 
             // regFeesrefundAmount: refund.refundAmount?.toString() || "0",

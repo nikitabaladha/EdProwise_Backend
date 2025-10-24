@@ -32,6 +32,9 @@ import FeesvsFinanacereport from './ReconFees/FeesVsFinance.js'
 import FeesreconFeeswise from './ReconFees/FeesReconFeeswise.js'
 import SchoolFeesPaidAndConcession from "./ReconFees/SchoolFees.js"
 import FeesReconStudentWise from './ReconFees/FeesReconStudentWise.js'
+import SchoolFeesINCConcession from './Reports/SchoolFeesINConcession.js'
+import SchoolFeesEXCConcession from './Reports/SchoolFeesEXCConcession.js'
+import ArrearFeesArchive from './AdvancedReport/getArreararchivedata.js'
 
 export {
 getall,
@@ -65,5 +68,8 @@ OpeningAndClosingAdvancedReport,
 FeesvsFinanacereport,
 FeesreconFeeswise,
 SchoolFeesPaidAndConcession,
-FeesReconStudentWise
+FeesReconStudentWise,
+SchoolFeesINCConcession,
+SchoolFeesEXCConcession,
+ArrearFeesArchive
 };

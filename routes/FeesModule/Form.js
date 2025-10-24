@@ -17,6 +17,8 @@ import {
   getRegistrationStatus,
   creatregistrationpayment,
   getstudentbystudentidandreceiptnumber,
+   handlePaymentSuccess,
+    handlePaymentFailure,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -107,6 +109,7 @@ router.post(
     creatregistrationpayment,
 );
 
+
 router.get(
   "/get-registration-data/:studentId/:receiptNumber(.+)",
   roleBasedMiddleware("Admin", "School"),
@@ -127,6 +130,9 @@ router.get(
   getRegistrationStatus
 );
 
+router.post('/payment/success',handlePaymentSuccess);
+
+router.post('/payment/failure',handlePaymentFailure);
 
 
 

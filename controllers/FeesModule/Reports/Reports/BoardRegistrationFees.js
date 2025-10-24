@@ -355,9 +355,9 @@ export const getBoardRegistrationFees = async (req, res) => {
             boardRegFeesDue:-(refund.paidAmount+refund.concessionAmount)?.toString() || '0',
             // boardRegFeesPaid: refund.paidAmount?.toString() || "0",
             boardRegFeesRefundAmount: refund.refundAmount > 0
-              ? refund.refundAmount.toString()
-              : refund.cancelledAmount?.toString() || "0",
-            boardRegFeesCancelledAmount: refund.cancelledAmount?.toString() || "0",
+              ? -(refund.refundAmount).toString()
+              : -(refund.cancelledAmount)?.toString() || "0",
+            boardRegFeesCancelledAmount: -(refund.cancelledAmount)?.toString() || "0",
             boardRegFeesChequeNumber: refund.chequeNumber || "-",
             boardRegFeesBankName: refund.bankName || "-",
             boardRegFeesTransactionNo: refund.transactionNumber || "-",

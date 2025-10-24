@@ -346,11 +346,18 @@ export const OpeningAndClosingAdvancedReport = async (req, res) => {
       {
         $match: {
           schoolId: schoolIdString,
-          academicYear: paymentAcademicYear,
+            academicYear: { $gt: paymentAcademicYear },
           paymentDate: { $gte: paymentStartDate, $lte: paymentEndDate },
           studentAdmissionNumber: { $ne: null, $ne: '' },
           status: 'Paid',
           installments: { $exists: true, $ne: [] },
+        },
+      },
+      {
+        $addFields: {
+          studentName: {
+            $concat: ['$firstName', ' ', '$lastName'],
+          },
         },
       },
       {
@@ -410,86 +417,40 @@ export const OpeningAndClosingAdvancedReport = async (req, res) => {
       },
     ]);
 
-    // Generate records for students from previous year if no current year data exists
-    const allStudents = [...new Set(prevYearFees.map(item => item._id.admissionNumber))];
-    const currentYearStudents = [...new Set(schoolFeesAggregation.map(item => item._id.admissionNumber))];
-    const missingStudents = allStudents.filter(admissionNumber => !currentYearStudents.includes(admissionNumber));
+ 
+    const result = schoolFeesAggregation
+      .map((item) => {
+        const admissionNumber = item._id.admissionNumber || '-';
+        const feeTypes = item.feeTypes.reduce((acc, fee) => {
+          const feeTypeName = feeTypeMap[fee.feeTypeId] || fee.feeTypeId;
+          const key = `${admissionNumber}_${fee.feeTypeId}`;
+          const openingAdvance = openingAdvanceMap[key] || 0;
+          const received = fee.totalPaid || 0;
+          const adjusted = Math.min(openingAdvance, received);
+          const closingBalance = openingAdvance + received - adjusted;
 
-    const syntheticRecords = missingStudents.map(admissionNumber => {
-      const studentFees = prevYearFees.filter(item => item._id.admissionNumber === admissionNumber);
-      const feeTypes = {};
-      let totalReceived = 0;
+          acc[feeTypeName] = {
+            totalPaid: received,
+            openingAdvance,
+            received,
+            adjusted,
+            closingBalance,
+          };
+          return acc;
+        }, {});
 
-      // Initialize all fee types to ensure no missing columns
-      feeTypeNames.forEach(feeTypeName => {
-        const feeTypeId = Object.keys(feeTypeMap).find(id => feeTypeMap[id] === feeTypeName);
-        const studentFee = studentFees.find(item => item._id.feeTypeId === feeTypeId);
-        const openingAdvance = studentFee ? (studentFee.totalPaid || 0) : 0;
-        const received = 0; // No payments in current year
-        const adjusted = -openingAdvance; // Negate the opening advance
-        const closingBalance = openingAdvance + received - adjusted; // Should be 0
-
-        feeTypes[feeTypeName] = {
-          // totalPaid: received,
-          openingAdvance,
-          received,
-          adjusted,
-          closingBalance,
+        return {
+          admissionNumber,
+          studentName: item._id.studentName || '-',
+          className: classMap[item._id.classId] || '-',
+          sectionName: sectionMap[item._id.sectionId] || '-',
+          academicYear: item._id.academicYear || '-',
+          installmentName: item._id.installmentName || '-',
+          paymentDate: item._id.paymentDate || '-',
+          feeTypes,
+          totalReceived: item.totalReceived || 0,
         };
-        totalReceived += received;
-      });
-
-      return {
-        admissionNumber,
-        studentName: studentFees[0]?._id.studentName || '-',
-        className: classMap[studentFees[0]?._id.classId] || '-',
-        sectionName: sectionMap[studentFees[0]?._id.sectionId] || '-',
-        academicYear: paymentAcademicYear,
-        installmentName: studentFees[0]?._id.installmentName || '-',
-        paymentDate: studentFees[0]?._id.paymentDate || '-',
-        feeTypes,
-        totalReceived,
-      };
-    });
-
-    const currentYearRecords = schoolFeesAggregation.map((item) => {
-      const admissionNumber = item._id.admissionNumber || '-';
-      const feeTypes = {};
-      let totalReceived = item.totalReceived || 0;
-
-
-      feeTypeNames.forEach(feeTypeName => {
-        const feeTypeId = Object.keys(feeTypeMap).find(id => feeTypeMap[id] === feeTypeName);
-        const fee = item.feeTypes.find(f => f.feeTypeId === feeTypeId);
-        const key = `${admissionNumber}_${feeTypeId}`;
-        const openingAdvance = openingAdvanceMap[key]?.totalPaid || 0;
-        const received = fee ? (fee.totalPaid || 0) : 0;
-        const adjusted = Math.min(openingAdvance, received); 
-        const closingBalance = openingAdvance + received - adjusted;
-
-        feeTypes[feeTypeName] = {
-          // totalPaid: received,
-          openingAdvance,
-          received,
-          adjusted,
-          closingBalance,
-        };
-      });
-
-      return {
-        admissionNumber,
-        studentName: item._id.studentName || '-',
-        className: classMap[item._id.classId] || '-',
-        sectionName: sectionMap[item._id.sectionId] || '-',
-        academicYear: item._id.academicYear || '-',
-        installmentName: item._id.installmentName || '-',
-        paymentDate: item._id.paymentDate || '-',
-        feeTypes,
-        totalReceived,
-      };
-    });
-
-    const result = [...currentYearRecords, ...syntheticRecords]
+      })
       .filter((item) => item.admissionNumber && item.admissionNumber !== '-')
       .sort((a, b) => {
         const dateA = new Date(a.paymentDate.split('-').reverse().join('-'));

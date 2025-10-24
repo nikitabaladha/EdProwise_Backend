@@ -35,7 +35,10 @@ OpeningAndClosingAdvancedReport,
 FeesvsFinanacereport,
 FeesreconFeeswise,
 SchoolFeesPaidAndConcession,
-FeesReconStudentWise
+FeesReconStudentWise,
+SchoolFeesINCConcession,
+SchoolFeesEXCConcession ,
+ArrearFeesArchive
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
@@ -138,6 +141,19 @@ router.get(
   roleBasedMiddleware("Admin","School"),
   SchoolFees
 );
+router.get(
+  "/get-all-data-school-fees-inc",
+  roleBasedMiddleware("Admin","School"),
+ SchoolFeesINCConcession,
+);
+router.get(
+  "/get-all-data-school-fees-exc",
+  roleBasedMiddleware("Admin","School"),
+SchoolFeesEXCConcession 
+);
+
+
+
 
 //-----------------------------------------------------School Fees Data--------------------------------------//
 router.get(
@@ -221,6 +237,14 @@ router.get(
   roleBasedMiddleware("Admin","School"),
  ArrearFeesReport
 );
+
+router.get(
+  "/get-arrear-fees-ArrearFeesArchive",
+  roleBasedMiddleware("Admin","School"),
+ArrearFeesArchive
+);
+
+
 
 //-----------------------------------------------------FeesReconHaedwise------------------------------------//
 

@@ -390,8 +390,8 @@ export const getAllTCFees = async (req, res) => {
              tcFeesConcession: -(refund.concessionAmount?.toString()) || '0',
             // tcFeesPaid: refund.paidAmount?.toString() || '0',
             tcFeesRefundAmount: refund.refundAmount > 0
-              ? refund.refundAmount.toString()
-              : refund.cancelledAmount?.toString() || '0',
+              ?-(refund.refundAmount).toString()
+              :-( refund.cancelledAmount)?.toString() || '0',
             tcFeesCancelledAmount: refund.cancelledAmount?.toString() || '0',
             tcFeesChequeNumber: refund.chequeNumber || '-',
             tcFeesBankName: refund.bankName || '-',

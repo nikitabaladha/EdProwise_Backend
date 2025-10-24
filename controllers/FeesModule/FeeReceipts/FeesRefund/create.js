@@ -619,12 +619,12 @@ const createRefundRequest = async (req, res) => {
       );
 
       const remainingBalance = paidAmount - totalRefundedAmount - totalCancelledAmount - concessionAmount + fineAmount - excessAmount;
-      if (remainingBalance < 0) {
-        return res.status(400).json({
-          hasError: true,
-          message: 'Remaining balance cannot be negative after accounting for concession, fine, and excess amounts.',
-        });
-      }
+      // if (remainingBalance < 0) {
+      //   return res.status(400).json({
+      //     hasError: true,
+      //     message: 'Remaining balance cannot be negative after accounting for concession, fine, and excess amounts.',
+      //   });
+      // }
     }
 
     console.log("Creating RefundFees with values:", {

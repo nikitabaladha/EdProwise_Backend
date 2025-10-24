@@ -4,8 +4,11 @@ import deleteRegistrationbyid from './RegistrationForm/delete.js';
 import updateRegistrationForm from './RegistrationForm/update.js';
 import getRegistrationsBySchoolId from './RegistrationForm/getBySchoolId.js';
 import downloadreceipts from './RegistrationForm/downloadreceipts.js';
-import creatregistrationpayment from './RegistrationForm/payment.js';
-import getstudentbystudentidandreceiptnumber from './RegistrationForm/getbystudentidandreceiptnum.js'
+import {creatregistrationpayment} from './RegistrationForm/payment.js';
+import getstudentbystudentidandreceiptnumber from './RegistrationForm/getbystudentidandreceiptnum.js';
+import {handlePaymentSuccess} from './RegistrationForm/payment.js'
+import {handlePaymentFailure} from './RegistrationForm/payment.js'
+
 
 import createAdmissionForm from './AdmissionForm/create.js'
 import getAdmissionFormsBySchoolId from './AdmissionForm/get.js';
@@ -52,6 +55,9 @@ export {
   updateRegistrationForm, 
   getRegistrationsBySchoolIdandyear,
   creatregistrationpayment,
+  handlePaymentSuccess,
+  handlePaymentFailure,
+
   getstudentbystudentidandreceiptnumber,
   downloadreceipts,
   createAdmissionForm,

@@ -340,9 +340,9 @@ export const getBoardExamFees = async (req, res) => {
             boardExamFeesDue: -(refund.paidAmount?.toString()) || "0",
             // boardExamFeesPaid: refund.paidAmount?.toString() || "0",
             boardExamFeesRefundAmount: refund.refundAmount > 0
-              ? refund.refundAmount.toString()
-              : refund.cancelledAmount?.toString() || "0",
-            boardExamFeesCancelledAmount: refund.cancelledAmount?.toString() || "0",
+              ? -(refund.refundAmount).toString()
+              : -(refund.cancelledAmount)?.toString() || "0",
+            boardExamFeesCancelledAmount: -(refund.cancelledAmount)?.toString() || "0",
             boardExamFeesChequeNumber: refund.chequeNumber || "-",
             boardExamFeesBankName: refund.bankName || "-",
             boardExamFeesTransactionNo: refund.transactionNumber || "-",
