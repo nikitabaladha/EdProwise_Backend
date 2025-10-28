@@ -65,7 +65,7 @@ router.delete("/delete-blog/:id", roleBasedMiddleware("Admin"), deleteBlog);
 router.get("/get-student-blogs", getStudentZoneBlogs);
 router.get("/get-educator-blogs", getEducatorZoneBlogs);
 
-router.get("/get-all-blogs", getAllBlogs);
+router.get("/get-all-blogs-for-home", getAllBlogs);
 router.get("/get-blogs-by-category/:categoryId", getBlogsByCategoryAndZone);
 router.get("/get-blogs-by-tag/:tagId", getBlogsByTagAndZone);
 
