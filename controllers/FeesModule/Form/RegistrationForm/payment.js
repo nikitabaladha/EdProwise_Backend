@@ -251,32 +251,9 @@ const generateShortId = () => {
   return Math.random().toString(36).substring(2, 8);
 };
 
-// const generateEasebuzzHash = (data) => {
-//   const hashString = [
-//     data.key,
-//     data.txnid,
-//     data.amount,
-//     data.productinfo,
-//     data.firstname,
-//     data.email,
-//     data.udf1 || '',
-//     data.udf2 || '',
-//     data.udf3 || '',
-//     data.udf4 || '',
-//     data.udf5 || '',
-//     data.udf6 || '',
-//     data.udf7 || '',
-//     data.udf8 || '',
-//     data.udf9 || '',
-//     data.udf10 || ''
-//   ].join('|') + '|' + process.env.EASEBUZZ_SALT;
-
-//   return crypto.createHash('sha512').update(hashString).digest('hex');
-// };
 
 const generateEasebuzzHash = (data) => {
   try {
-    // Easebuzz initiation hash format
     const hashString = [
       data.key,
       data.txnid,
@@ -296,12 +273,9 @@ const generateEasebuzzHash = (data) => {
       data.udf10 || ''
     ].join('|') + '|' + process.env.EASEBUZZ_SALT;
 
-    console.log('=== Hash Generation Details ===');
-    console.log('Hash String:', hashString);
-    console.log('Salt Length:', process.env.EASEBUZZ_SALT?.length);
+
     
     const hash = crypto.createHash('sha512').update(hashString).digest('hex');
-    console.log('Generated Hash (first 50 chars):', hash.substring(0, 50) + '...');
     
     return hash;
   } catch (error) {
@@ -310,35 +284,9 @@ const generateEasebuzzHash = (data) => {
   }
 };
 
-// const verifyEasebuzzResponseHash = (data) => {
-//   const hashString = [
-//     process.env.EASEBUZZ_SALT,
-//     data.status || '',
-//     data.udf1 || '',
-//     data.udf2 || '',
-//     data.udf3 || '',
-//     data.udf4 || '',
-//     data.udf5 || '',
-//     data.udf6 || '',
-//     data.udf7 || '',
-//     data.udf8 || '',
-//     data.udf9 || '',
-//     data.udf10 || '',
-//     data.email || '',
-//     data.firstname || '',
-//     data.productinfo || '',
-//     data.amount || '',
-//     data.txnid || '',
-//     process.env.EASEBUZZ_KEY
-//   ].join('|');
-
-//   const generatedHash = crypto.createHash('sha512').update(hashString).digest('hex');
-//   return generatedHash === (data.hash || '');
-// };
 
 const verifyEasebuzzResponseHash = (data) => {
   try {
-    // Easebuzz response hash format is DIFFERENT from initiation
     const hashString = [
       process.env.EASEBUZZ_SALT,
       data.status || '',
@@ -347,28 +295,18 @@ const verifyEasebuzzResponseHash = (data) => {
       data.udf3 || '',
       data.udf4 || '',
       data.udf5 || '',
-      data.udf6 || '',
-      data.udf7 || '',
-      data.udf8 || '',
-      data.udf9 || '',
-      data.udf10 || '',
       data.email || '',
       data.firstname || '',
       data.productinfo || '',
       data.amount || '',
       data.txnid || '',
-      data.key || process.env.EASEBUZZ_KEY  // Use provided key or fallback
+      data.key || process.env.EASEBUZZ_KEY  
     ].join('|');
 
-    console.log('=== Hash Verification Details ===');
-    console.log('Verification Hash String:', hashString);
-    console.log('Received Hash:', data.hash);
     
     const generatedHash = crypto.createHash('sha512').update(hashString).digest('hex');
-    console.log('Generated Verification Hash:', generatedHash.substring(0, 50) + '...');
     
     const isValid = generatedHash === (data.hash || '');
-    console.log('Hash Valid:', isValid);
     
     return isValid;
   } catch (error) {
@@ -425,55 +363,37 @@ const creatregistrationpayment = async (req, res) => {
         });
       }
 
-      const paymentEmail = email || `${name.replace(/\s+/g, '').toLowerCase()}@school.com`;
-      const paymentPhone = phone || '9999999999';
+      const paymentEmail = email ;
+      const paymentPhone = phone ;
 
       const txnId = `TXN${Date.now()}${generateShortId().toUpperCase()}`;
       const amount = parseFloat(finalAmount).toFixed(2);
 
       const initiateData = {
-        // key: process.env.EASEBUZZ_KEY,
-        // txnid: txnId,
-        // amount: amount,
-        // productinfo: `Registration Fee - ${academicYear || '2025-2026'}`,
-        // firstname: name || 'Student',
-        // email: paymentEmail,
-        // phone: paymentPhone,
-        // surl: `${process.env.BACKEND_URL}/payment/success`, 
-        // furl: `${process.env.BACKEND_URL}/payment/failure`,
-        // hash: '',
-        // udf1: studentId,
-        // udf2: schoolId,
-        // udf3: academicYear,
-        // udf4: finalAmount,
-        // udf5: registrationFee || finalAmount,
-
-         key: process.env.EASEBUZZ_KEY,
+    
+        key: process.env.EASEBUZZ_KEY,
         txnid: txnId,
         amount: amount,
         productinfo: `Registration Fee - ${academicYear || '2025-2026'}`,
         firstname: name || 'Student',
         email: paymentEmail,
         phone: paymentPhone,
-        surl: `${process.env.BACKEND_URL}/payment/success`, // Backend endpoint
-        furl: `${process.env.BACKEND_URL}/payment/failure`, // Backend endpoint
+        surl: `${process.env.BACKEND_URL}/payment/success`, 
+        furl: `${process.env.BACKEND_URL}/payment/failure`, 
         hash: '',
         udf1: studentId,
         udf2: schoolId,
         udf3: academicYear,
         udf4: finalAmount,
         udf5: registrationFee || finalAmount,
-        // udf6: `${process.env.FRONTEND_URL}/payment/success`, // For redirect after processing
-        // udf7: `${process.env.FRONTEND_URL}/payment/failure`, // For redirect after processing
       };
 
       initiateData.hash = generateEasebuzzHash(initiateData);
 
-      const easebuzzUrl = process.env.EASEBUZZ_ENV === 'prod'
+      const easebuzzUrl = process.env.EASEBUZZ_ENV === 'test'
         ? 'https://pay.easebuzz.in'
         : 'https://testpay.easebuzz.in';
 
-      console.log('Easebuzz URL:', `${easebuzzUrl}/payment/initiateLink`);
 
       try {
         const apiResponse = await axios.post(

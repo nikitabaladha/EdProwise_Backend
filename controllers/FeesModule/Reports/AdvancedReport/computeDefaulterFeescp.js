@@ -1,5 +1,3 @@
-
-
 // import mongoose from 'mongoose';
 // import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 // import FeesType from "../../../../models/FeesModule/FeesType.js";
@@ -8,8 +6,6 @@
 // import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
 // import { AdmissionPayment } from "../../../../models/FeesModule/AdmissionForm.js";
 // import Refund from "../../../../models/FeesModule/RefundFees.js";
-// import DefaulterFeesArchive from "../../../../models/FeesModule/DefaulterFeesArchive.js";
-// import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js"; 
 
 // const validateDate = (dateStr, context = 'unknown') => {
 //   if (!dateStr) {
@@ -26,103 +22,17 @@
 
 // async function computeDefaulterFees(schoolId, academicYear, session, classes, sections, installment) {
 //   const today = new Date();
-
-
-//   const feesManagementYear = await FeesManagementYear.findOne({ schoolId, academicYear })
-//     .lean()
-//     .session(session);
-
-//   let isAcademicYearEnded = false;
-//   if (feesManagementYear && feesManagementYear.endDate) {
-//     const endDate = validateDate(feesManagementYear.endDate, `FeesManagementYear endDate for ${academicYear}`);
-//     if (endDate && today > endDate) {
-//       isAcademicYearEnded = true;
-//     }
-//   }
-
-
-//   const archivedDefaulters = await DefaulterFeesArchive.findOne({ schoolId, academicYear })
-//     .lean()
-//     .session(session);
-
-
-//   if (isAcademicYearEnded) {
-//     if (!archivedDefaulters || !archivedDefaulters.defaulters) {
-//       return {
-//         hasError: false,
-//         message: "No archived defaulter data found for the ended academic year.",
-//         data: [],
-//         feeTypes: [],
-//         filterOptions: {}
-//       };
-//     }
-
-//     const filteredArchivedData = archivedDefaulters.defaulters.filter((defaulter) =>
-//        defaulter.tcStatus === 'Active' &&
-//       (!classes || classes.split(',').includes(defaulter.className)) &&
-//       (!sections || sections.split(',').includes(defaulter.sectionName)) &&
-//       (!installment || defaulter.installments.some((inst) => inst.installmentName === installment))
-//     ).map((defaulter) => ({
-//       ...defaulter,
-//       lockDate: archivedDefaulters.storedAt
-//         ? new Date(archivedDefaulters.storedAt).toLocaleDateString("en-GB")
-//         : null,
-//     }));
-
-//     const classOptions = Array.from(new Set(filteredArchivedData.map((d) => d.className))).map((name) => ({
-//       value: name,
-//       label: name,
-//     }));
-//     const sectionOptions = Array.from(new Set(filteredArchivedData.map((d) => d.sectionName))).map((name) => ({
-//       value: name,
-//       label: name,
-//     }));
-//     const installmentOptions = Array.from(
-//       new Set(filteredArchivedData.flatMap((d) => d.installments.map((inst) => inst.installmentName)))
-//     ).map((inst) => ({ value: inst, label: inst }));
-//     const paymentModeOptions = Array.from(
-//       new Set(filteredArchivedData.flatMap((d) => d.installments.map((inst) => inst.paymentMode)))
-//     )
-//       .filter(Boolean)
-//       .map((mode) => ({ value: mode, label: mode }));
-//     const tcStatusOptions = [
-//       { value: 'Active', label: 'Active' },
-//       { value: 'Inactive', label: 'Inactive' },
-//     ];
-
-//     return {
-//       hasError: false,
-//       message: "Archived defaulter data fetched successfully for ended academic year.",
-//       data: filteredArchivedData,
-//       feeTypes: [],
-//       filterOptions: {
-//         classOptions,
-//         sectionOptions,
-//         installmentOptions,
-//         paymentModeOptions,
-//         tcStatusOptions,
-//       },
-//     };
-//   }
-
+//   const lateAdmissionThreshold = new Date(today);
+//   lateAdmissionThreshold.setMonth(today.getMonth() - 3);
 
 //   const students = await AdmissionForm.find({ schoolId })
 //     .select('AdmissionNumber firstName lastName parentContactNumber academicHistory TCStatus')
 //     .lean()
 //     .session(session);
-//   if (!students.length && !archivedDefaulters) {
-//     return {
-//       hasError: false,
-//       message: "No students or archived defaulters found.",
-//       data: [],
-//       feeTypes: [],
-//       filterOptions: {}
-//     };
+//   if (!students.length) {
+//     console.log(`No students found for schoolId: ${schoolId}`);
+//     return { data: [], feeTypes: [], filterOptions: {} };
 //   }
-
-//   const lateAdmissionThreshold = new Date(today);
-//   lateAdmissionThreshold.setMonth(today.getMonth() - 3);
-
 
 //   const classAndSections = await ClassAndSection.find({ schoolId, academicYear })
 //     .lean()
@@ -145,7 +55,6 @@
 //     ? Object.keys(sectionMap).filter((id) => sections.split(',').includes(sectionMap[id]))
 //     : Object.keys(sectionMap);
 
-//   // Fetch fee types
 //   const feeTypes = await FeesType.find({ academicYear }).lean().session(session);
 //   const feeTypeMap = feeTypes.reduce((acc, type) => {
 //     acc[type._id.toString()] = type.name || "Unknown";
@@ -155,7 +64,6 @@
 
 //   const resultMap = new Map();
 
-
 //   for (const student of students) {
 //     const admissionNumber = student.AdmissionNumber;
 //     const parentContactNumber = student.parentContactNumber || '-';
@@ -163,11 +71,6 @@
 //       (history) => history.academicYear === academicYear
 //     );
 //     const tcStatus = student.TCStatus || 'Active';
-
-//       if (tcStatus === 'Inactive') {
-//     console.log(`Skipping inactive student: ${admissionNumber}`);
-//     continue;
-//   }
 
 //     if (!academicHistory) {
 //       console.log(`No academic history for student ${admissionNumber} in ${academicYear}`);
@@ -584,72 +487,67 @@
 //       }
 
 //       if (uniqueInstallments.length > 0) {
+//         let totalFeesDue = 0;
+//         let totalNetFeesDue = 0;
+//         let totalFeesPaid = 0;
+//         let totalConcession = 0;
+//         let totalBalance = 0;
+
 //         for (const inst of uniqueInstallments) {
-//           const key = `${admissionNumber}-${inst.installmentName}`;
-//           resultMap.set(key, {
-//             admissionNumber,
-//             studentName: `${student.firstName} ${student.lastName || ''}`,
-//             className: classMap[masterDefineClass] || masterDefineClass,
-//             sectionName: sectionMap[section] || section,
-//             academicYear,
-//             parentContactNumber,
-//             tcStatus,
-//             admissionPaymentDate: firstAdmissionPayment && firstAdmissionPayment.paymentDate
-//               ? validateDate(firstAdmissionPayment.paymentDate, `AdmissionPayment for ${admissionNumber}`)?.toLocaleDateString("en-GB") || null
-//               : null,
-//             defaulterType: defaulterType.join(", ") || "Defaulter",
-//             installments: [inst],
-//             totals: {
-//               totalFeesDue: inst.feesDue || 0,
-//               totalNetFeesDue: inst.netFeesDue || inst.feesDue || 0,
-//               totalFeesPaid: inst.feesPaid || 0,
-//               totalConcession: inst.concession || 0,
-//               totalBalance: inst.balance || 0,
-//             },
-//           });
+//           totalFeesDue += inst.feesDue || 0;
+//           totalNetFeesDue += inst.netFeesDue || inst.feesDue || 0;
+//           totalFeesPaid += inst.feesPaid || 0;
+//           totalConcession += inst.concession || 0;
+//           totalBalance += inst.balance || 0;
 //         }
+
+//         resultMap.set(admissionNumber, {
+//           admissionNumber,
+//           studentName: `${student.firstName} ${student.lastName || ''}`,
+//           className: classMap[masterDefineClass] || masterDefineClass,
+//           sectionName: sectionMap[section] || section,
+//           academicYear,
+//           parentContactNumber,
+//           tcStatus,
+//           admissionPaymentDate: firstAdmissionPayment && firstAdmissionPayment.paymentDate
+//             ? validateDate(firstAdmissionPayment.paymentDate, `AdmissionPayment for ${admissionNumber}`)?.toLocaleDateString("en-GB") || null
+//             : null,
+//           defaulterType: defaulterType.join(", ") || "Defaulter",
+//           installments: uniqueInstallments.sort((a, b) => {
+//             const dueDateA = validateDate(a.dueDate, `Installment ${a.installmentName} sort`);
+//             const dueDateB = validateDate(b.dueDate, `Installment ${b.installmentName} sort`);
+//             return dueDateA && dueDateB ? dueDateA - dueDateB : 0;
+//           }),
+//           totals: {
+//             totalFeesDue,
+//             totalNetFeesDue,
+//             totalFeesPaid,
+//             totalConcession,
+//             totalBalance,
+//           },
+//         });
 //       }
 //     }
 //   }
 
+//   const result = Array.from(resultMap.values());
 
-//   if (archivedDefaulters && archivedDefaulters.defaulters) {
-//     for (const defaulter of archivedDefaulters.defaulters) {
-//       if (
-//         (classes && !classes.split(',').includes(defaulter.className)) ||
-//         (sections && !sections.split(',').includes(defaulter.sectionName)) ||
-//         (installment && !defaulter.installments.some((inst) => inst.installmentName === installment))
-//       ) {
-//         continue;
-//       }
-
-//       const key = `${defaulter.admissionNumber}-${defaulter.installments[0]?.installmentName || 'archive'}`;
-//       resultMap.set(key, {
-//         ...defaulter,
-//         lockDate: archivedDefaulters.storedAt
-//           ? new Date(archivedDefaulters.storedAt).toLocaleDateString("en-GB")
-//           : null,
-//       });
-//     }
-//   }
-
-
-//   const classOptions = Array.from(new Set([...Object.values(classMap), ...resultMap.values().map((d) => d.className)])).map((name) => ({
+//   const classOptions = Array.from(new Set(Object.values(classMap))).map((name) => ({
 //     value: name,
 //     label: name,
 //   }));
-//   const sectionOptions = Array.from(new Set([...Object.values(sectionMap), ...resultMap.values().map((d) => d.sectionName)])).map((name) => ({
+//   const sectionOptions = Array.from(new Set(Object.values(sectionMap))).map((name) => ({
 //     value: name,
 //     label: name,
 //   }));
 //   const installmentOptions = Array.from(
-//     new Set(Array.from(resultMap.values()).flatMap((item) => item.installments.map((inst) => inst.installmentName)))
+//     new Set(result.flatMap((item) => item.installments.map((inst) => inst.installmentName)))
 //   ).map((inst) => ({ value: inst, label: inst }));
 //   const paymentModeOptions = Array.from(
 //     new Set(
 //       (await SchoolFees.find({ schoolId, academicYear }).lean().session(session)).map(
 //         (fee) => fee.paymentMode
-//       ).concat(resultMap.values().flatMap((d) => d.installments.map((inst) => inst.paymentMode)))
+//       )
 //     )
 //   )
 //     .filter(Boolean)
@@ -660,9 +558,7 @@
 //   ];
 
 //   return {
-//     hasError: false,
-//     message: "Defaulter data fetched successfully.",
-//     data: Array.from(resultMap.values()),
+//     data: result,
 //     feeTypes: allFeeTypes,
 //     filterOptions: {
 //       classOptions,
@@ -676,7 +572,6 @@
 
 // export default computeDefaulterFees;
 
-
 import mongoose from 'mongoose';
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
 import FeesType from "../../../../models/FeesModule/FeesType.js";
@@ -686,7 +581,7 @@ import ClassAndSection from "../../../../models/FeesModule/Class&Section.js";
 import { AdmissionPayment } from "../../../../models/FeesModule/AdmissionForm.js";
 import Refund from "../../../../models/FeesModule/RefundFees.js";
 import DefaulterFeesArchive from "../../../../models/FeesModule/DefaulterFeesArchive.js";
-import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js";
+import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js"; 
 
 const validateDate = (dateStr, context = 'unknown') => {
   if (!dateStr) {
@@ -701,157 +596,9 @@ const validateDate = (dateStr, context = 'unknown') => {
   return date;
 };
 
-// Enhanced helper function to handle refund allocation properly
-const calculateFeeTypeDetails = (feeTypeId, structureInst, payments, refunds, installmentName, feeTypeMap) => {
-  const feeTypeAmount = structureInst.fees.find(fee => 
-    fee.feesTypeId.toString() === feeTypeId.toString()
-  )?.amount || 0;
-
-  let feesPaid = 0;
-  let concession = 0;
-  let refundAmount = 0;
-  let cancelledAmount = 0;
-  let cancelledConcession = 0;
-
-  // Calculate paid amount and concession from payments for this specific fee type
-  for (const payment of payments) {
-    if (!payment.cancelledDate) {
-      for (const feeItem of payment.feeItems) {
-        if (feeItem.feeTypeId.toString() === feeTypeId.toString()) {
-          feesPaid += feeItem.paid || 0;
-          concession += feeItem.concession || 0;
-        }
-      }
-    }
-  }
-
-  console.log(`Initial calculation for ${feeTypeMap[feeTypeId.toString()]}: feesPaid=${feesPaid}, concession=${concession}`);
-
-  // Calculate refund and cancelled amounts for this fee type
-  for (const refund of refunds) {
-    console.log(`Processing refund:`, {
-      installmentName: refund.installmentName,
-      feeTypeRefunds: refund.feeTypeRefunds,
-      refundAmount: refund.refundAmount,
-      cancelledAmount: refund.cancelledAmount,
-      concessionAmount: refund.concessionAmount,
-      status: refund.status
-    });
-
-    // Check if this refund matches our installment
-    if (refund.installmentName !== installmentName) {
-      continue;
-    }
-
-    // Check feeTypeRefunds array first - match by feeTypeId
-    const feeTypeRefund = refund.feeTypeRefunds?.find(
-      ftr => ftr.feeType?.toString() === feeTypeId.toString()
-    );
-
-    if (feeTypeRefund) {
-      console.log(`Found feeTypeRefund for ${feeTypeMap[feeTypeId.toString()]}:`, feeTypeRefund);
-      if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
-        refundAmount += feeTypeRefund.refundAmount || 0;
-        cancelledAmount += feeTypeRefund.cancelledAmount || 0;
-        cancelledConcession += feeTypeRefund.concessionAmount || 0;
-      }
-    } else if (!refund.feeTypeRefunds || refund.feeTypeRefunds.length === 0) {
-      // This is a general refund for the installment without specific fee type allocation
-      // Allocate amounts proportionally based on what was paid for each fee type
-      console.log(`General refund without feeTypeRefunds - allocating proportionally`);
-      
-      const totalPaidForInstallment = payments.reduce((sum, payment) => {
-        if (!payment.cancelledDate) {
-          return sum + payment.feeItems.reduce((itemSum, item) => itemSum + (item.paid || 0), 0);
-        }
-        return sum;
-      }, 0);
-
-      const totalConcessionForInstallment = payments.reduce((sum, payment) => {
-        if (!payment.cancelledDate) {
-          return sum + payment.feeItems.reduce((itemSum, item) => itemSum + (item.concession || 0), 0);
-        }
-        return sum;
-      }, 0);
-
-      console.log(`Total paid for installment: ${totalPaidForInstallment}, Total concession: ${totalConcessionForInstallment}`);
-
-      if (totalPaidForInstallment > 0) {
-        const feeTypePaid = payments.reduce((sum, payment) => {
-          if (!payment.cancelledDate) {
-            return sum + payment.feeItems.reduce((itemSum, item) => {
-              if (item.feeTypeId.toString() === feeTypeId.toString()) {
-                return itemSum + (item.paid || 0);
-              }
-              return itemSum;
-            }, 0);
-          }
-          return sum;
-        }, 0);
-
-        const feeTypeRatio = feeTypePaid / totalPaidForInstallment;
-        console.log(`FeeType ${feeTypeMap[feeTypeId.toString()]} paid: ${feeTypePaid}, ratio: ${feeTypeRatio}`);
-
-        if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
-          const allocatedRefundAmount = (refund.refundAmount || 0) * feeTypeRatio;
-          const allocatedCancelledAmount = (refund.cancelledAmount || 0) * feeTypeRatio;
-          
-          refundAmount += allocatedRefundAmount;
-          cancelledAmount += allocatedCancelledAmount;
-          
-          console.log(`Allocated to ${feeTypeMap[feeTypeId.toString()]}: refundAmount=${allocatedRefundAmount}, cancelledAmount=${allocatedCancelledAmount}`);
-        }
-      }
-
-      if (totalConcessionForInstallment > 0) {
-        const feeTypeConcession = payments.reduce((sum, payment) => {
-          if (!payment.cancelledDate) {
-            return sum + payment.feeItems.reduce((itemSum, item) => {
-              if (item.feeTypeId.toString() === feeTypeId.toString()) {
-                return itemSum + (item.concession || 0);
-              }
-              return itemSum;
-            }, 0);
-          }
-          return sum;
-        }, 0);
-
-        const concessionRatio = feeTypeConcession / totalConcessionForInstallment;
-        console.log(`FeeType ${feeTypeMap[feeTypeId.toString()]} concession: ${feeTypeConcession}, ratio: ${concessionRatio}`);
-
-        if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
-          const allocatedCancelledConcession = (refund.concessionAmount || 0) * concessionRatio;
-          cancelledConcession += allocatedCancelledConcession;
-          console.log(`Allocated cancelled concession: ${allocatedCancelledConcession}`);
-        }
-      }
-    }
-  }
-
-  console.log(`Final for ${feeTypeMap[feeTypeId.toString()]}: refundAmount=${refundAmount}, cancelledAmount=${cancelledAmount}, cancelledConcession=${cancelledConcession}`);
-
-  // Adjust paid amount for refunds and cancellations
-  const adjustedFeesPaid = Math.max(0, feesPaid - refundAmount - cancelledAmount);
-  // Adjust concession for cancelled concession
-  const adjustedConcession = Math.max(0, concession - cancelledConcession);
-  
-  const balance = feeTypeAmount - adjustedConcession - adjustedFeesPaid;
-
-  return {
-    feeTypeId: feeTypeId.toString(),
-    feeTypeName: feeTypeMap[feeTypeId.toString()] || "Unknown",
-    feesDue: feeTypeAmount,
-    concession: adjustedConcession,
-    feesPaid: adjustedFeesPaid,
-    refundAmount,
-    cancelledAmount,
-    cancelledConcession,
-    balance
-  };
-};
-
 async function computeDefaulterFees(schoolId, academicYear, session, classes, sections, installment) {
   const today = new Date();
+
 
   const feesManagementYear = await FeesManagementYear.findOne({ schoolId, academicYear })
     .lean()
@@ -865,9 +612,11 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     }
   }
 
+
   const archivedDefaulters = await DefaulterFeesArchive.findOne({ schoolId, academicYear })
     .lean()
     .session(session);
+
 
   if (isAcademicYearEnded) {
     if (!archivedDefaulters || !archivedDefaulters.defaulters) {
@@ -881,7 +630,7 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     }
 
     const filteredArchivedData = archivedDefaulters.defaulters.filter((defaulter) =>
-      defaulter.tcStatus === 'Active' &&
+       defaulter.tcStatus === 'Active' &&
       (!classes || classes.split(',').includes(defaulter.className)) &&
       (!sections || sections.split(',').includes(defaulter.sectionName)) &&
       (!installment || defaulter.installments.some((inst) => inst.installmentName === installment))
@@ -891,15 +640,6 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
         ? new Date(archivedDefaulters.storedAt).toLocaleDateString("en-GB")
         : null,
     }));
-
-    // Extract fee types from archived data
-    const allFeeTypes = Array.from(new Set(
-      filteredArchivedData.flatMap(defaulter => 
-        defaulter.installments.flatMap(installment => 
-          Object.keys(installment.feeTypes || {})
-        )
-      )
-    )).sort();
 
     const classOptions = Array.from(new Set(filteredArchivedData.map((d) => d.className))).map((name) => ({
       value: name,
@@ -926,7 +666,7 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
       hasError: false,
       message: "Archived defaulter data fetched successfully for ended academic year.",
       data: filteredArchivedData,
-      feeTypes: allFeeTypes,
+      feeTypes: [],
       filterOptions: {
         classOptions,
         sectionOptions,
@@ -937,11 +677,11 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     };
   }
 
+
   const students = await AdmissionForm.find({ schoolId })
-    .select('AdmissionNumber firstName lastName parentContactNumber academicHistory TCStatus _id')
+    .select('AdmissionNumber firstName lastName parentContactNumber academicHistory TCStatus')
     .lean()
     .session(session);
-  
   if (!students.length && !archivedDefaulters) {
     return {
       hasError: false,
@@ -954,6 +694,7 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
 
   const lateAdmissionThreshold = new Date(today);
   lateAdmissionThreshold.setMonth(today.getMonth() - 3);
+
 
   const classAndSections = await ClassAndSection.find({ schoolId, academicYear })
     .lean()
@@ -979,12 +720,13 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
   // Fetch fee types
   const feeTypes = await FeesType.find({ academicYear }).lean().session(session);
   const feeTypeMap = feeTypes.reduce((acc, type) => {
-    acc[type._id.toString()] = type.feesTypeName || "Unknown";
+    acc[type._id.toString()] = type.name || "Unknown";
     return acc;
   }, {});
-  const allFeeTypes = feeTypes.map((type) => type.feesTypeName).filter(Boolean).sort();
+  const allFeeTypes = feeTypes.map((type) => type.name).filter(Boolean).sort();
 
   const resultMap = new Map();
+
 
   for (const student of students) {
     const admissionNumber = student.AdmissionNumber;
@@ -994,10 +736,10 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     );
     const tcStatus = student.TCStatus || 'Active';
 
-    if (tcStatus === 'Inactive') {
-      console.log(`Skipping inactive student: ${admissionNumber}`);
-      continue;
-    }
+      if (tcStatus === 'Inactive') {
+    console.log(`Skipping inactive student: ${admissionNumber}`);
+    continue;
+  }
 
     if (!academicHistory) {
       console.log(`No academic history for student ${admissionNumber} in ${academicYear}`);
@@ -1044,7 +786,6 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
 
     const isLateAdmission = firstAdmissionPayment && validateDate(firstAdmissionPayment.paymentDate, `AdmissionPayment for ${admissionNumber}`) >= lateAdmissionThreshold;
 
-    // Fetch refunds with proper matching
     const refunds = await Refund.find({
       schoolId,
       admissionNumber,
@@ -1054,10 +795,6 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     })
       .lean()
       .session(session);
-
-    console.log(`=== REFUNDS FOR ${admissionNumber} ===`);
-    console.log(JSON.stringify(refunds, null, 2));
-    console.log(`=== END REFUNDS ===`);
 
     const paymentsByInstallment = allPaidFeesData
       .flatMap((payment) => {
@@ -1124,49 +861,54 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
         initialFeesDue += fee.amount || 0;
       }
 
-      // Get relevant refunds for this specific installment
-      const relevantRefunds = refunds.filter(
-        (refund) => refund.installmentName === instName
-      );
-
-      console.log(`Relevant refunds for ${admissionNumber} - ${instName}:`, relevantRefunds.length);
-      
-      // Calculate detailed fee type breakdown
-      const feeTypeDetails = {};
-      let totalAdjustedFeesPaid = 0;
-      let totalFeeTypeConcession = 0;
-      let totalFeeTypeRefund = 0;
-      let totalFeeTypeCancelled = 0;
-      let totalFeeTypeCancelledConcession = 0;
-
+      let concession = 0;
+      let installmentFeesPaid = 0;
       const payments = paymentsByInstallment[instName] || [];
 
-      for (const fee of structureInst.fees) {
-        const feeTypeId = fee.feesTypeId;
-        const details = calculateFeeTypeDetails(
-          feeTypeId,
-          structureInst,
-          payments,
-          relevantRefunds,
-          instName,
-          feeTypeMap
-        );
-        
-        feeTypeDetails[details.feeTypeName] = details;
-        totalAdjustedFeesPaid += details.feesPaid;
-        totalFeeTypeConcession += details.concession;
-        totalFeeTypeRefund += details.refundAmount;
-        totalFeeTypeCancelled += details.cancelledAmount;
-        totalFeeTypeCancelledConcession += details.cancelledConcession;
+      for (const payment of payments) {
+        if (!payment.cancelledDate) {
+          for (const feeItem of payment.feeItems) {
+            if (feeItem.paid > 0) {
+              installmentFeesPaid += feeItem.paid || 0;
+              concession += feeItem.concession || 0;
+            }
+          }
+        }
       }
 
-      // Check if this installment has unpaid amount
-      const adjustedNetFeesDue = initialFeesDue - totalFeeTypeConcession;
-      const adjustedBalance = adjustedNetFeesDue - totalAdjustedFeesPaid;
+      let totalRefundAmount = 0;
+      let totalRefundConcession = 0;
+      const relevantRefunds = refunds.filter(
+        (refund) =>
+          refund.feeTypeRefunds.some((ftr) => ftr.installmentName === instName) ||
+          refund.installmentName === instName
+      );
 
-      if (totalAdjustedFeesPaid < adjustedNetFeesDue) {
+      for (const refund of relevantRefunds) {
+        const installmentRefunds = refund.feeTypeRefunds?.filter(
+          (ftr) => ftr.installmentName === instName
+        ) || [];
+        for (const ftr of installmentRefunds) {
+          if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
+            totalRefundAmount += (ftr.refundAmount || 0) + (ftr.cancelledAmount || 0);
+            totalRefundConcession += ftr.concessionAmount || 0;
+          }
+        }
+        if (refund.installmentName === instName) {
+          if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
+            totalRefundAmount += (refund.refundAmount || 0) + (refund.cancelledAmount || 0);
+            totalRefundConcession += refund.concessionAmount || 0;
+          }
+        }
+      }
+
+      installmentFeesPaid = Math.max(0, installmentFeesPaid - totalRefundAmount);
+      concession = Math.max(0, concession - totalRefundConcession);
+
+      const netFeesDue = initialFeesDue - concession;
+
+      if (installmentFeesPaid < netFeesDue) {
         hasUnpaidPastDueInstallment = true;
-
         defaulterInstallments.push({
           paymentDate: payments.length && payments[0].paymentDate
             ? new Date(payments[0].paymentDate).toLocaleDateString("en-GB")
@@ -1177,18 +919,16 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
           installmentName: instName,
           dueDate: dueDate ? dueDate.toLocaleDateString("en-GB") : null,
           feesDue: initialFeesDue,
-          netFeesDue: adjustedNetFeesDue,
-          feesPaid: totalAdjustedFeesPaid,
-          concession: totalFeeTypeConcession,
-          balance: adjustedBalance,
+          netFeesDue: netFeesDue,
+          feesPaid: installmentFeesPaid,
+          concession,
+          balance: netFeesDue - installmentFeesPaid,
           daysOverdue,
-          feeTypes: feeTypeDetails,
-          feeTypeBreakdown: Object.values(feeTypeDetails),
-          totals: {
-            totalRefundAmount: totalFeeTypeRefund,
-            totalCancelledAmount: totalFeeTypeCancelled,
-            totalCancelledConcession: totalFeeTypeCancelledConcession
-          }
+          feeTypes: structureInst.fees.reduce((acc, curr) => {
+            const feeTypeName = feeTypeMap[curr.feesTypeId.toString()] || "Unknown";
+            acc[feeTypeName] = curr.amount || 0;
+            return acc;
+          }, {}),
         });
       }
     }
@@ -1198,9 +938,209 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
       allStudentInstallments.push(...defaulterInstallments);
     }
 
-    // Late admission logic (simplified for this example)
+    let unpaidOrPartiallyPaidInstallments = [];
     if (isLateAdmission) {
-      // Add late admission logic here if needed
+      let firstFullyPaidIndex = -1;
+      for (let i = 0; i < sortedInstallments.length; i++) {
+        const instName = sortedInstallments[i];
+        const structureInst = allInstallments.find((inst) => inst.name === instName);
+        if (!structureInst) continue;
+
+        let initialFeesDue = 0;
+        for (const fee of structureInst.fees) {
+          initialFeesDue += fee.amount || 0;
+        }
+
+        let paidConcession = 0;
+        let installmentFeesPaid = 0;
+        const payments = paymentsByInstallment[instName] || [];
+
+        for (const payment of payments) {
+          for (const feeItem of payment.feeItems) {
+            paidConcession += feeItem.concession || 0;
+            installmentFeesPaid += feeItem.paid || 0;
+          }
+        }
+
+        let totalRefundAmount = 0;
+        let totalRefundConcession = 0;
+        const relevantRefunds = refunds.filter(
+          (refund) =>
+            refund.feeTypeRefunds.some((ftr) => ftr.installmentName === instName) ||
+            refund.installmentName === instName
+        );
+
+        for (const refund of relevantRefunds) {
+          const installmentRefunds = refund.feeTypeRefunds?.filter(
+            (ftr) => ftr.installmentName === instName
+          ) || [];
+          for (const ftr of installmentRefunds) {
+            if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
+              totalRefundAmount += (ftr.refundAmount || 0) + (ftr.cancelledAmount || 0);
+              totalRefundConcession += ftr.concessionAmount || 0;
+            }
+          }
+          if (refund.installmentName === instName) {
+            if (["Refund", "Cancelled", "Cheque Return"].includes(refund.status)) {
+              totalRefundAmount += (refund.refundAmount || 0) + (refund.cancelledAmount || 0);
+              totalRefundConcession += refund.concessionAmount || 0;
+            }
+          }
+        }
+
+        installmentFeesPaid = Math.max(0, installmentFeesPaid - totalRefundAmount);
+        paidConcession = Math.max(0, paidConcession - totalRefundConcession);
+
+        const netFeesDue = initialFeesDue - paidConcession;
+        const isFullyPaid = installmentFeesPaid >= netFeesDue && netFeesDue > 0;
+
+        if (isFullyPaid) {
+          firstFullyPaidIndex = i;
+          break;
+        }
+      }
+
+      if (firstFullyPaidIndex !== -1) {
+        unpaidOrPartiallyPaidInstallments = [];
+        for (let i = 0; i < firstFullyPaidIndex; i++) {
+          const instName = sortedInstallments[i];
+          if (!filteredInstallmentNames.includes(instName)) continue;
+
+          const structureInst = allInstallments.find((inst) => inst.name === instName);
+          if (!structureInst || !structureInst.dueDate) continue;
+
+          const dueDate = validateDate(structureInst.dueDate, `FeesStructure dueDate for ${instName}`);
+          if (!dueDate) continue;
+
+          let initialFeesDue = 0;
+          for (const fee of structureInst.fees) {
+            initialFeesDue += fee.amount || 0;
+          }
+
+          let paidConcession = 0;
+          let installmentFeesPaid = 0;
+          const payments = paymentsByInstallment[instName] || [];
+
+          for (const payment of payments) {
+            for (const feeItem of payment.feeItems) {
+              paidConcession += feeItem.concession || 0;
+              installmentFeesPaid += feeItem.paid || 0;
+            }
+          }
+
+          let totalRefundAmount = 0;
+          let totalRefundConcession = 0;
+          const relevantRefunds = refunds.filter(
+            (refund) =>
+              refund.feeTypeRefunds.some((ftr) => ftr.installmentName === instName) ||
+              refund.installmentName === instName
+          );
+
+          for (const refund of relevantRefunds) {
+            const installmentRefunds = refund.feeTypeRefunds?.filter(
+              (ftr) => ftr.installmentName === instName
+            ) || [];
+            for (const ftr of installmentRefunds) {
+              totalRefundAmount += (ftr.refundAmount || 0) + (ftr.cancelledAmount || 0);
+              totalRefundConcession += ftr.concessionAmount || 0;
+            }
+            if (refund.installmentName === instName) {
+              totalRefundAmount += (refund.refundAmount || 0) + (refund.cancelledAmount || 0);
+              totalRefundConcession += refund.concessionAmount || 0;
+            }
+          }
+
+          installmentFeesPaid = Math.max(0, installmentFeesPaid - totalRefundAmount);
+          paidConcession = Math.max(0, paidConcession - totalRefundConcession);
+
+          const netFeesDue = initialFeesDue - paidConcession;
+          const isUnpaidOrPartial = installmentFeesPaid < netFeesDue;
+
+          if (isUnpaidOrPartial) {
+            const sortedPayments = payments.sort(
+              (a, b) => {
+                const dateA = validateDate(a.paymentDate, `Payment date for ${instName}`);
+                const dateB = validateDate(b.paymentDate, `Payment date for ${instName}`);
+                return dateA && dateB ? dateA - dateB : 0;
+              }
+            );
+
+            for (const payment of sortedPayments) {
+              let feesPaid = 0;
+              let concessionForPayment = 0;
+              for (const feeItem of payment.feeItems) {
+                feesPaid += feeItem.paid || 0;
+                concessionForPayment += feeItem.concession || 0;
+              }
+
+              feesPaid = Math.max(0, feesPaid - totalRefundAmount);
+              concessionForPayment = Math.max(0, concessionForPayment - totalRefundConcession);
+
+              const installmentBalance = netFeesDue - installmentFeesPaid;
+              const formattedPaymentDate = payment.paymentDate
+                ? validateDate(payment.paymentDate, `Payment date for ${instName}`)?.toLocaleDateString("en-GB") || "-"
+                : "-";
+
+              if (installmentBalance > 0 || feesPaid === 0) {
+                const existingInstallment = unpaidOrPartiallyPaidInstallments.find(
+                  (inst) => inst.installmentName === instName && inst.feesPaid === feesPaid
+                );
+                if (!existingInstallment) {
+                  unpaidOrPartiallyPaidInstallments.push({
+                    paymentDate: formattedPaymentDate,
+                    reportStatus: payment.reportStatus || [],
+                    paymentMode: payment.paymentMode || "-",
+                    installmentName: instName,
+                    dueDate: dueDate ? dueDate.toLocaleDateString("en-GB") : null,
+                    feesDue: netFeesDue,
+                    feesPaid,
+                    concession: concessionForPayment,
+                    balance: installmentBalance,
+                    feeTypes: structureInst.fees.reduce((acc, curr) => {
+                      const feeTypeName = feeTypeMap[curr.feesTypeId.toString()] || "Unknown";
+                      acc[feeTypeName] = curr.amount || 0;
+                      return acc;
+                    }, {}),
+                  });
+                }
+              }
+            }
+
+            if (!payments.length && dueDate < today) {
+              const existingInstallment = unpaidOrPartiallyPaidInstallments.find(
+                (inst) => inst.installmentName === instName && inst.feesPaid === 0
+              );
+              if (!existingInstallment) {
+                unpaidOrPartiallyPaidInstallments.push({
+                  paymentDate: "-",
+                  reportStatus: [],
+                  paymentMode: "-",
+                  installmentName: instName,
+                  dueDate: dueDate ? dueDate.toLocaleDateString("en-GB") : null,
+                  feesDue: netFeesDue,
+                  feesPaid: 0,
+                  concession: 0,
+                  balance: netFeesDue,
+                  feeTypes: structureInst.fees.reduce((acc, curr) => {
+                    const feeTypeName = feeTypeMap[curr.feesTypeId.toString()] || "Unknown";
+                    acc[feeTypeName] = curr.amount || 0;
+                    return acc;
+                  }, {}),
+                });
+              }
+            }
+          }
+        }
+      }
+
+      if (unpaidOrPartiallyPaidInstallments.length > 0) {
+        defaulterType.push("LateAdmission");
+        allStudentInstallments.push(...unpaidOrPartiallyPaidInstallments);
+      }
+    }
+
+    if (defaulterType.includes("LateAdmission")) {
+      continue;
     }
 
     if (allStudentInstallments.length > 0) {
@@ -1218,7 +1158,6 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
       if (uniqueInstallments.length > 0) {
         for (const inst of uniqueInstallments) {
           const key = `${admissionNumber}-${inst.installmentName}`;
-          
           resultMap.set(key, {
             admissionNumber,
             studentName: `${student.firstName} ${student.lastName || ''}`,
@@ -1233,13 +1172,11 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
             defaulterType: defaulterType.join(", ") || "Defaulter",
             installments: [inst],
             totals: {
-              totalFeesDue: inst.feesDue,
-              totalNetFeesDue: inst.netFeesDue,
-              totalFeesPaid: inst.feesPaid,
-              totalConcession: inst.concession,
-              totalBalance: inst.balance,
-              totalCancelledAmount: inst.totals.totalCancelledAmount,
-              totalCancelledConcession: inst.totals.totalCancelledConcession,
+              totalFeesDue: inst.feesDue || 0,
+              totalNetFeesDue: inst.netFeesDue || inst.feesDue || 0,
+              totalFeesPaid: inst.feesPaid || 0,
+              totalConcession: inst.concession || 0,
+              totalBalance: inst.balance || 0,
             },
           });
         }
@@ -1247,7 +1184,7 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     }
   }
 
-  // Handle archived defaulters if any
+
   if (archivedDefaulters && archivedDefaulters.defaulters) {
     for (const defaulter of archivedDefaulters.defaulters) {
       if (
@@ -1268,7 +1205,7 @@ async function computeDefaulterFees(schoolId, academicYear, session, classes, se
     }
   }
 
-  // Generate filter options
+
   const classOptions = Array.from(new Set([...Object.values(classMap), ...resultMap.values().map((d) => d.className)])).map((name) => ({
     value: name,
     label: name,

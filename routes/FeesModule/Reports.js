@@ -38,7 +38,8 @@ SchoolFeesPaidAndConcession,
 FeesReconStudentWise,
 SchoolFeesINCConcession,
 SchoolFeesEXCConcession ,
-ArrearFeesArchive
+ArrearFeesArchive,
+StudentWiseFeesDue
 
 
 } from "../../controllers/FeesModule/Reports/index.js";
@@ -300,7 +301,18 @@ router.get(
 FeesReconStudentWise
 );
 
+//------------------------------------------------StudentWiseFeesDue----------------------------//
 
+
+router.get(
+  "/get-fees-due-student-wise",
+  roleBasedMiddleware("Admin","School"),
+StudentWiseFeesDue
+);
+
+
+
+StudentWiseFeesDue
 
 
 export default router;

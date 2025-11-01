@@ -347,6 +347,96 @@ const registrationPaymentSchema = new Schema({
 }, { timestamps: true });
 
 
+// registrationPaymentSchema.pre('save', async function (next) {
+//   let attempts = 3;
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+//   try {
+//     while (attempts > 0) {
+//       try {
+//         if (!this.receiptNumber && this.paymentMode !== 'null') {
+//           const counter = await RegistrationCounter.findOneAndUpdate(
+//             { schoolId: this.schoolId },
+//             { $inc: { receiptSeq: 1 } },
+//             { new: true, upsert: true, session }
+//           );
+//           const padded = counter.receiptSeq.toString().padStart(6, '0');
+//           this.receiptNumber = `REC/REG/${padded}`;
+//         }
+
+//         if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque' || this.paymentMode === 'Online') && !this.paymentDate) {
+//           this.paymentDate = new Date();
+//         }
+//         if (this.status === 'Paid') {
+//           const student = await mongoose.model('StudentRegistration').findById(this.studentId).session(session);
+//           if (!student) {
+//             throw new Error('Associated StudentRegistration not found');
+//           }
+//           if (!this.reportStatus.includes('Paid')) {
+//             this.reportStatus.push('Paid');
+//           }
+
+//           if (!student.registrationNumber) {
+//             const setting = await PrefixSetting.findOne({ schoolId: this.schoolId }).session(session);
+//             if (!setting || !setting.type) {
+//               throw new Error('Prefix setting not configured properly.');
+//             }
+
+//             const counter = await RegistrationCounter.findOneAndUpdate(
+//               { schoolId: this.schoolId },
+//               { $inc: { registrationSeq: 1 } },
+//               { new: true, upsert: true, session }
+//             );
+
+//             let registrationNumber;
+//             if (setting.type === 'numeric' && setting.value != null) {
+//               const start = parseInt(setting.value);
+//               registrationNumber = `${start + counter.registrationSeq}`;
+//             } else if (setting.type === 'alphanumeric' && setting.prefix && setting.number != null) {
+//               const baseNumber = parseInt(setting.number);
+//               registrationNumber = `${setting.prefix}${baseNumber + counter.registrationSeq}`;
+//             } else {
+//               throw new Error('Incomplete prefix setting.');
+//             }
+//             student.registrationNumber = registrationNumber;
+//             await student.save({ session });
+//             this.registrationNumber = registrationNumber;
+//           } else {
+//             this.registrationNumber = student.registrationNumber;
+//           }
+//         } else {
+
+//           const student = await mongoose.model('StudentRegistration').findById(this.studentId).session(session);
+//           if (!student) {
+//             throw new Error('Associated StudentRegistration not found');
+//           }
+//           if (student.registrationNumber) {
+//             this.registrationNumber = student.registrationNumber;
+//           }
+//         }
+
+//         await session.commitTransaction();
+//         return next();
+//       } catch (err) {
+//         if (err.code === 11000 && (err.message.includes('receiptNumber') || err.message.includes('transactionNumber'))) {
+//           attempts--;
+//           if (attempts === 0) {
+//             throw err;
+//           }
+//         } else {
+//           throw err;
+//         }
+//       }
+//     }
+//   } catch (err) {
+//     await session.abortTransaction();
+//     return next(err);
+//   } finally {
+//     session.endSession();
+//   }
+// });
+
+
 registrationPaymentSchema.pre('save', async function (next) {
   let attempts = 3;
   const session = await mongoose.startSession();
@@ -354,7 +444,8 @@ registrationPaymentSchema.pre('save', async function (next) {
   try {
     while (attempts > 0) {
       try {
-        if (!this.receiptNumber && this.paymentMode !== 'null') {
+
+        if (this.status === 'Paid' && !this.receiptNumber && this.paymentMode !== 'null') {
           const counter = await RegistrationCounter.findOneAndUpdate(
             { schoolId: this.schoolId },
             { $inc: { receiptSeq: 1 } },
@@ -364,14 +455,15 @@ registrationPaymentSchema.pre('save', async function (next) {
           this.receiptNumber = `REC/REG/${padded}`;
         }
 
+   
         if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque' || this.paymentMode === 'Online') && !this.paymentDate) {
           this.paymentDate = new Date();
         }
+
         if (this.status === 'Paid') {
           const student = await mongoose.model('StudentRegistration').findById(this.studentId).session(session);
-          if (!student) {
-            throw new Error('Associated StudentRegistration not found');
-          }
+          if (!student) throw new Error('Associated StudentRegistration not found');
+
           if (!this.reportStatus.includes('Paid')) {
             this.reportStatus.push('Paid');
           }
@@ -405,12 +497,8 @@ registrationPaymentSchema.pre('save', async function (next) {
             this.registrationNumber = student.registrationNumber;
           }
         } else {
-
           const student = await mongoose.model('StudentRegistration').findById(this.studentId).session(session);
-          if (!student) {
-            throw new Error('Associated StudentRegistration not found');
-          }
-          if (student.registrationNumber) {
+          if (student && student.registrationNumber) {
             this.registrationNumber = student.registrationNumber;
           }
         }
@@ -420,9 +508,7 @@ registrationPaymentSchema.pre('save', async function (next) {
       } catch (err) {
         if (err.code === 11000 && (err.message.includes('receiptNumber') || err.message.includes('transactionNumber'))) {
           attempts--;
-          if (attempts === 0) {
-            throw err;
-          }
+          if (attempts === 0) throw err;
         } else {
           throw err;
         }
@@ -435,7 +521,6 @@ registrationPaymentSchema.pre('save', async function (next) {
     session.endSession();
   }
 });
-
 export const RegistrationPayment = mongoose.model('RegistrationPayment', registrationPaymentSchema);
 
 const studentRegistrationSchema = new Schema({

@@ -238,8 +238,11 @@ export const getAllStudentFeesDue = async (req, res) => {
               const feeTypeId = ftr.feeType.toString();
               const feeTypeName = feeTypeMap[feeTypeId] || "Unknown";
               const cancAmount = ftr.cancelledAmount || 0;
+              const concessionamt=ftr.concessionAmount ||0;
               cancelled += cancAmount;
+              concession +=concessionamt;
               feeTypesBreakdown[feeTypeName].cancelled += cancAmount;
+              feeTypesBreakdown[feeTypeName].concession += concessionamt;
               feeTypesBreakdown[feeTypeName].paid = ftr.paidAmount || 0;
               feeTypesBreakdown[feeTypeName].balance = ftr.balance || 0;
             }
@@ -250,9 +253,12 @@ export const getAllStudentFeesDue = async (req, res) => {
             for (const ftr of entry.feeTypeRefunds) {
               const feeTypeId = ftr.feeType.toString();
               const feeTypeName = feeTypeMap[feeTypeId] || "Unknown";
-              const chqAmount = ftr.cancelledAmount || 0; // Assuming cheque return uses cancelledAmount field
+              const chqAmount = ftr.cancelledAmount || 0; 
+              const concessionamt=ftr.concessionAmount ||0;
               chequeReturn += chqAmount;
+              concession +=concessionamt;
               feeTypesBreakdown[feeTypeName].chequeReturn += chqAmount;
+              feeTypesBreakdown[feeTypeName].concession += concessionamt;
               feeTypesBreakdown[feeTypeName].paid = ftr.paidAmount || 0;
               feeTypesBreakdown[feeTypeName].balance = ftr.balance || 0;
             }

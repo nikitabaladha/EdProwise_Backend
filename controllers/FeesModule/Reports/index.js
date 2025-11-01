@@ -34,8 +34,8 @@ import SchoolFeesPaidAndConcession from "./ReconFees/SchoolFees.js"
 import FeesReconStudentWise from './ReconFees/FeesReconStudentWise.js'
 import SchoolFeesINCConcession from './Reports/SchoolFeesINConcession.js'
 import SchoolFeesEXCConcession from './Reports/SchoolFeesEXCConcession.js'
-import ArrearFeesArchive from './AdvancedReport/getArreararchivedata.js'
-
+import ArrearFeesArchive from './AdvancedReport/getArreararchivedata.js';
+import StudentWiseFeesDue from './AdvancedReport/studentWiseFeesDue.js';
 export {
 getall,
 createtab,
@@ -71,5 +71,6 @@ SchoolFeesPaidAndConcession,
 FeesReconStudentWise,
 SchoolFeesINCConcession,
 SchoolFeesEXCConcession,
-ArrearFeesArchive
+ArrearFeesArchive,
+StudentWiseFeesDue
 };
