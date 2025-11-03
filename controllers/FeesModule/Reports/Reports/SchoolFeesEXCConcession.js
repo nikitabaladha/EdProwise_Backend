@@ -165,17 +165,17 @@ export const CollectionEXCConcession = async (req, res) => {
           },
           totalPaid: {
             $sum: {
-              // $cond: [
-              //   { $eq: ['$_id.status', 'Paid'] },
-              //   '$feeItems.paid',
-              //   '$feeItems.cancelledPaidAmount',
-              // ],
-
               $cond: [
                 { $eq: ['$_id.status', 'Paid'] },
-                { $add: ['$feeItems.paid', { $ifNull: ['$feeItems.concession', 0] }] },
+                '$feeItems.paid',
                 '$feeItems.cancelledPaidAmount',
               ],
+
+              // $cond: [
+              //   { $eq: ['$_id.status', 'Paid'] },
+              //   { $add: ['$feeItems.paid', { $ifNull: ['$feeItems.concession', 0] }] },
+              //   '$feeItems.cancelledPaidAmount',
+              // ],
             },
           },
           fineAmount: { $first: '$fineAmount' },

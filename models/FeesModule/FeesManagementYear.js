@@ -1,5 +1,6 @@
 
 import mongoose from 'mongoose';
+import FeesType from "./FeesType.js";
 
 const FeesManagementYearSchema = new mongoose.Schema(
   {
@@ -52,5 +53,42 @@ const FeesManagementYearSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+const ONE_TIME_FEES = [
+  "Registration Fee",
+  "Admission Fee",
+  "Transfer Certificate Fee",
+  "Board Exam Fee",
+  "Board Registration Fee",
+];
+
+FeesManagementYearSchema.post("save", async function (doc, next) {
+  try {
+    const bulkOps = ONE_TIME_FEES.map(name => ({
+      updateOne: {
+        filter: {
+          schoolId: doc.schoolId,
+          academicYear: doc.academicYear,
+          feesTypeName: name,
+        },
+        update: {
+          $setOnInsert: {
+            schoolId: doc.schoolId,
+            academicYear: doc.academicYear,
+            feesTypeName: name,
+            groupOfFees: "One Time Fees",
+          },
+        },
+        upsert: true,
+        setDefaultsOnInsert: true,
+      },
+    }));
+
+    await FeesType.bulkWrite(bulkOps);
+    next();
+  } catch (err) {
+    if (err.code === 11000) return next();
+    next(err);
+  }
+});
 
 export default mongoose.model('FeesManagementYear', FeesManagementYearSchema);
