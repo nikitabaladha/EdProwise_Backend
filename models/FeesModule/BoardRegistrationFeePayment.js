@@ -219,8 +219,8 @@ const BoardRegistrationFeePaymentSchema = new Schema({
   },
   transactionId: {
     type: String,
-    unique: true,
-    sparse: true,
+    // unique: true,
+    // sparse: true,
   },
   chequeNumber: {
     type: String,
@@ -236,7 +236,7 @@ const BoardRegistrationFeePaymentSchema = new Schema({
   },
   receiptNumberBrf: {
     type: String,
-    unique: true,
+    // unique: true,
   },
   cancelledDate: { type: Date },
   cancelReason: { type: String },
@@ -306,8 +306,8 @@ BoardRegistrationFeePaymentSchema.pre('findOneAndUpdate', async function (next) 
   next();
 });
 
-BoardRegistrationFeePaymentSchema.index({ schoolId: 1, receiptNumberBrf: 1 }, { unique: true, sparse: true });
-BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
+BoardRegistrationFeePaymentSchema.index({ schoolId: 1, receiptNumberBrf: 1 }, { unique: true});
+// BoardRegistrationFeePaymentSchema.index({ transactionId: 1 }, { unique: true, sparse: true });
 
 const BoardRegistrationFeePayment = mongoose.model('BoardRegistrationFeePayment', BoardRegistrationFeePaymentSchema);
 

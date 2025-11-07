@@ -23,17 +23,7 @@ const AdminUserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    role: {
-      type: String,
-      enum: ["Admin"],
-      default: "Admin",
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["Pending", "Completed"],
-      default: "Pending",
-    },
+  
   },
   {
     timestamps: true,

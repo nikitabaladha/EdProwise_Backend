@@ -51,6 +51,12 @@ import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplat
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
 
+// ==================Easbuzz Routes =========================
+import EasebuzzData from "./EasebuzzData/EasebuzzData.js";
+
+// ==================Student Routes =========================
+import TempStudentSignup from "./Student/TempStudent.js";
+
 export default (app) => {
   // ==================Email Routes =========================
 
@@ -107,4 +113,11 @@ export default (app) => {
 
   app.use("/api", RequestForDemoRoutes);
   app.use("/api", ContactUsFormRoutes);
+
+  // ==================Easbuzz Routes =========================
+  app.use("/api",  EasebuzzData );
+
+   // ==================Student Routes =========================
+app.use("/api",  TempStudentSignup);
+   
 };

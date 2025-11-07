@@ -448,21 +448,21 @@ const TCPaymentSchema = new Schema(
 
     transactionNumber: {
       type: String,
-      default: function () {
-        return 'TRA' + Math.floor(10000 + Math.random() * 90000);
-      },
     },
 
     paymentDate: { type: Date },
     refundReceiptNumbers: [{ type: String }],
 
-    status: { type: String, enum: ['Pending', 'Paid'], default: 'Paid' },
-
+    status: { type: String, enum: ['Pending', 'Paid','Failed'], default: 'Paid' },
     reportStatus: {
       type: [String],
       enum: ['Paid', 'Cancelled', 'Cheque Return', 'Refund'],
       default: [],
     },
+  easebuzzTxnId: { type: String }, 
+  easebuzzId:{type:String},
+  hash:{type:String},
+  easebuzzResponse: { type: Schema.Types.Mixed }, 
   },
   { timestamps: true }
 );
@@ -480,7 +480,7 @@ TCPaymentSchema.pre('save', async function (next) {
     while (attempts > 0) {
       try {
         // Generate receiptNumber
-        if (!this.receiptNumber && this.paymentMode !== 'null') {
+        if (this.status === 'Paid' && !this.receiptNumber && this.paymentMode !== 'null') {
           const counter = await TCCounter.findOneAndUpdate(
             { schoolId: this.schoolId },
             { $inc: { receiptSeq: 1 } },
@@ -491,7 +491,11 @@ TCPaymentSchema.pre('save', async function (next) {
         }
 
 
-        if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque') && !this.paymentDate) {
+            if (this.paymentMode === 'Online' && this.easebuzzTxnId && !this.transactionNumber) {
+          this.transactionNumber = this.easebuzzTxnId;   
+        }
+
+         if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque' || this.paymentMode === 'Online') && !this.paymentDate) {
           this.paymentDate = new Date();
         }
 

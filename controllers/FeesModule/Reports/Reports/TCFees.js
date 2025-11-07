@@ -255,7 +255,8 @@ export const getAllTCFees = async (req, res) => {
       schoolId,
         paymentDate: { $gte: startDate, $lte: endDate },
       paymentMode: { $ne: 'null' },
-      status: { $ne: 'Pending' },
+      // status: { $ne: 'Pending' },
+         status: 'Paid'
     })
       .populate('tcFormId')
       .lean();

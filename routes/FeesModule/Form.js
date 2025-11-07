@@ -17,8 +17,8 @@ import {
   getRegistrationStatus,
   creatregistrationpayment,
   getstudentbystudentidandreceiptnumber,
-   handlePaymentSuccess,
-    handlePaymentFailure,
+  handlePaymentSuccess,
+  handlePaymentFailure,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -35,6 +35,8 @@ import {
   getbySchoolIdandYearCpy,
   createadmissionpayment,
   getadmissionbystudentidandreceiptnumber,
+  handleAdmissionPaymentFailure,
+  handleAdmissionPaymentSuccess,
 
 
   createTCForm,
@@ -45,6 +47,8 @@ import {
   getTCStatus,
   creattcpayment,
   gettcstudentbystudentidandreceiptnumber,
+  handleTCPaymentFailure,
+  handleTCPaymentSuccess,
 
   createConcessionForm,
   getConcessionFormsBySchoolId,
@@ -233,7 +237,8 @@ router.get(
 );
 
  
-
+router.post('/payment/admission/success', handleAdmissionPaymentSuccess);
+router.post('/payment/admission/failure', handleAdmissionPaymentFailure);
 
 
 
@@ -286,6 +291,8 @@ router.get(
     gettcstudentbystudentidandreceiptnumber
 );
 
+router.post('/payment/tc/success', handleTCPaymentSuccess);
+router.post('/payment/tc/failure', handleTCPaymentFailure);
 
 
 //--------------------------------------Concession Form --------------------------------------------------//

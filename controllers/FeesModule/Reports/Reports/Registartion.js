@@ -217,7 +217,8 @@ export const getAllRegistrationFees = async (req, res) => {
       schoolId,
       paymentDate: { $gte: startDate, $lte: endDate },
       paymentMode: { $ne: 'null' },
-      status: { $ne: 'Pending' },
+      // status: { $nin: ['Pending', 'Failed'] } 
+       status: 'Paid'  
     })
       .populate('studentId')
       .lean();

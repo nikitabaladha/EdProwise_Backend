@@ -1,319 +1,95 @@
 
 
-// import mongoose from 'mongoose';
-// import crypto from 'crypto';
-// import axios from 'axios';
-// import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
-
-// const generateShortId = () => {
-//   return Math.random().toString(36).substring(2, 8);
-// };
-
-// const generateEasebuzzHash = (data) => {
-//   const hashString = [
-//     data.key,
-//     data.txnid,
-//     data.amount,
-//     data.productinfo,
-//     data.firstname,
-//     data.email,
-//     data.udf1 || '',
-//     data.udf2 || '',
-//     data.udf3 || '',
-//     data.udf4 || '',
-//     data.udf5 || '',
-//     data.udf6 || '',
-//     data.udf7 || '',
-//     data.udf8 || '',
-//     data.udf9 || '',
-//     data.udf10 || ''
-//   ].join('|') + '|' + process.env.EASEBUZZ_SALT;
-
-//   return crypto.createHash('sha512').update(hashString).digest('hex');
-// };
-
-// const creatregistrationpayment = async (req, res) => {
-//   const schoolId = req.user?.schoolId;
-//   const { studentId } = req.params;
-
-//   console.log('=== Payment Initiation Started ===');
-//   console.log('School ID:', schoolId);
-//   console.log('Student ID:', studentId);
-//   console.log('Request Body:', JSON.stringify(req.body, null, 2));
-
-//   if (!schoolId) {
-//     return res.status(401).json({
-//       hasError: true,
-//       message: 'Access denied: School ID missing.',
-//     });
-//   }
-
-//   if (!studentId || !mongoose.isValidObjectId(studentId)) {
-//     return res.status(400).json({
-//       hasError: true,
-//       message: 'Valid student ID is required.',
-//     });
-//   }
-
-//   try {
-//     const {
-//       academicYear,
-//       registrationFee,
-//       concessionType,
-//       concessionAmount,
-//       finalAmount,
-//       paymentMode,
-//       chequeNumber,
-//       bankName,
-//       name,
-//       email,
-//       phone,
-//     } = req.body;
-
-//     if (!finalAmount || parseFloat(finalAmount) <= 0) {
-//       return res.status(400).json({
-//         hasError: true,
-//         message: 'Valid final amount is required.',
-//       });
-//     }
-
-//     if (paymentMode === 'Online') {
-//       if (!process.env.FRONTEND_URL) {
-//         return res.status(500).json({
-//           hasError: true,
-//           message: 'Frontend URL configuration missing.',
-//         });
-//       }
-
-//       const paymentEmail = email || `${name.replace(/\s+/g, '').toLowerCase()}@school.com`;
-//       const paymentPhone = phone || '9999999999';
-
-//       const txnId = `TXN${Date.now()}${generateShortId().toUpperCase()}`;
-//       const amount = parseFloat(finalAmount).toFixed(2);
-
-//       const initiateData = {
-//         key: process.env.EASEBUZZ_KEY,
-//         txnid: txnId,
-//         amount: amount,
-//         productinfo: `Registration Fee - ${academicYear || '2025-2026'}`,
-//         firstname: name || 'Student',
-//         email: paymentEmail,
-//         phone: paymentPhone,
-//         surl: `${process.env.FRONTEND_URL}/payment/success`,
-//         furl: `${process.env.FRONTEND_URL}/payment/failure`,
-//         hash: '',
-//         udf1: studentId,
-//         udf2: schoolId,
-//         udf3: academicYear,
-//         udf4: finalAmount,
-//         udf5: registrationFee || finalAmount,
-//       };
-
-//       console.log('Easebuzz Environment:', process.env.EASEBUZZ_ENV);
-//       console.log('Easebuzz Key:', process.env.EASEBUZZ_KEY ? '***SET***' : 'MISSING');
-//       console.log('Easebuzz Salt:', process.env.EASEBUZZ_SALT ? '***SET***' : 'MISSING');
-//       console.log('Initiate Data:', JSON.stringify(initiateData, null, 2));
-
-
-//       initiateData.hash = generateEasebuzzHash(initiateData);
-//       console.log('Generated Hash:', initiateData.hash);
-
-//       const easebuzzUrl = process.env.EASEBUZZ_ENV === 'prod'
-//         ? 'https://pay.easebuzz.in'
-//         : 'https://testpay.easebuzz.in';
-
-//       console.log('Easebuzz URL:', `${easebuzzUrl}/payment/initiateLink`);
-
-//       try {
-//         const apiResponse = await axios.post(
-//           `${easebuzzUrl}/payment/initiateLink`,
-//           new URLSearchParams(initiateData).toString(),
-//           {
-//             headers: {
-//               'Content-Type': 'application/x-www-form-urlencoded',
-//             },
-//             timeout: 30000,
-//           }
-//         );
-
-//         console.log('Easebuzz API Response:', JSON.stringify(apiResponse.data, null, 2));
-
-//         const easebuzzResult = apiResponse.data;
-
-
-//         if (easebuzzResult.status === '1' || easebuzzResult.status === 1) {
-//           const accessKey = typeof easebuzzResult.data === 'string' ? easebuzzResult.data : easebuzzResult.data?.access_key;
-//           if (accessKey) {
-//             const paymentUrl = `${easebuzzUrl}/pay/${accessKey}`;
-
-//             console.log('Payment URL Generated:', paymentUrl);
-
-//             return res.status(200).json({
-//               hasError: false,
-//               message: 'Easebuzz payment initialized successfully.',
-//               paymentUrl,
-//               txnId,
-//               accessKey,
-//             });
-//           } else {
-//             console.error('No access_key in response:', easebuzzResult);
-//             return res.status(400).json({
-//               hasError: true,
-//               message: 'Payment gateway error: Missing access key.',
-//               debug: easebuzzResult,
-//             });
-//           }
-//         } else {
-//           console.error('Easebuzz API failed:', easebuzzResult);
-//           return res.status(400).json({
-//             hasError: true,
-//             message: easebuzzResult.msg || easebuzzResult.message || 'Payment gateway initialization failed.',
-//             debug: easebuzzResult,
-//           });
-//         }
-//       } catch (apiError) {
-//         console.error('Easebuzz API Error:', apiError.response?.data || apiError.message);
-
-//         if (apiError.response?.status === 401) {
-//           return res.status(400).json({
-//             hasError: true,
-//             message: 'Invalid merchant credentials. Please check Easebuzz key and salt.',
-//           });
-//         }
-
-//         if (apiError.code === 'ECONNABORTED') {
-//           return res.status(500).json({
-//             hasError: true,
-//             message: 'Payment gateway timeout. Please try again.',
-//           });
-//         }
-
-//         return res.status(500).json({
-//           hasError: true,
-//           message: 'Failed to connect to payment gateway.',
-//           debug: {
-//             error: apiError.message,
-//             response: apiError.response?.data,
-//             status: apiError.response?.status,
-//           },
-//         });
-//       }
-//     }
-
-
-//     const paymentData = {
-//       studentId,
-//       schoolId,
-//       academicYear,
-//       registrationFee: parseFloat(registrationFee) || 0,
-//       concessionType: concessionType || null,
-//       concessionAmount: parseFloat(concessionAmount) || 0,
-//       finalAmount: parseFloat(finalAmount),
-//       paymentMode: paymentMode || 'null',
-//       chequeNumber: chequeNumber || '',
-//       bankName: bankName || '',
-//       name: name || '',
-//       paymentDate: paymentMode !== 'null' ? new Date() : null,
-//       status: paymentMode === 'null' ? 'Pending' : 'Paid',
-//       easebuzzTxnId: null,
-//       easebuzzResponse: null,
-//     };
-
-//     const newPayment = new RegistrationPayment(paymentData);
-//     await newPayment.save();
-
-//     res.status(201).json({
-//       hasError: false,
-//       message: 'Payment created successfully.',
-//       payment: newPayment,
-//     });
-
-//   } catch (err) {
-//     console.error('Payment creation error:', err);
-//     res.status(500).json({
-//       hasError: true,
-//       message: err.message || 'Internal server error.',
-//       debug: { error: err.message },
-//     });
-//   }
-// };
-
-
-
-// export { creatregistrationpayment};
 
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import axios from 'axios';
-import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js'; 
+
+import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
+import EaseBuzzData from '../../../../models/EasebuzzData.js';
+
+
 
 const generateShortId = () => {
   return Math.random().toString(36).substring(2, 8);
 };
 
+const getEasebuzzCredentials = async (schoolId) => {
+  if (!schoolId) throw new Error('School ID is required');
 
-const generateEasebuzzHash = (data) => {
+  const creds = await EaseBuzzData.findOne({ schoolId }).lean();
+  if (!creds) {
+    throw new Error('Payment getway credentials not configured for this school');
+  }
+
+  return {
+    key: creds.EASEBUZZ_KEY,
+    salt: creds.EASEBUZZ_SALT,
+  };
+};
+
+const generateEasebuzzHash = (data, salt) => {
   try {
-    const hashString = [
-      data.key,
-      data.txnid,
-      data.amount,
-      data.productinfo,
-      data.firstname,
-      data.email,
-      data.udf1 || '',
-      data.udf2 || '',
-      data.udf3 || '',
-      data.udf4 || '',
-      data.udf5 || '',
-      data.udf6 || '',
-      data.udf7 || '',
-      data.udf8 || '',
-      data.udf9 || '',
-      data.udf10 || ''
-    ].join('|') + '|' + process.env.EASEBUZZ_SALT;
+    const hashString =
+      [
+        data.key,
+        data.txnid,
+        data.amount,
+        data.productinfo,
+        data.firstname,
+        data.email,
+        data.udf1 || '',
+        data.udf2 || '',
+        data.udf3 || '',
+        data.udf4 || '',
+        data.udf5 || '',
+        data.udf6 || '',
+        data.udf7 || '',
+        data.udf8 || '',
+        data.udf9 || '',
+        data.udf10 || ''
+      ].join('|') + '|' + salt;
 
-
-    
-    const hash = crypto.createHash('sha512').update(hashString).digest('hex');
-    
-    return hash;
+    return crypto.createHash('sha512').update(hashString).digest('hex');
   } catch (error) {
     console.error('Hash generation error:', error);
     throw error;
   }
 };
 
-
-const verifyEasebuzzResponseHash = (data) => {
+const verifyEasebuzzResponseHash = (data, salt) => {
   try {
-    const hashString = [
-      process.env.EASEBUZZ_SALT,
-      data.status || '',
-      data.udf1 || '',
-      data.udf2 || '',
-      data.udf3 || '',
-      data.udf4 || '',
-      data.udf5 || '',
-      data.email || '',
-      data.firstname || '',
-      data.productinfo || '',
-      data.amount || '',
-      data.txnid || '',
-      data.key || process.env.EASEBUZZ_KEY  
-    ].join('|');
 
-    
+    const hashString =
+      [
+        salt,
+        data.status || '',
+        data.udf10 || '',
+        data.udf9 || '',
+        data.udf8 || '',
+        data.udf7 || '',
+        data.udf6 || '',
+        data.udf5 || '',
+        data.udf4 || '',
+        data.udf3 || '',
+        data.udf2 || '',
+        data.udf1 || '',
+        data.email || '',
+        data.firstname || '',
+        data.productinfo || '',
+        data.amount || '',
+        data.txnid || ''
+      ].join('|');
+
     const generatedHash = crypto.createHash('sha512').update(hashString).digest('hex');
-    
-    const isValid = generatedHash === (data.hash || '');
-    
-    return isValid;
+    return generatedHash === (data.hash || '');
   } catch (error) {
     console.error('Hash verification error:', error);
     return false;
   }
 };
+
+
 
 const creatregistrationpayment = async (req, res) => {
   const schoolId = req.user?.schoolId;
@@ -355,485 +131,277 @@ const creatregistrationpayment = async (req, res) => {
       });
     }
 
-    if (paymentMode === 'Online') {
-      if (!process.env.FRONTEND_URL) {
-        return res.status(500).json({
-          hasError: true,
-          message: 'Frontend URL configuration missing.',
-        });
-      }
 
-      const paymentEmail = email ;
-      const paymentPhone = phone ;
-
-      const txnId = `TXN${Date.now()}${generateShortId().toUpperCase()}`;
-      const amount = parseFloat(finalAmount).toFixed(2);
-
-      const initiateData = {
-    
-        key: process.env.EASEBUZZ_KEY,
-        txnid: txnId,
-        amount: amount,
-        productinfo: `Registration Fee - ${academicYear || '2025-2026'}`,
-        firstname: name || 'Student',
-        email: paymentEmail,
-        phone: paymentPhone,
-        surl: `${process.env.BACKEND_URL}/payment/success`, 
-        furl: `${process.env.BACKEND_URL}/payment/failure`, 
-        hash: '',
-        udf1: studentId,
-        udf2: schoolId,
-        udf3: academicYear,
-        udf4: finalAmount,
-        udf5: registrationFee || finalAmount,
+    if (paymentMode !== 'Online') {
+      const paymentData = {
+        studentId,
+        schoolId,
+        academicYear,
+        registrationFee: parseFloat(registrationFee) || 0,
+        concessionType: concessionType || null,
+        concessionAmount: parseFloat(concessionAmount) || 0,
+        finalAmount: parseFloat(finalAmount),
+        paymentMode: paymentMode || 'Cash',
+        chequeNumber: chequeNumber || '',
+        bankName: bankName || '',
+        name: name || '',
+        paymentDate: new Date(),
+        status: 'Paid',
+        easebuzzTxnId: null,
+        easebuzzResponse: null,
       };
 
-      initiateData.hash = generateEasebuzzHash(initiateData);
+      const newPayment = new RegistrationPayment(paymentData);
+      await newPayment.save();
 
-      const easebuzzUrl = process.env.EASEBUZZ_ENV === 'test'
-        ? 'https://pay.easebuzz.in'
-        : 'https://testpay.easebuzz.in';
+      return res.status(201).json({
+        hasError: false,
+        message: 'Offline payment recorded successfully.',
+        payment: newPayment,
+      });
+    }
 
 
-      try {
-        const apiResponse = await axios.post(
-          `${easebuzzUrl}/payment/initiateLink`,
-          new URLSearchParams(initiateData).toString(),
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            timeout: 30000,
-          }
-        );
+    if (!process.env.FRONTEND_URL || !process.env.BACKEND_URL) {
+      return res.status(500).json({
+        hasError: true,
+        message: 'Frontend/Backend URL configuration missing.',
+      });
+    }
 
-        console.log('Easebuzz API Response:', JSON.stringify(apiResponse.data, null, 2));
 
-        const easebuzzResult = apiResponse.data;
+    let credentials;
+    try {
+      credentials = await getEasebuzzCredentials(schoolId);
+    } catch (err) {
+      return res.status(400).json({
+        hasError: true,
+        message: err.message,
+      });
+    }
 
-        if (easebuzzResult.status === '1' || easebuzzResult.status === 1) {
-          const accessKey = typeof easebuzzResult.data === 'string' ? easebuzzResult.data : easebuzzResult.data?.access_key;
-          if (accessKey) {
-            const paymentUrl = `${easebuzzUrl}/pay/${accessKey}`;
+    const txnId = `TXN${Date.now()}${generateShortId().toUpperCase()}`;
+    const amount = parseFloat(finalAmount).toFixed(2);
 
-            console.log('Payment URL Generated:', paymentUrl);
+    const initiateData = {
+      key: credentials.key,
+      txnid: txnId,
+      amount: amount,
+      productinfo: `Registration Fee - ${academicYear || '2025-2026'}`,
+      firstname: name || 'Student',
+      email: email || 'student@example.com',
+      phone: phone || '9999999999',
+      surl: `${process.env.BACKEND_URL}/payment/success`,
+      furl: `${process.env.BACKEND_URL}/payment/failure`,
+      hash: '',
+      udf1: studentId,
+      udf2: schoolId,
+      udf3: academicYear,
+      udf4: finalAmount,
+      udf5: registrationFee || finalAmount,
+      udf6: concessionAmount || '0',
+      udf7: '',
+      udf8: '',
+      udf9: '',
+      udf10: '',
+    };
 
-            return res.status(200).json({
-              hasError: false,
-              message: 'Easebuzz payment initialized successfully.',
-              paymentUrl,
-              txnId,
-              accessKey,
-            });
-          } else {
-            console.error('No access_key in response:', easebuzzResult);
-            return res.status(400).json({
-              hasError: true,
-              message: 'Payment gateway error: Missing access key.',
-              debug: easebuzzResult,
-            });
-          }
-        } else {
-          console.error('Easebuzz API failed:', easebuzzResult);
-          return res.status(400).json({
-            hasError: true,
-            message: easebuzzResult.msg || easebuzzResult.message || 'Payment gateway initialization failed.',
-            debug: easebuzzResult,
-          });
-        }
-      } catch (apiError) {
-        console.error('Easebuzz API Error:', apiError.response?.data || apiError.message);
+    initiateData.hash = generateEasebuzzHash(initiateData, credentials.salt);
 
-        if (apiError.response?.status === 401) {
-          return res.status(400).json({
-            hasError: true,
-            message: 'Invalid merchant credentials. Please check Easebuzz key and salt.',
-          });
-        }
+    const easebuzzUrl = process.env.EASEBUZZ_ENV === 'prod'
+      ? 'https://pay.easebuzz.in'
+      : 'https://testpay.easebuzz.in';
 
-        if (apiError.code === 'ECONNABORTED') {
-          return res.status(500).json({
-            hasError: true,
-            message: 'Payment gateway timeout. Please try again.',
-          });
-        }
+    const apiResponse = await axios.post(
+      `${easebuzzUrl}/payment/initiateLink`,
+      new URLSearchParams(initiateData).toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 30000,
+      }
+    );
 
-        return res.status(500).json({
-          hasError: true,
-          message: 'Failed to connect to payment gateway.',
-          debug: {
-            error: apiError.message,
-            response: apiError.response?.data,
-            status: apiError.response?.status,
-          },
+    const easebuzzResult = apiResponse.data;
+
+    if (easebuzzResult.status === '1' || easebuzzResult.status === 1) {
+      const accessKey = typeof easebuzzResult.data === 'string' ? easebuzzResult.data : easebuzzResult.data?.access_key;
+
+      if (accessKey) {
+        const paymentUrl = `${easebuzzUrl}/pay/${accessKey}`;
+
+        return res.status(200).json({
+          hasError: false,
+          message: 'Easebuzz payment initialized successfully.',
+          paymentUrl,
+          txnId,
+          accessKey,
         });
       }
     }
 
- 
-    const paymentData = {
-      studentId,
-      schoolId,
-      academicYear,
-      registrationFee: parseFloat(registrationFee) || 0,
-      concessionType: concessionType || null,
-      concessionAmount: parseFloat(concessionAmount) || 0,
-      finalAmount: parseFloat(finalAmount),
-      paymentMode: paymentMode || 'null',
-      chequeNumber: chequeNumber || '',
-      bankName: bankName || '',
-      name: name || '',
-      paymentDate: paymentMode !== 'null' ? new Date() : null,
-      status: paymentMode === 'null' ? 'Pending' : 'Paid',
-      easebuzzTxnId: null,
-      easebuzzResponse: null,
-    };
 
-    const newPayment = new RegistrationPayment(paymentData);
-    await newPayment.save();
-
-    res.status(201).json({
-      hasError: false,
-      message: 'Payment created successfully.',
-      payment: newPayment,
+    console.error('Easebuzz init failed:', easebuzzResult);
+    return res.status(400).json({
+      hasError: true,
+      message: easebuzzResult.msg || 'Payment gateway initialization failed.',
+      debug: easebuzzResult,
     });
 
   } catch (err) {
     console.error('Payment creation error:', err);
-    res.status(500).json({
+    return res.status(500).json({
       hasError: true,
       message: err.message || 'Internal server error.',
-      debug: { error: err.message },
     });
   }
 };
 
 
 
-
-// const handlePaymentSuccess = async (req, res) => {
-//   try {
-//     const data = req.body; 
-
-//     console.log('=== Payment Success Callback ===');
-//     console.log('Response Data:', JSON.stringify(data, null, 2));
-
-//     if (!data.txnid || !data.status || !data.hash) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Missing required parameters.',
-//       });
-//     }
-
-//     // Verify hash
-//     if (!verifyEasebuzzResponseHash(data)) {
-//       console.error('Hash verification failed');
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid response signature.',
-//       });
-//     }
-
-//     if (data.status !== 'success') {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Payment not successful.',
-//       });
-//     }
-
-//     const { udf1: studentId, udf2: schoolId, udf3: academicYear, udf4: finalAmount, udf5: registrationFee, firstname: name, email } = data;
-
-//     if (!mongoose.isValidObjectId(studentId) || !schoolId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid student or school ID.',
-//       });
-//     }
-
- 
-//     const paymentData = {
-//       studentId,
-//       schoolId,
-//       academicYear,
-//       registrationFee: parseFloat(registrationFee) || parseFloat(finalAmount),
-//       concessionType: null,
-//       concessionAmount: 0,
-//       finalAmount: parseFloat(finalAmount),
-//       paymentMode: 'Online',
-//       name: name || '',
-//       status: 'Paid',
-//       easebuzzTxnId: data.txnid,
-//       easebuzzResponse: data,
-//     };
-
-//     const newPayment = new RegistrationPayment(paymentData);
-//     await newPayment.save();
-
-//     console.log('Payment record created successfully:', newPayment._id);
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Payment processed successfully.',
-//       payment: newPayment,
-//     });
-//   } catch (err) {
-//     console.error('Payment success error:', err);
-//     res.status(500).json({
-//       success: false,
-//       message: err.message || 'Internal server error.',
-//     });
-//   }
-// };
-
 const handlePaymentSuccess = async (req, res) => {
   try {
     const data = req.body;
-    console.log('=== Payment Success Callback Received ===');
-    console.log('Full Request Body:', JSON.stringify(data, null, 2));
-    console.log('Request Headers:', req.headers);
+    console.log('SUCCESS CALLBACK:', JSON.stringify(data, null, 2));
 
-    // Log all received fields for debugging
-    console.log('=== Received Fields ===');
-    Object.keys(data).forEach(key => {
-      console.log(`${key}:`, data[key]);
-    });
 
     if (!data.txnid || !data.status) {
-      console.error('Missing required parameters in success callback');
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=missing_params&txnId=${data.txnid || 'unknown'}`);
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=missing_params`);
     }
 
-    // Verify hash with detailed logging
-    console.log('=== Starting Hash Verification ===');
-    const isHashValid = verifyEasebuzzResponseHash(data);
-    console.log('Hash Verification Result:', isHashValid);
 
-    if (!isHashValid) {
-      console.error('Hash verification failed in success callback');
-      // For testing, you might want to proceed anyway, but log the issue
-      console.warn('⚠️  Hash verification failed, but proceeding for testing');
-      // return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=invalid_hash&txnId=${data.txnid}`);
+    const schoolId = data.udf2;
+    let salt = '';
+    try {
+      const creds = await EaseBuzzData.findOne({ schoolId }).lean();
+      salt = creds?.EASEBUZZ_SALT || '';
+    } catch (e) {
+      console.error('Failed to fetch salt for verification');
     }
+
+    const isHashValid = salt ? verifyEasebuzzResponseHash(data, salt) : false;
+    console.log('Hash valid:', isHashValid);
+
 
     if (data.status !== 'success') {
-      console.error('Payment status not successful:', data.status);
       return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?txnId=${data.txnid}&status=${data.status}`);
     }
 
-    // Extract UDF fields - Easebuzz might send them differently
-    const studentId = data.udf1 || data.udf1;
-    const schoolId = data.udf2 || data.udf2;
-    const academicYear = data.udf3 || data.udf3;
-    const finalAmount = data.udf4 || data.udf4;
-    const registrationFee = data.udf5 || data.udf5;
 
-    console.log('=== Extracted UDF Fields ===');
-    console.log('Student ID:', studentId);
-    console.log('School ID:', schoolId);
-    console.log('Academic Year:', academicYear);
-    console.log('Final Amount:', finalAmount);
-    console.log('Registration Fee:', registrationFee);
+    const studentId = data.udf1;
+    const finalAmount = data.udf4;
+    const registrationFee = data.udf5;
+    const concessionAmount = data.udf6 || '0';
 
-    if (!mongoose.isValidObjectId(studentId) || !schoolId) {
-      console.error('Invalid student or school ID in success callback');
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=invalid_ids&txnId=${data.txnid}`);
+    if (!mongoose.isValidObjectId(studentId)) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=invalid_student`);
     }
 
-    // Check if payment already exists to avoid duplicates
-    const existingPayment = await RegistrationPayment.findOne({ easebuzzTxnId: data.txnid });
-    if (existingPayment) {
-      console.log('Payment already exists, redirecting to success:', existingPayment._id);
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/success?txnId=${data.txnid}&status=success&paymentId=${existingPayment._id}`);
+
+    const existing = await RegistrationPayment.findOne({ easebuzzTxnId: data.txnid });
+    if (existing) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/success?txnId=${data.txnid}&paymentId=${existing._id}`);
     }
 
-    // Create payment record
+
     const paymentData = {
       studentId,
       schoolId,
-      academicYear,
-      registrationFee: parseFloat(registrationFee) || parseFloat(finalAmount) || parseFloat(data.amount),
+      academicYear: data.udf3,
+      registrationFee: parseFloat(registrationFee) || parseFloat(data.amount),
       concessionType: null,
-      concessionAmount: 0,
+      concessionAmount: parseFloat(concessionAmount),
       finalAmount: parseFloat(finalAmount) || parseFloat(data.amount),
       paymentMode: 'Online',
       name: data.firstname || '',
       status: 'Paid',
       paymentDate: new Date(),
       easebuzzTxnId: data.txnid,
+      easebuzzId: data.easepayid,
+      hash: data.hash,
       easebuzzResponse: data,
     };
-
-    console.log('Creating payment record:', paymentData);
 
     const newPayment = new RegistrationPayment(paymentData);
     await newPayment.save();
 
-    console.log('Payment record created successfully:', newPayment._id);
+    console.log('Payment saved:', newPayment._id);
 
-    // Redirect to frontend success page
-    res.redirect(`${process.env.FRONTEND_URL}/payment/success?txnId=${data.txnid}&status=success&paymentId=${newPayment._id}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/success?txnId=${data.txnid}&paymentId=${newPayment._id}`);
 
   } catch (err) {
-    console.error('Payment success processing error:', err);
-    res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=processing_error&message=${encodeURIComponent(err.message)}&txnId=${req.body.txnid || 'unknown'}`);
+    console.error('Success handler error:', err);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=server`);
   }
 };
+
+
 
 const handlePaymentFailure = async (req, res) => {
   try {
     const data = req.body;
-    console.log('=== Payment Failure Callback Received ===');
-    console.log('Full Request Body:', JSON.stringify(data, null, 2));
-    console.log('Request Headers:', req.headers);
+    console.log('FAILURE CALLBACK:', JSON.stringify(data, null, 2));
 
-    // Log all received fields for debugging
-    console.log('=== Received Fields ===');
-    Object.keys(data).forEach(key => {
-      console.log(`${key}:`, data[key]);
-    });
-
-    if (!data.txnid || !data.status) {
-      console.error('Missing required parameters in failure callback');
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=missing_params&txnId=${data.txnid || 'unknown'}`);
-    }
-
-    // Verify hash with detailed logging
-    console.log('=== Starting Hash Verification ===');
-    const isHashValid = verifyEasebuzzResponseHash(data);
-    console.log('Hash Verification Result:', isHashValid);
-
-    if (!isHashValid) {
-      console.error('Hash verification failed in failure callback');
-      console.warn('⚠️  Hash verification failed, but proceeding for testing');
+    if (!data.txnid) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=missing_txnid`);
     }
 
 
-    const studentId = data.udf1 || data.udf1;
-    const schoolId = data.udf2 || data.udf2;
-    const academicYear = data.udf3 || data.udf3;
-    const finalAmount = data.udf4 || data.udf4;
-    const registrationFee = data.udf5 || data.udf5;
+    const schoolId = data.udf2;
+    let salt = '';
+    try {
+      const creds = await EaseBuzzData.findOne({ schoolId }).lean();
+      salt = creds?.EASEBUZZ_SALT || '';
+    } catch (e) { }
 
-    console.log('=== Extracted UDF Fields ===');
-    console.log('Student ID:', studentId);
-    console.log('School ID:', schoolId);
-    console.log('Academic Year:', academicYear);
-    console.log('Final Amount:', finalAmount);
-    console.log('Registration Fee:', registrationFee);
+    const isHashValid = salt ? verifyEasebuzzResponseHash(data, salt) : false;
+    console.log('Failure hash valid:', isHashValid);
 
-    if (!mongoose.isValidObjectId(studentId) || !schoolId) {
-      console.error('Invalid student or school ID in failure callback');
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=invalid_ids&txnId=${data.txnid}`);
+
+    const studentId = data.udf1;
+    const finalAmount = data.udf4;
+    const registrationFee = data.udf5;
+    const concessionAmount = data.udf6 || '0';
+
+
+    let payment = await RegistrationPayment.findOne({ easebuzzTxnId: data.txnid });
+
+    if (payment) {
+      payment.status = 'Failed';
+      payment.easebuzzResponse = data;
+      await payment.save();
+    } else {
+      if (mongoose.isValidObjectId(studentId)) {
+        payment = new RegistrationPayment({
+          studentId,
+          schoolId,
+          academicYear: data.udf3,
+          registrationFee: parseFloat(registrationFee) || parseFloat(data.amount),
+          concessionType: null,
+          concessionAmount: parseFloat(concessionAmount),
+          finalAmount: parseFloat(finalAmount) || parseFloat(data.amount),
+          paymentMode: 'Online',
+          name: data.firstname || '',
+          status: 'Failed',
+          paymentDate: new Date(),
+          easebuzzTxnId: data.txnid,
+          easebuzzResponse: data,
+        });
+        await payment.save();
+      }
     }
 
-    // Check if payment already exists to avoid duplicates
-    const existingPayment = await RegistrationPayment.findOne({ easebuzzTxnId: data.txnid });
-    if (existingPayment) {
-      console.log('Payment already exists, updating status to failed:', existingPayment._id);
-      existingPayment.status = 'Failed';
-      existingPayment.easebuzzResponse = data;
-      await existingPayment.save();
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?txnId=${data.txnid}&status=failed&paymentId=${existingPayment._id}`);
-    }
-
-    // Create failed payment record
-    const paymentData = {
-      studentId,
-      schoolId,
-      academicYear,
-      registrationFee: parseFloat(registrationFee) || parseFloat(finalAmount) || parseFloat(data.amount),
-      concessionType: null,
-      concessionAmount: 0,
-      finalAmount: parseFloat(finalAmount) || parseFloat(data.amount),
-      paymentMode: 'Online',
-      name: data.firstname || '',
-      status: 'Failed',
-      easebuzzTxnId: data.txnid,
-      easebuzzResponse: data,
-    };
-
-    console.log('Creating failed payment record:', paymentData);
-
-    const newPayment = new RegistrationPayment(paymentData);
-    await newPayment.save();
-
-    console.log('Failed payment record created:', newPayment._id);
-
-
-    res.redirect(`${process.env.FRONTEND_URL}/payment/failure?txnId=${data.txnid}&status=failed&paymentId=${newPayment._id}`);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?txnId=${data.txnid}&status=failed`);
 
   } catch (err) {
-    console.error('Payment failure processing error:', err);
-    res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=processing_error&message=${encodeURIComponent(err.message)}&txnId=${req.body.txnid || 'unknown'}`);
+    console.error('Failure handler error:', err);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failure?error=server`);
   }
 };
 
-// const handlePaymentFailure = async (req, res) => {
-//   try {
-//     const data = req.body; 
-
-//     console.log('=== Payment Failure Callback ===');
-//     console.log('Response Data:', JSON.stringify(data, null, 2));
-
-//     if (!data.txnid || !data.status || !data.hash) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Missing required parameters.',
-//       });
-//     }
 
 
-//     if (!verifyEasebuzzResponseHash(data)) {
-//       console.error('Hash verification failed');
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid response signature.',
-//       });
-//     }
-
-//     const { udf1: studentId, udf2: schoolId, udf3: academicYear, udf4: finalAmount, udf5: registrationFee, firstname: name } = data;
-
-//     if (!mongoose.isValidObjectId(studentId) || !schoolId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid student or school ID.',
-//       });
-//     }
-
-
-//     const paymentData = {
-//       studentId,
-//       schoolId,
-//       academicYear,
-//       registrationFee: parseFloat(registrationFee) || parseFloat(finalAmount),
-//       concessionType: null,
-//       concessionAmount: 0,
-//       finalAmount: parseFloat(finalAmount),
-//       paymentMode: 'Online',
-//       name: name || '',
-//       status: 'Failed', 
-//       easebuzzTxnId: data.txnid,
-//       easebuzzResponse: data,
-//     };
-
-//     const newPayment = new RegistrationPayment(paymentData);
-//     await newPayment.save();
-
-//     console.log('Failed payment record created:', newPayment._id);
-
-//     res.status(200).json({
-//       success: false,
-//       message: 'Payment failed, record stored for reference.',
-//       payment: newPayment,
-//     });
-//   } catch (err) {
-//     console.error('Payment failure error:', err);
-//     res.status(500).json({
-//       success: false,
-//       message: err.message || 'Internal server error.',
-//     });
-//   }
-// };
-
-export { creatregistrationpayment, handlePaymentSuccess, handlePaymentFailure };
-
+export {
+  creatregistrationpayment,
+  handlePaymentSuccess,
+  handlePaymentFailure
+};

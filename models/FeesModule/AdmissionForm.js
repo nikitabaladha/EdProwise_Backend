@@ -728,19 +728,19 @@ const admissionPaymentSchema = new Schema({
   bankName: { type: String },
   transactionNumber: {
     type: String,
-    unique: true,
-    default: function () {
-      return 'TRA' + Math.floor(10000 + Math.random() * 90000);
-    },
   },
   paymentDate: { type: Date },
   refundReceiptNumbers: [{ type: String }],
-  status: { type: String, enum: ['Pending', 'Paid', 'Cancelled', 'Return'], default: 'Paid' },
+  status: { type: String, enum: ['Pending', 'Paid', 'Cancelled', 'Return','Failed'], default: 'Paid' },
   reportStatus: [{ type: String, enum: ['Paid', 'Cancelled', 'Cheque Return', 'Refund'] }],
   cancelledDate: { type: Date },
   cancelReason: { type: String },
   chequeSpecificReason: { type: String },
   additionalComment: { type: String },
+  easebuzzTxnId: { type: String }, 
+  easebuzzId:{type:String},
+  hash:{type:String},
+  easebuzzResponse: { type: Schema.Types.Mixed }, 
 }, { timestamps: true });
 
 // admissionPaymentSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true, sparse: true });
@@ -752,7 +752,7 @@ admissionPaymentSchema.pre('save', async function (next) {
   try {
     while (attempts > 0) {
       try {
-        if (!this.receiptNumber && this.paymentMode !== 'null') {
+       if (this.status === 'Paid' && !this.receiptNumber && this.paymentMode !== 'null'){
           const counter = await AdmissionCounter.findOneAndUpdate(
             { schoolId: this.schoolId },
             { $inc: { receiptSeq: 1 } },
@@ -761,9 +761,14 @@ admissionPaymentSchema.pre('save', async function (next) {
           const padded = counter.receiptSeq.toString().padStart(6, '0');
           this.receiptNumber = `REC/ADM/${padded}`;
         }
-        if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque') && !this.paymentDate) {
+           if (this.paymentMode === 'Online' && this.easebuzzTxnId && !this.transactionNumber) {
+          this.transactionNumber = this.easebuzzTxnId;   
+        }
+
+         if ((this.paymentMode === 'Cash' || this.paymentMode === 'Cheque' || this.paymentMode === 'Online') && !this.paymentDate) {
           this.paymentDate = new Date();
         }
+
         if (this.status === 'Paid') {
           const student = await mongoose.model('AdmissionForm').findById(this.studentId).session(session);
           if (!student) {
@@ -803,14 +808,9 @@ admissionPaymentSchema.pre('save', async function (next) {
           }
         } else {
           const student = await mongoose.model('AdmissionForm').findById(this.studentId).session(session);
-          if (!student) {
-            throw new Error('Associated AdmissionForm not found');
-          }
-          if (student.AdmissionNumber) {
+          if (student && student.AdmissionNumber) {
             this.AdmissionNumber = student.AdmissionNumber;
-          } else {
-            throw new Error('Admission number not yet assigned for this student');
-          }
+          } 
         }
 
         await session.commitTransaction();

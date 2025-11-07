@@ -2,12 +2,16 @@ import FeesStructure from '../../../../models/FeesModule/FeesStructure.js';
 import AdmissionForm from '../../../../models/FeesModule/AdmissionForm.js';
 import OneTimeFees from '../../../../models/FeesModule/OneTimeFees.js';
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import BoardRegistrationFees from '../../../../models/FeesModule/BoardRegistrationFees.js';
-import BoardExamFees from '../../../../models/FeesModule/BoardExamFee.js';
+import { AdmissionPayment } from '../../../../models/FeesModule/AdmissionForm.js';
+import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
+import { TCPayment } from '../../../../models/FeesModule/TCForm.js';
+import BoardRegistrationFees from '../../../../models/FeesModule/BoardRegistrationFeePayment.js';
+import BoardExamFees from '../../../../models/FeesModule/BoardExamFeePayment.js';
 import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
 import TCForm from '../../../../models/FeesModule/TCForm.js';
 import { SchoolFees } from '../../../../models/FeesModule/SchoolFees.js';
 import FeesManagementYear from '../../../../models/FeesModule/FeesManagementYear.js';
+import Refund from "../../../../models/FeesModule/RefundFees.js";
 
 const getFeesReconCombined = async (req, res) => {
   try {
@@ -235,10 +239,7 @@ const getFeesReconCombined = async (req, res) => {
     if (sampleOneTime?.oneTimeFees) {
       regAmount = sampleOneTime.oneTimeFees.find(f => f.feesTypeId?.feesTypeName === 'Registration Fee')?.amount || 0;
       admAmount = sampleOneTime.oneTimeFees.find(f => f.feesTypeId?.feesTypeName === 'Admission Fee')?.amount || 0;
-      tcAmount = sampleOneTime.oneTimeFees.find(f =>
-        f.feesTypeId?.feesTypeName?.toLowerCase?.().includes('tc') ||
-        f.feesTypeId?.feesTypeName?.toLowerCase?.().includes('transfer')
-      )?.amount || 0;
+      tcAmount = sampleOneTime.oneTimeFees.find(f =>f.feesTypeId?.feesTypeName?.toLowerCase?.().includes('Transfer Certificate') )?.amount || 0;
     }
 
     const regTotal = regCount * regAmount;
@@ -246,33 +247,154 @@ const getFeesReconCombined = async (req, res) => {
     const tcTotal = tcCount * tcAmount;
 
 
-    const boardRegStructures = await BoardRegistrationFees.find({ schoolId, academicYear }).lean();
+  const RegistrationPaymentStructures = await RegistrationPayment.find({ 
+  schoolId, 
+  paymentDate: { $gte: startDate, $lte: endDate },
+}).lean();
+
+let RegistrationPaymenttotal = 0; 
+
+RegistrationPaymentStructures.forEach(struct => {
+  const finalAmount = struct.finalAmount || 0;
+  const concessionAmount = struct.concessionAmount || 0;
+  RegistrationPaymenttotal += (finalAmount + concessionAmount);
+});
+
+const AdmissionStructures = await AdmissionPayment.find({ 
+  schoolId, 
+  paymentDate: { $gte: startDate, $lte: endDate },
+}).lean();
+
+let AdmissionTotal = 0;
+AdmissionStructures.forEach(struct => {
+  const finalAmount = struct.finalAmount || 0;
+  const concessionAmount = struct.concessionAmount || 0;
+  AdmissionTotal += (finalAmount + concessionAmount);
+});
+
+// Transfer Certificate Payments
+const TransferCertificateStructures = await TCPayment.find({ 
+  schoolId, 
+  paymentDate: { $gte: startDate, $lte: endDate },
+}).lean();
+
+let TransferCertificateTotal = 0;
+TransferCertificateStructures.forEach(struct => {
+  const finalAmount = struct.finalAmount || 0;
+  const concessionAmount = struct.concessionAmount || 0;
+  TransferCertificateTotal += (finalAmount + concessionAmount);
+});
+
+   
+
+
+    const boardRegStructures = await BoardRegistrationFees.find({ 
+      schoolId, 
+      // academicYear 
+     paymentDate: { $gte: startDate, $lte: endDate },
+    }).lean();
     let boardRegTotal = 0;
     boardRegStructures.forEach(struct => {
-      let count = 0;
-      (struct.sectionIds || []).forEach(secId => {
-        count += studentCountsMap[`${struct.classId}_${secId}`] || 0;
-      });
-      boardRegTotal += count * (struct.amount || 0);
+      // let count = 0;
+      // (struct.ectionId || []).forEach(secId => {
+      //   count += studentCountsMap[`${struct.classId}_${secId}`] || 0;
+      // });
+      boardRegTotal += (struct.finalAmount || 0);
     });
 
-    const boardExamStructures = await BoardExamFees.find({ schoolId, academicYear }).lean();
+    const boardExamStructures = await BoardExamFees.find(
+      { schoolId,
+           schoolId, 
+      // academicYear 
+     paymentDate: { $gte: startDate, $lte: endDate },
+       }).lean();
     let boardExamTotal = 0;
     boardExamStructures.forEach(struct => {
-      let count = 0;
-      (struct.sectionIds || []).forEach(secId => {
-        count += studentCountsMap[`${struct.classId}_${secId}`] || 0;
-      });
-      boardExamTotal += count * (struct.amount || 0);
+      // let count = 0;
+      // (struct.sectionIds || []).forEach(secId => {
+      //   count += studentCountsMap[`${struct.classId}_${secId}`] || 0;
+      // });
+      boardExamTotal += (struct.finalAmount || 0);
     });
 
-    const oneTimeFeesResponse = {
-      'Registration Fee': regTotal,
-      'Admission Fee': admTotal,
-      'TC Fee': tcTotal,
-      'Board Registration Fee': 0,
-      'Board Exam Fee': 0
-    };
+    // const oneTimeFeesResponse = {
+    //   'Registration Fee': regTotal,
+    //   'Admission Fee': admTotal,
+    //   'Transfer Certificate Fee': tcTotal,
+    //   'Board Registration Fee': boardRegTotal,
+    //   'Board Exam Fee': boardExamTotal
+    // };
+// const refunds = await Refund.find({
+//   schoolId,
+//   academicYear,
+//   $or: [
+//     { refundDate: { $gte: startDate, $lte: endDate } },
+//     { cancelledDate: { $gte: startDate, $lte: endDate } }
+//   ]
+// }).lean();
+
+// const refundSummary = refunds.reduce((acc, refund) => {
+//   const { refundType, refundAmount = 0, cancelledAmount = 0,  concessionAmount=0 } = refund;
+
+//   if (!acc[refundType]) {
+//     acc[refundType] = { refundAmount: 0, cancelledAmount: 0 ,concessionAmount:0};
+//   }
+
+//   acc[refundType].refundAmount += refundAmount;
+//   acc[refundType].cancelledAmount += cancelledAmount;
+//   acc[refundType].concessionAmount += concessionAmount;
+
+//   return acc;
+// }, {});
+
+
+// const oneTimeFeesResponse = {
+//   'Registration Fee': (RegistrationPaymenttotal || 0) - ((refundSummary['Registration Fee']?.refundAmount || 0) + (refundSummary['Registration Fee']?.cancelledAmount || 0)),
+//   'Admission Fee': (AdmissionTotal || 0) - ((refundSummary['Admission Fee']?.refundAmount || 0) + (refundSummary['Admission Fee']?.cancelledAmount || 0)),
+//   'Transfer Certificate Fee': (TransferCertificateTotal || 0) - ((refundSummary['Transfer Certificate Fee']?.refundAmount || 0) + (refundSummary['Transfer Certificate Fee']?.cancelledAmount || 0)),
+//   'Board Registration Fee': (boardRegTotal || 0) - ((refundSummary['Board Registration Fee']?.refundAmount || 0) + (refundSummary['Board Registration Fee']?.cancelledAmount || 0)),
+//   'Board Exam Fee': (boardExamTotal || 0) - ((refundSummary['Board Exam Fee']?.refundAmount || 0) + (refundSummary['Board Exam Fee']?.cancelledAmount || 0))
+// };
+
+const refunds = await Refund.find({
+  schoolId,
+  academicYear,
+  $or: [
+    { refundDate: { $gte: startDate, $lte: endDate } },
+    { cancelledDate: { $gte: startDate, $lte: endDate } }
+  ]
+}).lean();
+
+const refundSummary = refunds.reduce((acc, refund) => {
+  const { refundType, refundAmount = 0, cancelledAmount = 0, concessionAmount = 0 } = refund;
+
+  if (!acc[refundType]) {
+    acc[refundType] = { refundAmount: 0, cancelledAmount: 0, concessionAmount: 0 };
+  }
+
+  acc[refundType].refundAmount += refundAmount;
+  acc[refundType].cancelledAmount += cancelledAmount;
+  acc[refundType].concessionAmount += concessionAmount;
+
+  return acc;
+}, {});
+
+// Helper function to simplify subtraction logic
+const calcNet = (total, summary) =>
+  (total || 0) -
+  ((summary?.refundAmount || 0) +
+   (summary?.cancelledAmount || 0) +
+   (summary?.concessionAmount || 0));
+
+const oneTimeFeesResponse = {
+  'Registration Fee': calcNet(RegistrationPaymenttotal, refundSummary['Registration Fee']),
+  'Admission Fee': calcNet(AdmissionTotal, refundSummary['Admission Fee']),
+  'Transfer Certificate Fee': calcNet(TransferCertificateTotal, refundSummary['Transfer Certificate Fee']),
+  'Board Registration Fee': calcNet(boardRegTotal, refundSummary['Board Registration Fee']),
+  'Board Exam Fee': calcNet(boardExamTotal, refundSummary['Board Exam Fee'])
+};
+
+
 
     const totalofOneTimefees = Object.values(oneTimeFeesResponse).reduce((sum, val) => sum + val, 0);
     const grandTotal = totalofSchoolfees + totalofOneTimefees;

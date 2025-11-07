@@ -693,26 +693,50 @@ export const getAllStudentFeesDue = async (req, res) => {
                 if (student.dropoutStatus == null) remark = "TC";
                 else if (student.dropoutStatus === "Dropout") remark = "Dropout";
 
-                result.push({
-                    admissionNumber,
-                    studentName: `${student.firstName} ${student.lastName || ""}`.trim(),
-                    className: classMap[masterDefineClass] || masterDefineClass,
-                    sectionName: sectionMap[section] || section,
-                    academicYear,
-                    TCStatus: student.TCStatus,
-                    TCStatusDate: student.TCStatusDate
-                        ? new Date(student.TCStatusDate).toLocaleDateString("en-GB")
-                        : "-",
-                    Remark: remark,
-                    installments,
-                    totals: {
-                        totalFeesDue,
-                        totalFeesPaid,
-                        totalConcession,
-                        totalBalance,
-                    },
-                });
+
+                // result.push({
+                //     admissionNumber,
+                //     studentName: `${student.firstName} ${student.lastName || ""}`.trim(),
+                //     className: classMap[masterDefineClass] || masterDefineClass,
+                //     sectionName: sectionMap[section] || section,
+                //     academicYear,
+                //     TCStatus: student.TCStatus,
+                //     TCStatusDate: student.TCStatusDate
+                //         ? new Date(student.TCStatusDate).toLocaleDateString("en-GB")
+                //         : "-",
+                //     Remark: remark,
+                //     installments,
+                //     totals: {
+                //         totalFeesDue,
+                //         totalFeesPaid,
+                //         totalConcession,
+                //         totalBalance,
+                //     },
+                // });
+                if (totalBalance !== 0) {
+                    result.push({
+                        admissionNumber,
+                        studentName: `${student.firstName} ${student.lastName || ""}`.trim(),
+                        className: classMap[masterDefineClass] || masterDefineClass,
+                        sectionName: sectionMap[section] || section,
+                        academicYear,
+                        TCStatus: student.TCStatus,
+                        TCStatusDate: student.TCStatusDate
+                            ? new Date(student.TCStatusDate).toLocaleDateString("en-GB")
+                            : "-",
+                        Remark: remark,
+                        installments,
+                        totals: {
+                            totalFeesDue,
+                            totalFeesPaid,
+                            totalConcession,
+                            totalBalance,
+                        },
+                    });
+                }
+
             }
+
         }
 
 

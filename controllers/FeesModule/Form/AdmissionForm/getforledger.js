@@ -529,7 +529,7 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
     }).populate('studentId', 'registrationNumber firstName lastName');
 
     const refundFeesRaw = await RefundFees.find({ schoolId })
-      .select('admissionNumber firstName lastName refundAmount paymentMode paymentDate receiptNumber academicYear status refundDate refundType feeTypeRefunds classId installmentName existancereceiptNumber concessionAmount cancelledAmount fineAmount excessAmount')
+      .select('admissionNumber firstName lastName refundAmount paymentMode paymentDate receiptNumber academicYear status refundDate  cancelledDate refundType feeTypeRefunds classId installmentName existancereceiptNumber concessionAmount cancelledAmount fineAmount excessAmount')
       .populate('feeTypeRefunds.feeType', 'name');
 
     const refundFeesWithOriginalAmount = await Promise.all(
@@ -546,8 +546,8 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
                 return sum + installment.feeItems.reduce((itemSum, feeItem) => itemSum + (feeItem.paid || 0), 0);
               }, 0);
               // Try to get identifier from school fee
-              identifierNumber = schoolFee.admissionNumber || schoolFee.registrationNumber;
-              identifierType = schoolFee.admissionNumber ? 'admission' : 'registration';
+              identifierNumber = schoolFee.studentAdmissionNumber || schoolFee.registrationNumber;
+              identifierType = schoolFee.studentAdmissionNumber? 'admission' : 'registration';
             }
           } else if (refund.refundType === 'Admission Fee') {
             const admissionPayment = await AdmissionPayment.findOne({ schoolId, receiptNumber: refund.existancereceiptNumber });
@@ -693,7 +693,9 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
         cancelledAmount: refund.cancelledAmount,
         concessionAmount: refund.concessionAmount || 0,
         paymentMode: refund.paymentMode,
-        paymentDate: refund.paymentDate,
+        paymentDate: refund.status === "Refund" 
+          ? refund.refundDate 
+          : refund.cancelledDate,
         receiptNumber: refund.receiptNumber,
         academicYear: refund.academicYear,
         feesType: refund.refundType,
@@ -701,7 +703,7 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
           ? refund.installmentName 
           : refund.refundType || 'Refund',
         status: refund.status,
-        refundDate: refund.refundDate || refund.cancelledDate,
+        refundDate: refund.refundDate,
       })),
 
       refundFineAmount: refundFeesWithOriginalAmount
@@ -721,7 +723,7 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
           refundType: refund.refundType,
           type: 'Fine Refund',
           status: refund.status,
-          refundDate: refund.refundDate || refund.cancelledDate,
+          refundDate: refund.refundDate,
         })),
 
       refundExcessAmount: refundFeesWithOriginalAmount
@@ -741,7 +743,7 @@ const getAdmissionFormsBySchoolId = async (req, res) => {
           refundType: refund.refundType,
           type: 'Excess Amount Refund',
           status: refund.status,
-          refundDate: refund.refundDate || refund.cancelledDate,
+          refundDate: refund.refundDate,
         })),
     };
 

@@ -23,6 +23,10 @@ import getstudentforcount from './AdmissionForm/getstudentforcount.js';
 import getbySchoolIdandYearCpy from './AdmissionForm/getbyyearCpy.js';
 import createadmissionpayment from './AdmissionForm/payment.js';
 import getadmissionbystudentidandreceiptnumber from './AdmissionForm/getbystudentidandreceiptnum.js'
+import {handleAdmissionPaymentSuccess} from './AdmissionForm/payment.js'
+import {handleAdmissionPaymentFailure } from './AdmissionForm/payment.js'
+
+
 
 
 import createTCForm from './TCForm/create.js';
@@ -31,6 +35,8 @@ import deleteTCFormById from './TCForm/delete.js';
 import updateTCForm from './TCForm/update.js'
 import creattcpayment from './TCForm/payment.js';
 import gettcstudentbystudentidandreceiptnumber from './TCForm/getbystudentidandreceiptnum.js'
+import {handleTCPaymentSuccess} from './TCForm/payment.js'
+import {handleTCPaymentFailure } from './TCForm/payment.js'
 
 import createConcessionForm from './ConcessionForm/create.js';
 import getConcessionFormsBySchoolId from './ConcessionForm/get.js';
@@ -69,6 +75,8 @@ export {
   getbySchoolIdandYearCpy,
   createadmissionpayment,
   getadmissionbystudentidandreceiptnumber,
+  handleAdmissionPaymentFailure,
+  handleAdmissionPaymentSuccess,
   updatebyAcdemicHistory,
   updateTCinactiveStatus,
   createTCForm,
@@ -77,6 +85,8 @@ export {
   updateTCForm,
   creattcpayment,
   gettcstudentbystudentidandreceiptnumber ,
+  handleTCPaymentFailure,
+  handleTCPaymentSuccess,
   createConcessionForm,
   getConcessionFormsBySchoolId,
   deleteConcessionFormById,
