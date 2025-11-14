@@ -106,25 +106,43 @@ export const getAllAdmissionFees = async (req, res) => {
   session.startTransaction();
 
   try {
-       const { schoolId, academicYear } = req.query;
-       if (!schoolId || !academicYear) {
+      //  const { schoolId, academicYear } = req.query;
+      const { schoolId, academicYear,startdate,enddate } = req.query;
+       if (!schoolId ) {
          return res.status(400).json({
-           message: 'schoolId and academicYear are required',
+           message: 'schoolId are required',
          });
        }
        const schoolIdString = schoolId.trim();
+   let academicYearData;
+       if (academicYear) {
+         academicYearData = await FeesManagementYear.findOne({
+           schoolId: schoolIdString,
+           academicYear: academicYear.trim(),
+         });
+       } else {
+         academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString });
+       }
    
-       const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
        if (!academicYearData) {
          return res.status(400).json({
-           message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
+           message: `Academic year not found for schoolId ${schoolIdString}`,
          });
        }
-       const { startDate, endDate } = academicYearData;
+   
+   
+       let filterStartDate, filterEndDate;
+       if (startdate && enddate) {
+         filterStartDate = new Date(startdate);
+         filterEndDate = new Date(new Date(enddate).setHours(23, 59, 59, 999));
+       } else {
+         filterStartDate = new Date(academicYearData.startDate);
+         filterEndDate = new Date(new Date(academicYearData.endDate).setHours(23, 59, 59, 999));
+       }
 
     const paymentDataList = await AdmissionPayment.find({
       schoolId,
-      paymentDate: { $gte: startDate, $lte: endDate },
+       paymentDate: { $gte: filterStartDate, $lte: filterEndDate },
       paymentMode: { $ne: 'null' },
       status: 'Paid' 
     })
@@ -133,7 +151,7 @@ export const getAllAdmissionFees = async (req, res) => {
       .session(session);
 
     if (!paymentDataList.length) {
-      return res.status(404).json({ message: `No admission payment data found for academic year ${academicYear}` });
+      return res.status(404).json({ message: `No admission payment data found for academic year ` });
     }
 
     const classDataList = await ClassAndSection.find({ schoolId }).lean().session(session);
@@ -221,8 +239,8 @@ export const getAllAdmissionFees = async (req, res) => {
         schoolId,
         refundType: 'Admission Fee',
          $or: [
-          { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
-          { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
+          { $and: [{ status: 'Refund' }, { refundDate: { $gte:filterStartDate, $lte: filterEndDate } }] },
+          { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte:filterStartDate, $lte: filterEndDate } }] }
         ],
         existancereceiptNumber: { $in: receiptNumbers },
       }).lean().session(session);
@@ -313,351 +331,7 @@ export const getAllAdmissionFees = async (req, res) => {
   }
 };
 
-// export const getAllAdmissionFees = async (req, res) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-
-//   try {
-//        const { schoolId, academicYear } = req.query;
-//        if (!schoolId || !academicYear) {
-//          return res.status(400).json({
-//            message: 'schoolId and academicYear are required',
-//          });
-//        }
-//        const schoolIdString = schoolId.trim();
-   
-//        const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
-//        if (!academicYearData) {
-//          return res.status(400).json({
-//            message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
-//          });
-//        }
-//        const { startDate, endDate } = academicYearData;
-
-//     const paymentDataList = await AdmissionPayment.find({
-//       schoolId,
-//       paymentDate: { $gte: startDate, $lte: endDate },
-//       paymentMode: { $ne: 'null' },
-//       status: { $ne: 'Pending' },
-//     })
-//       .populate('studentId')
-//       .lean()
-//       .session(session);
-
-//     if (!paymentDataList.length) {
-//       return res.status(404).json({ message: `No admission payment data found for academic year ${academicYear}` });
-//     }
-
-//     const classDataList = await ClassAndSection.find({ schoolId }).lean().session(session);
-//     const classMap = new Map(classDataList.map(cls => [cls._id.toString(), cls.className]));
-//     const sectionMap = new Map();
-//     classDataList.forEach(cls => {
-//       cls.sections.forEach(sec => {
-//         sectionMap.set(sec._id.toString(), { className: cls.className, sectionName: sec.name });
-//       });
-//     });
-
-//     const combinedDetails = [];
-//     const receiptNumbers = [];
-
-//     for (const payment of paymentDataList) {
-//       const admission = payment.studentId;
-//       if (!admission) {
-//         console.warn(`AdmissionForm not found for payment with ID ${payment._id}`);
-//         continue;
-//       }
-
-//       const historyEntry = admission.academicHistory.find(
-//         entry => entry.academicYear === admission.academicYear
-//       );
-
-//       const classId = historyEntry?.masterDefineClass?.toString();
-//       const sectionId = historyEntry?.section?.toString();
-
-//       let className = '-';
-//       let sectionName = '-';
-
-//       if (sectionId && sectionMap.has(sectionId)) {
-//         const sectionInfo = sectionMap.get(sectionId);
-//         className = sectionInfo.className || '-';
-//         sectionName = sectionInfo.sectionName || '-';
-//       } else if (classId && classMap.has(classId)) {
-//         className = classMap.get(classId) || '-';
-//       }
-
-//       // Initialize refund and cancelled amounts
-//       let refundAmount = 0;
-//       let cancelledAmount = 0;
-
-//       // Check for refunds/cancellations for this payment
-//       if (payment.receiptNumber) {
-//         receiptNumbers.push(payment.receiptNumber);
-//       }
-
-//       // Get refund data for this specific receipt
-//       const refunds = await Refund.find({
-//         schoolId,
-//         refundType: 'Admission Fee',
-//         existancereceiptNumber: payment.receiptNumber,
-//         $or: [
-//           { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
-//           { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
-//         ],
-//       }).lean().session(session);
-
-//       // Sum up refund and cancelled amounts
-//       refunds.forEach(refund => {
-//         if (refund.status === 'Refund' && refund.refundAmount > 0) {
-//           refundAmount += refund.refundAmount;
-//         }
-//         if (refund.status === 'Cancelled' || refund.status === 'Cheque Return') {
-//           cancelledAmount += refund.cancelledAmount || 0;
-//         }
-//       });
-
-//       const totalRefundCancelled = refundAmount + cancelledAmount;
-
-//       const paymentDetail = {
-//         recordType: 'Admission Fee',
-//         paymentId: payment._id.toString(),
-//         studentId: admission._id.toString(),
-//         firstName: admission.firstName || '-',
-//         lastName: admission.lastName || '-',
-//         admissionNumber: admission.AdmissionNumber || '-',
-//         academicYear: admission.academicYear,
-//         className,
-//         sectionName,
-//         admFeesDate: payment.paymentDate
-//           ? new Date(payment.paymentDate).toLocaleDateString('en-GB', {
-//               day: '2-digit',
-//               month: '2-digit',
-//               year: 'numeric',
-//             }).replace(/\//g, '-')
-//           : '-',
-//         admFeesCancelledDate: payment.cancelledDate
-//           ? new Date(payment.cancelledDate).toLocaleDateString('en-GB', {
-//               day: '2-digit',
-//               month: '2-digit',
-//               year: 'numeric',
-//             }).replace(/\//g, '-')
-//           : '-',
-//         admFeesPaymentMode: payment.paymentMode || '-',
-//         admFeesDue: payment.admissionFees?.toString() || '0',
-//         admFeesConcession: payment.concessionAmount?.toString() || '0',
-//         admFeesPaid: payment.finalAmount?.toString() || '0',
-//         admFeesChequeNumber: payment.chequeNumber || '-',
-//         admFeesBankName: payment.bankName || '-',
-//         admFeesTransactionNo: payment.transactionNumber || '-',
-//         admFeesReceiptNo: payment.receiptNumber || '-',
-//         admFeesStatus: payment.status || '-',
-//         admFeesRefundAmountAndCancelledAmount: -(totalRefundCancelled) ,
-//       };
-
-//       combinedDetails.push(paymentDetail);
-//     }
-
-//     await session.commitTransaction();
-//     res.status(200).json({
-//       combinedDetails,
-//       paymentCount: paymentDataList.length,
-//     });
-//   } catch (error) {
-//     await session.abortTransaction();
-//     console.error('Error fetching admission fees data:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   } finally {
-//     session.endSession();
-//   }
-// };
 
 export default getAllAdmissionFees;
 
 
-// import mongoose from 'mongoose';
-// import { AdmissionPayment } from '../../../../models/FeesModule/AdmissionForm.js';
-// import ClassAndSection from '../../../../models/FeesModule/Class&Section.js';
-// import Refund from '../../../../models/FeesModule/RefundFees.js';
-// import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear.js";
-
-// export const getAllAdmissionFees = async (req, res) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-
-//   try {
-//     const { schoolId, academicYear } = req.query;
-//     if (!schoolId || !academicYear) {
-//       return res.status(400).json({
-//         message: 'schoolId and academicYear are required',
-//       });
-//     }
-//     const schoolIdString = schoolId.trim();
-
-//     const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
-//     if (!academicYearData) {
-//       return res.status(400).json({
-//         message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
-//       });
-//     }
-//     const { startDate, endDate } = academicYearData;
-
-//     const paymentDataList = await AdmissionPayment.find({
-//       schoolId,
-//       paymentDate: { $gte: startDate, $lte: endDate },
-//       paymentMode: { $ne: 'null' },
-//       status: { $ne: 'Pending' },
-//     })
-//       .populate('studentId')
-//       .lean()
-//       .session(session);
-
-//     if (!paymentDataList.length) {
-//       return res.status(404).json({ message: `No admission payment data found for academic year ${academicYear}` });
-//     }
-
-//     const classDataList = await ClassAndSection.find({ schoolId }).lean().session(session);
-//     const classMap = new Map(classDataList.map(cls => [cls._id.toString(), cls.className]));
-//     const sectionMap = new Map();
-//     classDataList.forEach(cls => {
-//       cls.sections.forEach(sec => {
-//         sectionMap.set(sec._id.toString(), { className: cls.className, sectionName: sec.name });
-//       });
-//     });
-
-
-//     const receiptNumbers = new Set();
-//     paymentDataList.forEach(payment => {
-//       if (payment.receiptNumber) {
-//         receiptNumbers.add(payment.receiptNumber);
-//       }
-//     });
-
-
-//     let refundMap = new Map();
-//     if (receiptNumbers.size > 0) {
-//       const refunds = await Refund.find({
-//         schoolId,
-//         refundType: 'Admission Fee',
-//         existancereceiptNumber: { $in: Array.from(receiptNumbers) },
-//         $or: [
-//           { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
-//           { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
-//         ],
-//       }).lean().session(session);
-
-
-//       refunds.forEach(refund => {
-//         const key = refund.existancereceiptNumber;
-//         if (!refundMap.has(key)) {
-//           refundMap.set(key, { refundAmount: 0, cancelledAmount: 0 });
-//         }
-//         const data = refundMap.get(key);
-//         if (refund.status === 'Refund' && refund.refundAmount > 0) {
-//           data.refundAmount += refund.refundAmount;
-//         }
-//         if ((refund.status === 'Cancelled' || refund.status === 'Cheque Return') && refund.cancelledAmount > 0) {
-//           data.cancelledAmount += refund.cancelledAmount;
-//         }
-//       });
-//     }
-
-
-//     const combinedDetails = [];
-//     for (const payment of paymentDataList) {
-//       const admission = payment.studentId;
-//       if (!admission) {
-//         console.warn(`AdmissionForm not found for payment with ID ${payment._id}`);
-//         continue;
-//       }
-
- 
-//       const historyEntry = admission.academicHistory.find(
-//         entry => entry.academicYear === academicYear  
-//       );
-
-//       const classId = historyEntry?.masterDefineClass?.toString();
-//       const sectionId = historyEntry?.section?.toString();
-
-//       let className = '-';
-//       let sectionName = '-';
-
-//       if (sectionId && sectionMap.has(sectionId)) {
-//         const sectionInfo = sectionMap.get(sectionId);
-//         className = sectionInfo.className || '-';
-//         sectionName = sectionInfo.sectionName || '-';
-//       } else if (classId && classMap.has(classId)) {
-//         className = classMap.get(classId) || '-';
-//       }
-
- 
-//       const receiptNo = payment.receiptNumber;
-//       let refundAmount = 0;
-//       let cancelledAmount = 0;
-//       let totalRefundCancelled = 0;
-//       let concession = payment.concessionAmount?.toString() || '0';
-
-//       if (receiptNo && refundMap.has(receiptNo)) {
-//         const data = refundMap.get(receiptNo);
-//         refundAmount = data.refundAmount;
-//         cancelledAmount = data.cancelledAmount;
-//         totalRefundCancelled = refundAmount + cancelledAmount;
-
-
-//         if (cancelledAmount > 0) {
-//           concession = '0';
-//         }
-//       }
-
-//       const paymentDetail = {
-//         recordType: 'Admission Fee',
-//         paymentId: payment._id.toString(),
-//         studentId: admission._id.toString(),
-//         firstName: admission.firstName || '-',
-//         lastName: admission.lastName || '-',
-//         admissionNumber: admission.AdmissionNumber || '-',
-//         academicYear,
-//         className,
-//         sectionName,
-//         admFeesDate: payment.paymentDate
-//           ? new Date(payment.paymentDate).toLocaleDateString('en-GB', {
-//               day: '2-digit',
-//               month: '2-digit',
-//               year: 'numeric',
-//             }).replace(/\//g, '-')
-//           : '-',
-//         admFeesCancelledDate: payment.cancelledDate
-//           ? new Date(payment.cancelledDate).toLocaleDateString('en-GB', {
-//               day: '2-digit',
-//               month: '2-digit',
-//               year: 'numeric',
-//             }).replace(/\//g, '-')
-//           : '-',
-//         admFeesPaymentMode: payment.paymentMode || '-',
-//         admFeesDue: payment.admissionFees?.toString() || '0',
-//         admFeesConcession: concession,
-//         admFeesPaid: payment.finalAmount?.toString() || '0',
-//         admFeesChequeNumber: payment.chequeNumber || '-',
-//         admFeesBankName: payment.bankName || '-',
-//         admFeesTransactionNo: payment.transactionNumber || '-',
-//         admFeesReceiptNo: payment.receiptNumber || '-',
-//         admFeesStatus: payment.status || '-',
-//         admFeesRefundAmountAndCancelledAmount: -(totalRefundCancelled),
-//       };
-
-//       combinedDetails.push(paymentDetail);
-//     }
-
-//     await session.commitTransaction();
-//     res.status(200).json({
-//       combinedDetails,
-//       paymentCount: paymentDataList.length,
-//     });
-//   } catch (error) {
-//     await session.abortTransaction();
-//     console.error('Error fetching admission fees data:', error);
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   } finally {
-//     session.endSession();
-//   }
-// };
-
-// export default getAllAdmissionFees;

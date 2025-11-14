@@ -19,6 +19,9 @@ import {
   getstudentbystudentidandreceiptnumber,
   handlePaymentSuccess,
   handlePaymentFailure,
+  registrationWithOnlinePayment,
+  getRegistrationById,
+  creatregistrationpaymentLink,
 
   createAdmissionForm,
   getAdmissionFormsBySchoolId,
@@ -67,14 +70,27 @@ const router = express.Router();
 
 router.post(
   "/create-registartion-form",
-  roleBasedMiddleware("Admin", "School"), studentFileUpload,
+  roleBasedMiddleware("Admin", "School","Tempstudent"), studentFileUpload,
   createRegistrationForm
 );
+
+router.post(
+  "/create-registartion-form-olinepayment",
+  roleBasedMiddleware("Admin", "School","Tempstudent"), studentFileUpload,
+   registrationWithOnlinePayment
+);
+
 
 router.get(
   "/get-registartion-form/:schoolId/:academicYear",
   roleBasedMiddleware("Admin", "School"),
   getRegistrationsBySchoolIdandyear,
+);
+
+router.get(
+  "/get-registartion-form-byid/:schoolId/:academicYear/:id",
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
+  getRegistrationById
 );
 
 router.get(
@@ -91,7 +107,7 @@ router.delete(
 
 router.put(
   "/update-registartion-form/:id",
-  roleBasedMiddleware("Admin", "School"), studentFileUpload,
+  roleBasedMiddleware("Admin", "School","Tempstudent"), studentFileUpload,
   updateRegistrationForm
 );
 
@@ -109,14 +125,22 @@ router.post(
 
 router.post(
   "/create-registration-payments/:studentId",
-  roleBasedMiddleware("Admin", "School"),
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
     creatregistrationpayment,
 );
+
+router.post(
+  "/create-registration-payments-link/:studentId",
+  roleBasedMiddleware("Admin", "School",),
+   creatregistrationpaymentLink,
+);
+
+
 
 
 router.get(
   "/get-registration-data/:studentId/:receiptNumber(.+)",
-  roleBasedMiddleware("Admin", "School"),
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
   getstudentbystudentidandreceiptnumber
 );
 

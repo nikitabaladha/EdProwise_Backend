@@ -6,6 +6,10 @@ const StudentsignuptempSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
     firstName: {
       type: String,
       required: true,
@@ -38,7 +42,7 @@ const StudentsignuptempSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-     userRole: {
+     role: {
       type: String,
       default: "Tempstudent",
       enum: ["Tempstudent"],
@@ -47,6 +51,9 @@ const StudentsignuptempSchema = new mongoose.Schema(
       type: String,
       enum: ["Active", "Deactive"],
       default: "Active",
+    },
+   registrationFormId: {
+      type: String,
     },
   },
   {

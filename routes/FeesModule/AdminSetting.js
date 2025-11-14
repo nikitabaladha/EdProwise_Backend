@@ -107,12 +107,12 @@ router.post(
 );
 router.get(
   "/master-define-shift/:schoolId",
-  roleBasedMiddleware("Admin", "School"),
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
   getAllMasterDefineShift
 );
 router.get(
   "/master-define-shift-year/:schoolId/year/:academicYear",
-  roleBasedMiddleware("Admin", "School"),
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
    getshiftbyyear
 );
 router.put(
@@ -135,13 +135,13 @@ router.post(
 
 router.get(
   "/get-class-and-section/:schoolId",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School","Tempstudent"),
  getClassAndSection
 );
 
 router.get(
   "/get-class-and-section-year/:schoolId/year/:academicYear",
-  roleBasedMiddleware("Admin", "School"),
+  roleBasedMiddleware("Admin", "School","Tempstudent"),
   getClassAndSectionsbyyear
 );
 
@@ -274,7 +274,7 @@ router.put(
 
 router.get(
   "/get-one-time-feesbyIds/:schoolId/:classId/:academicYear",
-  roleBasedMiddleware("Admin","School"),
+  roleBasedMiddleware("Admin","School","Tempstudent"),
   getAllBySchoolAndClass 
 );
 

@@ -8,6 +8,9 @@ import {creatregistrationpayment} from './RegistrationForm/payment.js';
 import getstudentbystudentidandreceiptnumber from './RegistrationForm/getbystudentidandreceiptnum.js';
 import {handlePaymentSuccess} from './RegistrationForm/payment.js'
 import {handlePaymentFailure} from './RegistrationForm/payment.js'
+import registrationWithOnlinePayment from './RegistrationForm/creatFromonlinepayment.js'
+import getRegistrationById from './RegistrationForm/getbyid.js';
+import {creatregistrationpaymentLink} from './RegistrationForm/PaymentLink.js';
 
 
 import createAdmissionForm from './AdmissionForm/create.js'
@@ -63,6 +66,9 @@ export {
   creatregistrationpayment,
   handlePaymentSuccess,
   handlePaymentFailure,
+  registrationWithOnlinePayment,
+  getRegistrationById,
+  creatregistrationpaymentLink,
 
   getstudentbystudentidandreceiptnumber,
   downloadreceipts,

@@ -50,10 +50,12 @@ async function studentLogin(req, res) {
         const token = jwt.sign(
             {
                 id: user._id,
+                  schoolId: user.schoolId,
+                academicYear:user.academicYear,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                role: user.userRole,
+                role: user.role,
                 phone: user.phone,
             },
             jwtSecret,
@@ -63,13 +65,15 @@ async function studentLogin(req, res) {
         return res.status(200).json({
             token,
             userDetails: {
-                id: user._id,
+                schoolId: user.schoolId,
+                academicYear:user.academicYear,
+                role: user.role,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                role: user.userRole,
                 email: user.email,
                 phone: user.phone,
                 status: user.status,
+                registrationFormId:user.registrationFormId
             },
             hasError: false,
             message: "Login Successful",

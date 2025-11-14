@@ -1,150 +1,4 @@
-// // import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-// // import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
-// // import mongoose from 'mongoose';
 
-// // const getFilePath = (file) => {
-// //   if (!file) return '';
-// //   return file.mimetype.startsWith('image/')
-// //     ? `/Images/Registration/${file.filename}`
-// //     : `/Documents/Registration/${file.filename}`;
-// // };
-
-// // const registrationform = async (req, res) => {
-// //   const schoolId = req.user?.schoolId;
-// //   if (!schoolId) {
-// //     return res.status(401).json({
-// //       hasError: true,
-// //       message: 'Access denied: School ID missing.'
-// //     });
-// //   }
-
-// //   const { error } = RegistrationCreateValidator.validate(req.body);
-// //   if (error) {
-// //     return res.status(400).json({ hasError: true, message: error.details[0].message });
-// //   }
-
-// //   const session = await mongoose.startSession();
-// //   session.startTransaction();
-
-// //   try {
-// //     const files = req.files;
-
-// //     const newStudent = new StudentRegistration({
-// //       ...req.body,
-// //       schoolId,
-// //      aadharPassportFile: getFilePath(files?.aadharPassportFile?.[0]),
-// //   castCertificate: getFilePath(files?.castCertificate?.[0]),
-// //   tcCertificate: getFilePath(files?.tcCertificate?.[0]),
-// //   previousSchoolResult: getFilePath(files?.previousSchoolResult?.[0]),
-// //   studentPhoto: getFilePath(files?.studentPhoto?.[0]),
-// //   idCardFile: getFilePath(files?.idCardFile?.[0]), 
-// //   proofOfResidence: getFilePath(files?.proofOfResidence?.[0])
-
-// //     });
-
-// //     newStudent.$session(session);
-
-// //     await newStudent.save({ session });
-
-
-// //     await session.commitTransaction();
-// //     session.endSession();
-
-// //     res.status(201).json({
-// //       hasError: false,
-// //       message: 'Student registered successfully.',
-// //       student: newStudent
-// //     });
-// //   } catch (err) {
-
-// //     await session.abortTransaction();
-// //     session.endSession();
-
-  
-
-// //     res.status(500).json({
-// //       hasError: true,
-// //       message: err.message,
-// //       details: 'Transaction aborted. No changes were saved.'
-// //     });
-// //   }
-// // };
-
-// // export default registrationform;
-
-
-// // import mongoose from 'mongoose';
-// // import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-// // import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
-
-// // const getFilePath = (file) => {
-// //   if (!file) return '';
-// //   return file.mimetype.startsWith('image/')
-// //     ? `/Images/Registration/${file.filename}`
-// //     : `/Documents/Registration/${file.filename}`;
-// // };
-
-// // const registrationform = async (req, res) => {
-// //   const schoolId = req.user?.schoolId;
-// //   if (!schoolId) {
-// //     return res.status(401).json({
-// //       hasError: true,
-// //       message: 'Access denied: School ID missing.',
-// //     });
-// //   }
-
-// //   const { error } = RegistrationCreateValidator.validate(req.body);
-// //   if (error) {
-// //     return res.status(400).json({
-// //       hasError: true,
-// //       message: error.details[0].message,
-// //     });
-// //   }
-
-// //   const session = await mongoose.startSession();
-// //   session.startTransaction();
-
-// //   try {
-// //     const files = req.files;
-
-// //     const studentData = {
-// //       ...req.body,
-// //       schoolId,
-// //       aadharPassportFile: getFilePath(files?.aadharPassportFile?.[0]),
-// //       castCertificate: getFilePath(files?.castCertificate?.[0]),
-// //       tcCertificate: getFilePath(files?.tcCertificate?.[0]),
-// //       previousSchoolResult: getFilePath(files?.previousSchoolResult?.[0]),
-// //       studentPhoto: getFilePath(files?.studentPhoto?.[0]),
-// //       idCardFile: getFilePath(files?.idCardFile?.[0]),
-// //       proofOfResidence: getFilePath(files?.proofOfResidence?.[0]),
-// //     };
-
-// //     const newStudent = new StudentRegistration(studentData);
-// //     newStudent.$session(session);
-// //     await newStudent.save({ session });
-
-// //     await session.commitTransaction();
-// //     session.endSession();
-
-// //     res.status(201).json({
-// //       hasError: false,
-// //       message: 'Student registered successfully.',
-// //       student: newStudent,
-// //     });
-// //   } catch (err) {
-// //     await session.abortTransaction();
-// //     session.endSession();
-
-// //     console.error('Registration error:', err);
-// //     res.status(500).json({
-// //       hasError: true,
-// //       message: err.message || 'An error occurred during registration.',
-// //       details: 'Transaction aborted. No changes were saved.',
-// //     });
-// //   }
-// // };
-
-// // export default registrationform;
 // import mongoose from 'mongoose';
 // import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
 // import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
@@ -156,23 +10,6 @@
 //     ? `/Images/Registration/${file.filename}`
 //     : `/Documents/Registration/${file.filename}`;
 // };
-
-
-// const withTransaction = async (callback) => {
-//   const session = await mongoose.startSession();
-//   session.startTransaction();
-//   try {
-//     const result = await callback(session);
-//     await session.commitTransaction();
-//     return result;
-//   } catch (err) {
-//     await session.abortTransaction();
-//     throw err;
-//   } finally {
-//     session.endSession();
-//   }
-// };
-
 
 // const hasPaymentData = (body) => {
 //   const paymentFields = [
@@ -197,7 +34,6 @@
 //     });
 //   }
 
-
 //   const { error } = RegistrationCreateValidator.validate(req.body);
 //   if (error) {
 //     return res.status(400).json({
@@ -205,7 +41,6 @@
 //       message: error.details[0].message,
 //     });
 //   }
-
 
 //   const files = req.files || {};
 //   if (!files || typeof files !== 'object') {
@@ -216,67 +51,58 @@
 //   }
 
 //   try {
-//     const result = await withTransaction(async (session) => {
+//     const {
+//       registrationFee,
+//       concessionType,
+//       concessionAmount,
+//       finalAmount,
+//       paymentMode,
+//       chequeNumber,
+//       bankName,
+//       name,
+//       ...studentFields
+//     } = req.body;
 
-//       const {
-//         registrationFee,
-//         concessionType,
-//         concessionAmount,
-//         finalAmount,
-//         paymentMode,
-//         chequeNumber,
-//         bankName,
-//         name,
-//         ...studentFields
-//       } = req.body;
+//     const studentData = {
+//       ...studentFields,
+//       schoolId,
+//       aadharPassportFile: getFilePath(files.aadharPassportFile?.[0]),
+//       castCertificate: getFilePath(files.castCertificate?.[0]),
+//       tcCertificate: getFilePath(files.tcCertificate?.[0]),
+//       previousSchoolResult: getFilePath(files.previousSchoolResult?.[0]),
+//       studentPhoto: getFilePath(files.studentPhoto?.[0]),
+//       idCardFile: getFilePath(files.idCardFile?.[0]),
+//       proofOfResidence: getFilePath(files.proofOfResidence?.[0]),
+//     };
 
-//       const studentData = {
-//         ...studentFields,
+//     const newStudent = new StudentRegistration(studentData);
+//     await newStudent.save();
+
+//     let newPayment = null;
+//     if (hasPaymentData(req.body)) {
+//       const paymentData = {
+//         studentId: newStudent._id,
+//         academicYear: newStudent.academicYear,
 //         schoolId,
-//         aadharPassportFile: getFilePath(files.aadharPassportFile?.[0]),
-//         castCertificate: getFilePath(files.castCertificate?.[0]),
-//         tcCertificate: getFilePath(files.tcCertificate?.[0]),
-//         previousSchoolResult: getFilePath(files.previousSchoolResult?.[0]),
-//         studentPhoto: getFilePath(files.studentPhoto?.[0]),
-//         idCardFile: getFilePath(files.idCardFile?.[0]),
-//         proofOfResidence: getFilePath(files.proofOfResidence?.[0]),
+//         registrationFee: registrationFee || 0,
+//         concessionType: concessionType || null,
+//         concessionAmount: concessionAmount || 0,
+//         finalAmount: finalAmount || 0,
+//         paymentMode: paymentMode || 'null',
+//         chequeNumber: chequeNumber || '',
+//         bankName: bankName || '',
+//         name: name || '',
 //       };
 
-    
-//       const newStudent = new StudentRegistration(studentData);
-//       newStudent.$session(session);
-//       await newStudent.save({ session });
-
-  
-//       let newPayment = null;
-//       if (hasPaymentData(req.body)) {
-//         const paymentData = {
-//           studentId: newStudent._id,
-//           schoolId,
-//           // registrationNumber: newStudent.registrationNumber,
-//           registrationFee: registrationFee || 0,
-//           concessionType: concessionType || null,
-//           concessionAmount: concessionAmount || 0,
-//           finalAmount: finalAmount || 0,
-//           paymentMode: paymentMode || 'null',
-//           chequeNumber: chequeNumber || '',
-//           bankName: bankName || '',
-//           name: name || '',
-//         };
-
-//         newPayment = new RegistrationPayment(paymentData);
-//         newPayment.$session(session);
-//         await newPayment.save({ session });
-//       }
-
-//       return { student: newStudent, payment: newPayment };
-//     });
+//       newPayment = new RegistrationPayment(paymentData);
+//       await newPayment.save();
+//     }
 
 //     res.status(201).json({
 //       hasError: false,
 //       message: 'Student registered successfully.',
-//       student: result.student,
-//       payment: result.payment || null, 
+//       student: newStudent,
+//       payment: newPayment || null,
 //     });
 //   } catch (err) {
 //     console.error('Registration error:', err);
@@ -287,16 +113,17 @@
 //     res.status(500).json({
 //       hasError: true,
 //       message,
-//       details: 'Transaction aborted. No changes were saved.',
 //     });
 //   }
 // };
 
 // export default registrationform;
 
+
+
 import mongoose from 'mongoose';
 import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
-import { RegistrationPayment } from '../../../../models/FeesModule/RegistrationForm.js';
+import TempStudent from '../../../../models/StudentSignupTemp.js';
 import { RegistrationCreateValidator } from '../../../../validators/RegistrationValidator/RegistrationValidator.js';
 
 const getFilePath = (file) => {
@@ -304,20 +131,6 @@ const getFilePath = (file) => {
   return file.mimetype.startsWith('image/')
     ? `/Images/Registration/${file.filename}`
     : `/Documents/Registration/${file.filename}`;
-};
-
-const hasPaymentData = (body) => {
-  const paymentFields = [
-    'registrationFee',
-    'concessionType',
-    'concessionAmount',
-    'finalAmount',
-    'paymentMode',
-    'chequeNumber',
-    'bankName',
-    'name',
-  ];
-  return paymentFields.some((field) => body[field] && body[field] !== '');
 };
 
 const registrationform = async (req, res) => {
@@ -346,20 +159,12 @@ const registrationform = async (req, res) => {
   }
 
   try {
-    const {
-      registrationFee,
-      concessionType,
-      concessionAmount,
-      finalAmount,
-      paymentMode,
-      chequeNumber,
-      bankName,
-      name,
-      ...studentFields
-    } = req.body;
+    const { email, ...studentFields } = req.body;
+
 
     const studentData = {
       ...studentFields,
+      email,
       schoolId,
       aadharPassportFile: getFilePath(files.aadharPassportFile?.[0]),
       castCertificate: getFilePath(files.castCertificate?.[0]),
@@ -373,31 +178,30 @@ const registrationform = async (req, res) => {
     const newStudent = new StudentRegistration(studentData);
     await newStudent.save();
 
-    let newPayment = null;
-    if (hasPaymentData(req.body)) {
-      const paymentData = {
-        studentId: newStudent._id,
-        academicYear: newStudent.academicYear,
-        schoolId,
-        registrationFee: registrationFee || 0,
-        concessionType: concessionType || null,
-        concessionAmount: concessionAmount || 0,
-        finalAmount: finalAmount || 0,
-        paymentMode: paymentMode || 'null',
-        chequeNumber: chequeNumber || '',
-        bankName: bankName || '',
-        name: name || '',
-      };
 
-      newPayment = new RegistrationPayment(paymentData);
-      await newPayment.save();
+    if (email) {
+      const updatedTemp = await TempStudent.findOneAndUpdate(
+        {
+          schoolId,
+          email: email.trim().toLowerCase(),
+        },
+        { $set: { registrationFormId: newStudent._id } },
+        { new: true, runValidators: true }
+      );
+
+      console.log(
+        updatedTemp
+          ? `TempStudent ${updatedTemp._id} (school ${schoolId}) linked to registration ${newStudent._id}`
+          : `No TempStudent found for schoolId=${schoolId} & email=${email}`
+      );
     }
+
 
     res.status(201).json({
       hasError: false,
       message: 'Student registered successfully.',
       student: newStudent,
-      payment: newPayment || null,
+      payment: null,
     });
   } catch (err) {
     console.error('Registration error:', err);
@@ -405,10 +209,8 @@ const registrationform = async (req, res) => {
       err.code === 11000
         ? 'Registration number or other unique field already exists.'
         : err.message || 'An error occurred during registration.';
-    res.status(500).json({
-      hasError: true,
-      message,
-    });
+
+    res.status(500).json({ hasError: true, message });
   }
 };
 

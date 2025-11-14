@@ -234,35 +234,50 @@ import FeesManagementYear from "../../../../models/FeesModule/FeesManagementYear
 
 export const getAllTCFees = async (req, res) => {
   try {
-    const { schoolId, academicYear } = req.query;
-     if (!schoolId || !academicYear) {
+       const { schoolId, academicYear,startdate,enddate } = req.query;
+     if (!schoolId ) {
        return res.status(400).json({
          message: 'schoolId and academicYear are required',
        });
      }
      const schoolIdString = schoolId.trim();
- 
-     const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
-     if (!academicYearData) {
-       return res.status(400).json({
-         message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
-       });
-     }
-     const { startDate, endDate } = academicYearData;
-     const targetAcademicYear = academicYear
+    let academicYearData;
+        if (academicYear) {
+          academicYearData = await FeesManagementYear.findOne({
+            schoolId: schoolIdString,
+            academicYear: academicYear.trim(),
+          });
+        } else {
+          academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString });
+        }
+    
+        if (!academicYearData) {
+          return res.status(400).json({
+            message: `Academic year not found for schoolId ${schoolIdString}`,
+          });
+        }
+    
+    
+        let filterStartDate, filterEndDate;
+        if (startdate && enddate) {
+          filterStartDate = new Date(startdate);
+          filterEndDate = new Date(new Date(enddate).setHours(23, 59, 59, 999));
+        } else {
+          filterStartDate = new Date(academicYearData.startDate);
+          filterEndDate = new Date(new Date(academicYearData.endDate).setHours(23, 59, 59, 999));
+        }
 
     const paymentDataList = await TCPayment.find({
       schoolId,
-        paymentDate: { $gte: startDate, $lte: endDate },
+         paymentDate: { $gte: filterStartDate, $lte: filterEndDate },
       paymentMode: { $ne: 'null' },
-      // status: { $ne: 'Pending' },
          status: 'Paid'
     })
       .populate('tcFormId')
       .lean();
 
     if (!paymentDataList.length) {
-      return res.status(404).json({ message: `No TC payment data found for academic year ${targetAcademicYear}` });
+      return res.status(404).json({ message: `No TC payment data found for academic year ` });
     }
 
     const combinedDetails = [];
@@ -282,7 +297,6 @@ export const getAllTCFees = async (req, res) => {
       if (classId && sectionId) {
         const classData = await ClassAndSection.findOne({
           schoolId,
-          // academicYear: targetAcademicYear,
           'sections._id': sectionId,
         }).lean();
         if (classData) {
@@ -291,7 +305,6 @@ export const getAllTCFees = async (req, res) => {
       } else if (classId) {
         const classData = await ClassAndSection.findOne({
           schoolId,
-          // academicYear: targetAcademicYear,
           _id: classId,
         }).lean();
         className = classData?.className || '-';
@@ -343,11 +356,11 @@ export const getAllTCFees = async (req, res) => {
     if (receiptNumbers.length > 0) {
       const refunds = await Refund.find({
         schoolId,
-        refundType: 'Transfer Certificate Fee',  $or: [
-          { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
-          { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
+        refundType: 'Transfer Certificate Fee',  
+         $or: [
+          { $and: [{ status: 'Refund' }, { refundDate: { $gte:filterStartDate, $lte: filterEndDate } }] },
+          { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte:filterStartDate, $lte: filterEndDate } }] }
         ],
-
         existancereceiptNumber: { $in: receiptNumbers },
       }).lean();
 

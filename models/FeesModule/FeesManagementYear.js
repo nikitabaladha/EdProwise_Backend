@@ -48,6 +48,10 @@ const FeesManagementYearSchema = new mongoose.Schema(
         message: props => `End date ${props.value} must be in the second year of the academic year`,
       },
     },
+    registrationLink: {
+      type: Boolean,
+      default: false, 
+    },
   },
   {
     timestamps: true,

@@ -3,20 +3,21 @@ import saltFunction from "../../../validators/saltFunction.js";
 
 async function addstudenttemp(req, res) {
   try {
-    const { schoolId, firstName, lastName, email, phone, password } = req.body;
+    const { schoolId, firstName, lastName, email, phone, password,  academicYear} = req.body;
 
 
-    if (!schoolId || !firstName || !lastName || !email || !phone || !password) {
+    if (!schoolId || !firstName || !lastName || !email || !phone || !password || !academicYear) {
       return res.status(400).json({
         hasError: true,
         message:
-          "All fields (schoolId, firstName, lastName, email, phone, password) are required.",
+          "All fields ( firstName, lastName, email, phone, password) are required.",
       });
     }
 
 
     let isExistingUser = await StudentUser.findOne({
       schoolId,
+      academicYear,
       $or: [{ email }, { phone }],
     });
 
@@ -34,6 +35,7 @@ async function addstudenttemp(req, res) {
 
     const user = await StudentUser.create({
       schoolId,
+      academicYear,
       firstName,
       lastName,
       email,
@@ -47,6 +49,7 @@ async function addstudenttemp(req, res) {
     const userData = {
       _id: user.id,
       schoolId: user.schoolId,
+      academicYear:user.academicYear,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,

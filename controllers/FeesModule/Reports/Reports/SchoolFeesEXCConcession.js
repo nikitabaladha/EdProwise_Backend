@@ -12,45 +12,53 @@ import BoardRegistrationFeePayment from '../../../../models/FeesModule/BoardRegi
 import RefundFees from '../../../../models/FeesModule/RefundFees.js';
 
 export const CollectionEXCConcession = async (req, res) => {
-  try {
-    const { schoolId, academicYear } = req.query;
+ try {
+    const { schoolId, academicYear,startdate,enddate } = req.query;
 
-    if (!schoolId || !academicYear) {
+    if (!schoolId ) {
       return res.status(400).json({
-        message: 'schoolId and academicYear are required',
+        message: 'schoolId  are required',
       });
     }
 
-    const schoolIdString = schoolId.trim();
+         const schoolIdString = schoolId.trim();
+      let academicYearData;
+          if (academicYear) {
+            academicYearData = await FeesManagementYear.findOne({
+              schoolId: schoolIdString,
+              academicYear: academicYear.trim(),
+            });
+          } else {
+            academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString });
+          }
+      
+          if (!academicYearData) {
+            return res.status(400).json({
+              message: `Academic year not found for schoolId ${schoolIdString}`,
+            });
+          }
+      
+      
+          let filterStartDate, filterEndDate;
+          if (startdate && enddate) {
+            filterStartDate = new Date(startdate);
+            filterEndDate = new Date(new Date(enddate).setHours(23, 59, 59, 999));
+          } else {
+            filterStartDate = new Date(academicYearData.startDate);
+            filterEndDate = new Date(new Date(academicYearData.endDate).setHours(23, 59, 59, 999));
+          }
 
-    const academicYearData = await FeesManagementYear.findOne({ schoolId: schoolIdString, academicYear });
-    if (!academicYearData) {
-      return res.status(400).json({
-        message: `Academic year ${academicYear} not found for schoolId ${schoolIdString}`,
-      });
-    }
-    const { startDate, endDate } = academicYearData;
 
     const feeTypes = await FeesType.find({ schoolId: schoolIdString });
     const feeTypeMap = feeTypes.reduce((acc, type) => {
       acc[type._id.toString()] = type.feesTypeName;
       return acc;
     }, {});
-    feeTypeMap['Admission Fees'] = 'Admission Fee';
-    feeTypeMap['Registration Fees'] = 'Registration Fee';
-    feeTypeMap['TC Fees'] = 'TC Fee';
-    feeTypeMap['Board Exam Fees'] = 'Board Exam Fee';
-    feeTypeMap['Board Registration Fees'] = 'Board Registration Fee';
 
-    const academicYears = await FeesStructure.distinct('academicYear', { schoolId: schoolIdString });
-    const academicYearOptions = academicYears
-      .sort((a, b) => a.localeCompare(b))
-      .map((year) => ({
-        value: year,
-        label: year.split('-').length === 2 ? `${year.split('-')[0]}-${year.split('-')[1].slice(-2)}` : year,
-      }));
 
-    const classResponse = await ClassAndSection.find({ schoolId: schoolIdString, academicYear }).lean();
+  
+
+    const classResponse = await ClassAndSection.find({ schoolId: schoolIdString,}).lean();
     const classOptions = [...new Set(classResponse.map((cls) => cls.className))].map((cls) => ({
       value: cls,
       label: cls,
@@ -78,7 +86,7 @@ export const CollectionEXCConcession = async (req, res) => {
       {
         $match: {
           schoolId: schoolIdString,
-          paymentDate: { $gte: startDate, $lte: endDate },
+             paymentDate: { $gte: filterStartDate, $lte: filterEndDate },
           status: { $in: ['Paid', 'Cancelled', 'Cheque Return'] },
         },
       },
@@ -245,8 +253,8 @@ export const CollectionEXCConcession = async (req, res) => {
   {
     $match: {
       $or: [
-        { $and: [{ status: 'Refund' }, { refundDate: { $gte: startDate, $lte: endDate } }] },
-        { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: startDate, $lte: endDate } }] }
+        { $and: [{ status: 'Refund' }, { refundDate: { $gte: filterStartDate, $lte: filterEndDate } }] },
+        { $and: [{ status: { $in: ['Cancelled', 'Cheque Return'] } }, { cancelledDate: { $gte: filterStartDate, $lte: filterEndDate } }] }
       ]
     }
   },
@@ -579,7 +587,6 @@ export const CollectionEXCConcession = async (req, res) => {
         installmentOptions,
         feeTypeOptions,
         paymentModeOptions,
-        academicYearOptions,
       },
     });
   } catch (error) {

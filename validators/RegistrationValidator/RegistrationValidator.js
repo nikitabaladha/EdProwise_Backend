@@ -278,7 +278,7 @@ export const RegistrationCreateValidator = Joi.object({
     'any.required': 'Gender is required.',
   }),
   bloodGroup: Joi.string()
-    .valid('AB-', 'AB+', 'O-', 'O+', 'B-', 'B+', 'A-', 'A+')
+    // .valid('AB-', 'AB+', 'O-', 'O+', 'B-', 'B+', 'A-', 'A+')
     .allow(null, '')
     .messages({
       'string.base': 'Blood group must be a string.',
@@ -520,4 +520,14 @@ concessionType: Joi.when('concessionAmount', {
     .messages({
       'any.only': "Status must be 'Pending' or 'Paid'.",
     }),
+email: Joi.string()
+  .email({ tlds: { allow: false } })
+  .allow(null, '')
+  .optional()
+  .messages({
+    'string.base': 'Email must be a string.',
+    'string.email': 'Please enter a valid email address.',
+  }),
+
+
 });

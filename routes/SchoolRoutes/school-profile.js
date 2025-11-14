@@ -35,7 +35,7 @@ router.put(
 
 router.get(
   "/school-profile/:schoolId",
-  roleBasedMiddleware("School", "Admin"),
+  // roleBasedMiddleware("School", "Admin","Tempstudent"),
   getById
 );
 router.post(
