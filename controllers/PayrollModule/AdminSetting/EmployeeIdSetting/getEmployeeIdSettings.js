@@ -1,4 +1,4 @@
-import EmployeeIdSetting from "../../../../models/PayrollModule/AdminSetting/EmployeeIdSetting.js";
+import EmployeeIdSetting from "../../../../models/PayrollModule/AdminSettings/EmployeeIdSetting.js";
 
 const getEmployeeIdSettings = async (req, res) => {
   try {

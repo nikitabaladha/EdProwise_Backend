@@ -8,8 +8,7 @@ const concessionDetailSchema = new Schema({
     },
     feesType: {
         type: Schema.Types.ObjectId,
-        ref: 'FeeType',
-        required: true
+        ref: 'FeeType'
     },
     totalFees: {
         type: Number,
@@ -34,15 +33,29 @@ const concessionDetailSchema = new Schema({
     }
 });
 
+const concessionCounterSchema = new Schema({
+    schoolId: { type: String, required: true, unique: true },
+    receiptSeq: { type: Number, default: 0 }
+});
+
+const ConcessionCounter = mongoose.model('ConcessionCounter', concessionCounterSchema);
+
 const concessionSchema = new Schema({
     schoolId: {
         type: String,
         required: true,
         ref: 'School'
     },
+    academicYear: {
+        type: String,
+        required: true
+    },
     AdmissionNumber: {
         type: String,
         required: true
+    },
+    studentPhoto: {
+        type: String
     },
     firstName: {
         type: String,
@@ -71,17 +84,50 @@ const concessionSchema = new Schema({
         enum: ['EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other']
     },
     castOrIncomeCertificate: {
-        type: String,
-        // required: true
+        type: String
     },
-    applicableAcademicYear: {
-        type: String,
-        required: true
+    receiptNumber: {
+        type: String
     },
     concessionDetails: {
         type: [concessionDetailSchema],
         required: true,
         validate: v => Array.isArray(v) && v.length > 0
+    },
+    status: { type: String, enum: ['Pending', 'Approved','Rejected'], default: 'Pending' },
+    cancelledDate: { type: Date },
+    cancelReason: { type: String },
+    chequeSpecificReason: { type: String },
+    additionalComment: { type: String },
+}, { timestamps: true });
+
+concessionSchema.index({ schoolId: 1, AdmissionNumber: 1, academicYear: 1 }, { unique: true, sparse: true });
+concessionSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true, sparse: true });
+
+concessionSchema.pre('save', async function (next) {
+    let attempts = 3;
+    while (attempts > 0) {
+        try {
+            const counter = await ConcessionCounter.findOneAndUpdate(
+                { schoolId: this.schoolId },
+                { $inc: { receiptSeq: 1 } },
+                { new: true, upsert: true }
+            );
+
+            if (!this.receiptNumber) {
+                const padded = counter.receiptSeq.toString().padStart(6, '0');
+                this.receiptNumber = `CON/${padded}`;
+            }
+
+            return next();
+        } catch (err) {
+            if (err.code === 11000 && err.message.includes('receiptNumber')) {
+                attempts--;
+                if (attempts === 0) return next(err);
+            } else {
+                return next(err);
+            }
+        }
     }
 });
 

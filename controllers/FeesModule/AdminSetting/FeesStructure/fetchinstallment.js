@@ -1,19 +1,17 @@
-// controllers/getAllFeesInstallments.js
 import FeesStructure from "../../../../models/FeesModule/FeesStructure.js";
-import FeesType from "../../../../models/FeesModule/FeesType.js";
 
 export const getAllFeesInstallments = async (req, res) => {
   try {
-    const { classId, sectionIds, schoolId } = req.query;
+    const { classId, sectionIds, schoolId, academicYear } = req.query;
 
-
-    if (!classId || !sectionIds || !schoolId) {
-      return res
-        .status(400)
-        .json({ message: "classId, sectionIds, and schoolId are required" });
+    if (!classId || !sectionIds || !schoolId || !academicYear) {
+      return res.status(400).json({
+        message:
+          "classId, sectionIds, schoolId, and academicYear are required",
+      });
     }
 
-
+  
     const sectionIdArray = Array.isArray(sectionIds)
       ? sectionIds
       : [sectionIds];
@@ -23,15 +21,14 @@ export const getAllFeesInstallments = async (req, res) => {
       schoolId,
       classId,
       sectionIds: { $in: sectionIdArray },
+      academicYear,
     }).lean();
 
     if (!feesStructures || feesStructures.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No fee structure found for the given school, class, and section.",
-        });
+      return res.status(404).json({
+        message:
+          "No fee structure found for the given school, class, section, and academic year.",
+      });
     }
 
 
@@ -47,6 +44,8 @@ export const getAllFeesInstallments = async (req, res) => {
 
         if (inst) {
           response.push({
+            academicYear: structure.academicYear,
+            installmentId: inst._id,
             name: inst.name,
             dueDate: inst.dueDate,
             fees: inst.fees?.map((fee) => ({

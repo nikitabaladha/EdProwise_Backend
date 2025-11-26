@@ -1,5 +1,5 @@
-import EmployeeCategory from "../../../../models/PayrollModule/AdminSetting/EmployeeCategory.js";
 
+import EmployeeCategory from "../../../../models/PayrollModule/AdminSettings/EmployeeCategory.js";
 // Delete Category
 const deleteCategory = async (req, res) => {
   try {

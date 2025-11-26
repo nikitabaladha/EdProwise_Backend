@@ -356,6 +356,8 @@ async function create(req, res) {
     const { schoolId } = req.params;
 
     if (!schoolId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "School ID is required.",
@@ -367,6 +369,8 @@ async function create(req, res) {
         req.body
       );
     if (error) {
+      await session.abortTransaction();
+      session.endSession();
       const errorMessages = error.details.map((err) => err.message).join(", ");
       return res.status(400).json({ hasError: true, message: errorMessages });
     }
@@ -399,6 +403,8 @@ async function create(req, res) {
     const { affiliationCertificate, panFile, profileImage } = req.files || {};
 
     if (!affiliationCertificate?.[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "Affiliation Certificate is required.",
@@ -406,6 +412,8 @@ async function create(req, res) {
     }
 
     if (!panFile?.[0]) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
         message: "PAN File is required.",

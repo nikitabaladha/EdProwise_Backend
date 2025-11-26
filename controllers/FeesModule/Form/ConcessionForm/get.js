@@ -1,17 +1,17 @@
 import ConcessionFormModel from '../../../../models/FeesModule/ConcessionForm.js';
 
 const getConcessionFormsBySchoolId = async (req, res) => {
-  const { schoolId } = req.params;
+  const { schoolId,academicYear } = req.params;
 
-  if (!schoolId) {
+  if (!schoolId || !academicYear) {
     return res.status(400).json({
       hasError: true,
-      message: 'School ID is required in params.',
+      message: "Both School ID and Academic Year are required.",
     });
   }
 
   try {
-    const forms = await ConcessionFormModel.find({ schoolId });
+    const forms = await ConcessionFormModel.find({ schoolId,academicYear });
 
     return res.status(200).json({
       hasError: false,

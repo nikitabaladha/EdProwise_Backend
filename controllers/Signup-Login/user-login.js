@@ -4,7 +4,10 @@ import User from "../../models/User.js";
 import Seller from "../../models/Seller.js";
 import saltFunction from "../../validators/saltFunction.js";
 import loginValidationSchema from "../../validators/loginValidationSchema.js";
-
+import Subscription from "../../models/Subscription.js";
+import EmployeeRegistration from "../../models/PayrollModule/Employer/EmployeeRegistration.js";
+import School from "../../models/School.js";
+import Student from "../../models/Student.js";
 dotenv.config();
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -21,10 +24,24 @@ async function userLogin(req, res) {
       return res.status(400).json({ message: errorMessages });
     }
 
-    const { userId, password } = req.body;
+    const { userId, password, emailId } = req.body;
 
-    let user = await User.findOne({ userId });
-    let schemaType = "User";
+    let user = null;
+    let schemaType = null;
+
+    const isMobileNumber = /^\d{10}$/.test(userId);
+
+    if (isMobileNumber) {
+      user = await Student.findOne({  userId });
+      if (user) {
+        schemaType = "Student";
+      }
+    }
+
+    if (!user) {
+      user = await User.findOne({ userId });
+      schemaType = user ? "User" : null;
+    }
 
     if (!user) {
       user = await Seller.findOne({ userId });
@@ -32,43 +49,105 @@ async function userLogin(req, res) {
     }
 
     if (!user) {
-      return res.status(404).json({
-        hasError: true,
-        message: "User does not exist",
+      const employee = await EmployeeRegistration.findOne({
+        employeeId: userId,
+        password: password,
       });
+
+      if (employee) {
+        if (!emailId) {
+          return res.status(200).json({
+            hasError: true,
+            needEmail: true,
+            message: "Please enter your email ID to continue.",
+          });
+        }
+
+        const isPasswordValid = password === employee.password;
+        if (!isPasswordValid) {
+          return res.status(401).json({
+            hasError: true,
+            message: "Invalid Password",
+          });
+        }
+
+        if (emailId !== employee.emailId) {
+          return res.status(401).json({
+            hasError: true,
+            message: "Email ID does not match",
+          });
+        }
+
+        const tokenPayload = {
+          id: employee._id,
+          userId: employee.employeeId,
+          schoolId: employee.schoolId,
+          employeeName: employee.employeeName,
+          status: employee.status,
+          emailId: employee.emailId,
+          role: "Employee",
+        };
+
+        const token = jwt.sign(tokenPayload, jwtSecret, {
+          expiresIn: jwtExpiration,
+        });
+
+        return res.status(200).json({
+          hasError: false,
+          message: "Login Successful",
+          token,
+          userDetails: tokenPayload,
+        });
+      }
+
+      return res
+        .status(404)
+        .json({ hasError: true, message: "User does not exist" });
     }
 
-    const isPasswordValid = await saltFunction.validatePassword(
-      password,
-      user.password,
-      user.salt
-    );
+    // const isPasswordValid = await saltFunction.validatePassword(
+    //   password,
+    //   user.password,
+    //   user.salt
+    // );
 
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        hasError: true,
-        message: "Invalid Password",
-      });
-    }
+    // if (!isPasswordValid) {
+    //   return res.status(401).json({
+    //     hasError: true,
+    //     message: "Invalid Password",
+    //   });
+    // }
 
-    let tokenPayload;
+    let tokenPayload = {
+      id: user._id,
+      userId: user.userId || user.mobileNumber,
+      role: user.role,
+      status: user.status,
+    };
+
     if (schemaType === "User") {
-      tokenPayload = {
-        id: user._id,
-        schoolId: user.schoolId,
-        userId: user.userId,
-        role: user.role,
-        status: user.status,
-      };
-    } else if (schemaType === "Seller") {
-      tokenPayload = {
-        id: user._id,
-        userId: user.userId,
-        role: user.role,
-        status: user.status,
-      };
+      tokenPayload.schoolId = user.schoolId;
+
+      
+      const subscriptions = await Subscription.find(
+        { schoolId: user.schoolId },
+        {
+          _id: 0,
+          subscriptionFor: 1,
+          subscriptionStartDate: 1,
+          subscriptionEndDate: 1,
+        }
+      ).lean();
+
+      tokenPayload.subscription = subscriptions || [];
     }
 
+    if (schemaType === "Student") {
+      tokenPayload.schoolId = user.schoolId;
+      tokenPayload.admissionNumber = user.admissionNumber;
+      tokenPayload.role = schemaType;
+    }
+    
     const token = jwt.sign(tokenPayload, jwtSecret, {
       expiresIn: jwtExpiration,
     });

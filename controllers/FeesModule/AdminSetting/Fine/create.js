@@ -10,7 +10,7 @@ export const createFine = async (req, res) => {
     });
   }
 
-  const { feeType, frequency, value, maxCapFee } = req.body;
+  const { feeType, frequency, value, maxCapFee, academicYear } = req.body;
 
 
   if (!feeType || !['fixed', 'percentage'].includes(feeType)) {
@@ -20,7 +20,7 @@ export const createFine = async (req, res) => {
     });
   }
 
-  if (!frequency || !['Fixed', 'Daily', 'Monthly', 'Annually'].includes(frequency)) {
+  if (!frequency || !['Fixed', 'Daily','Weekly', 'Monthly', 'Annually'].includes(frequency)) {
     return res.status(400).json({
       hasError: true,
       message: "Invalid or missing 'frequency'.",
@@ -44,6 +44,7 @@ export const createFine = async (req, res) => {
   try {
     const payload = {
       schoolId,
+      academicYear,
       feeType,
       frequency,
       value,

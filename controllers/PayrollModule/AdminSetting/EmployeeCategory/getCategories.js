@@ -1,10 +1,10 @@
-import EmployeeCategory from "../../../../models/PayrollModule/AdminSetting/EmployeeCategory.js";
+import EmployeeCategory from "../../../../models/PayrollModule/AdminSettings/EmployeeCategory.js";
 
 const getCategories = async (req, res) => {
   try {
     const { schoolId } = req.params;
     const { academicYear } = req.query;
-
+ 
     if (!schoolId) {
       return res.status(400).json({
         hasError: true,
@@ -15,7 +15,7 @@ const getCategories = async (req, res) => {
     const query = { schoolId };
     if (academicYear) query.academicYear = academicYear;
 
-    const categories = await EmployeeCategory.find(query).sort({ createdAt: -1 });
+    const categories = await EmployeeCategory.find({ schoolId, academicYear }).sort({ createdAt: -1 });
 
     return res.status(200).json({
       hasError: false,

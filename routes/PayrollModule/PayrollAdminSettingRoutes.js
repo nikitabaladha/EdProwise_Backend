@@ -1,26 +1,63 @@
 import express from "express";
 import roleBasedMiddleware from "../../middleware/index.js";
-
 import {
 createCategory,
 getCategories, 
 updateCategory,
 deleteCategory,
+getCategoryBySchoolId,
 
 createJobDesignation,
 getJobDesignation,
 updateJobDesignation,
 deleteJobDesignation,
+getJobDesignationBySchoolId,
 
 createGrade,
 getGrade,
 updateGrade,
 deleteGrade,
+getGradeBySchoolId,
 
 createEmployeeIdSetting,
 getEmployeeIdSettings,
 updateEmployeeIdSetting,
 deleteEmployeeIdSetting,
+
+createOrUpdate,
+getSmtpBySchoolId,
+sendPayrollTestEmail,
+
+createCtcComponent,
+getCtcComponent,
+getCtcComponentBySchoolId,
+updateCtcComponent,
+deleteCtcComponent,
+
+createAnnualLeave,
+getAllAnnualLeaves,
+updateAnnualLeave,
+deleteAnnualLeave,
+
+createSchoolHoliday,
+getSchoolHolidays,
+deleteSchoolHoliday,
+updateSchoolHoliday,
+
+addCarryForwardConditions,
+getCarryForwardConditions,
+updateCarryForwardConditions,
+
+createOvertimeComponent,
+getAllOvertimeComponents,
+updateOvertimeComponent,
+deleteOvertimeComponent,
+
+getPayrollAcademicYear, 
+postPayrollAcademicYear,
+
+getPfEsiSettings,
+updatePfEsiSettings,
 } from "../../controllers/PayrollModule/AdminSetting/index.js";
 
 const router = express.Router();
@@ -42,6 +79,12 @@ router.get(
   "/getall-employee-category/:schoolId",
   roleBasedMiddleware("School"),
   getCategories,
+);
+
+router.get(
+  "/getall-category/:schoolId",
+  roleBasedMiddleware("School", "Admin"),
+  getCategoryBySchoolId,
 );
 
 router.delete(
@@ -70,6 +113,12 @@ router.get(
   getJobDesignation,
 );
 
+router.get(
+  "/getall-job-designation/:schoolId",
+  roleBasedMiddleware("School", "Admin"),
+  getJobDesignationBySchoolId,
+);
+
 router.delete(
   "/delete-employee-job-designation/:id",
   roleBasedMiddleware("School"),
@@ -96,6 +145,12 @@ router.get(
   getGrade,
 );
 
+router.get(
+  "/getall-grade/:schoolId",
+  roleBasedMiddleware("School", "Admin"),
+  getGradeBySchoolId,
+);
+
 router.delete(
   "/delete-employee-grade/:id",
   roleBasedMiddleware("School"),
@@ -107,139 +162,67 @@ router.get('/getall-employeeid-setting/:schoolId',roleBasedMiddleware("School"),
 router.put('/update-employee-id-prefix/:id',roleBasedMiddleware("School"), updateEmployeeIdSetting);
 router.delete('/delete-employee-id-prefix/:id',roleBasedMiddleware("School"), deleteEmployeeIdSetting);
 
-// //---------------------------------------------------MasterDefineShift------------------------//
-// router.post(
-//   "/master-define-shift",
-//   roleBasedMiddleware("Admin","School"),
-//   createMasterDefineShift
-// );
-// router.get(
-//   "/master-define-shift/:schoolId",
-//   roleBasedMiddleware("Admin", "School"),
-//   getAllMasterDefineShift
-// );
-// router.put(
-//   "/master-define-shift/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   updateMasterDefineShift
-// );
-// router.delete(
-//   "/master-define-shift/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   deleteMasterDefineShift
-// );
+router.post('/post-payroll-smtp-email-settings',roleBasedMiddleware("School"), createOrUpdate);
+router.get('/get-payroll-smtp-email-settings/:id',roleBasedMiddleware("School"), getSmtpBySchoolId);
+router.post('/test-payroll-smtp-email-settings',roleBasedMiddleware("School"), sendPayrollTestEmail);
 
-// //-------------------------------------------------create-class-and-section----------------------------//
-// router.post(
-//   "/create-class-and-section",
-//   roleBasedMiddleware("Admin","School"),
-//  createClassAndSection
-// );
+router.post(
+  "/create-payroll-ctc-component",
+  roleBasedMiddleware("School"),
+  createCtcComponent,
+);
 
-// router.get(
-//   "/get-class-and-section/:schoolId",
-//   roleBasedMiddleware("Admin","School"),
-//  getClassAndSection
-// );
+router.put(
+  "/update-payroll-ctc-component/:id",
+  roleBasedMiddleware("School"),
+  updateCtcComponent,
+);
 
-// router.delete(
-//   "/delete-class-and-section/:id",
-//   roleBasedMiddleware("Admin","School"),
-//  deleteClassAndSection
-// );
+router.get(
+  "/getall-payroll-ctc-component/:schoolId",
+  // roleBasedMiddleware("School"),
+  getCtcComponent,
+);
 
-// router.put(
-//   "/update-class-and-section/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   updateClassAndSection
-// );
+router.get(
+  "/get-payroll-ctc-component/:schoolId",
+  roleBasedMiddleware("School", "Admin"),
+  getCtcComponentBySchoolId,
+);
 
-// //------------------------------------------fees-structure----------------------------------//
-// router.post(
-//   "/create-fees-structure",
-//   roleBasedMiddleware("Admin","School"),
-//   createFeesStructure
-// );
+router.delete(
+  "/delete-payroll-ctc-component/:id",
+  roleBasedMiddleware("School"),
+  deleteCtcComponent,
+);
 
-// router.get(
-//   "/get-fees-structure/:schoolId",
-//   roleBasedMiddleware("Admin","School"),
-//   getFeesStructure
-// );
+router.post("/create-payroll-annual-leave", createAnnualLeave);
 
-// router.delete(
-//   "/delete-fees-structure/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   deleteFeesStructure
-// );
+router.get("/getall-payroll-annual-leave/:schoolId", getAllAnnualLeaves);
 
-// router.put(
-//   "/update-fees-structure/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   updateFeesStructure
-// );
+router.put("/update-payroll-annual-leave/:id", updateAnnualLeave);
 
-// router.get(
-//   "/fetch-viva-installments",
-//   roleBasedMiddleware("Admin","School"),
-//   getFeesTypeInstallments
-// );
+router.delete("/delete-payroll-annual-leave/:id", deleteAnnualLeave);
 
-// //----------------------------------------- Registartion Prefix Setting---------------------------------------//
-// router.post(
-//   "/create-prefix",
-//   roleBasedMiddleware("Admin","School"),
-//   createPrefix 
-// );
+router.post('/post-school-holidays', createSchoolHoliday);
+router.get('/school-holidays/:schoolId', getSchoolHolidays);
+router.delete('/school-holidays/:id', deleteSchoolHoliday);
+router.post('/update-school-holidays', updateSchoolHoliday);
 
-// router.get(
-//   "/get-prefix/:schoolId",
-//   roleBasedMiddleware("Admin","School"),
-//   getPrefixes
-// );
-
-// router.delete(
-//   "/delete-prefix/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   deletPrefix
-// );
+router.post('/add-carryforward-conditions', addCarryForwardConditions);
+router.get('/get-carryforward-conditions/:schoolId/:leaveTypeId', getCarryForwardConditions);
+router.put('/update-carryforward-conditions', updateCarryForwardConditions);
 
 
-// //----------------------------------------- Admission Prefix Setting---------------------------------------//
-// router.post(
-//   "/create-admission-prefix",
-//   roleBasedMiddleware("Admin","School"),
-//   createAdmissionPrefix
-// );
+router.post("/create-payroll-overtime-component", createOvertimeComponent);
+router.get("/getall-payroll-overtime-component/:schoolId", getAllOvertimeComponents);
+router.put("/update-payroll-overtime-component/:id", updateOvertimeComponent);
+router.delete("/delete-payroll-overtime-component/:id", deleteOvertimeComponent);
 
-// router.get(
-//   "/get-admission-prefix/:schoolId",
-//   roleBasedMiddleware("Admin","School"),
-//   getAdmissionPrefix
-// );
+router.post("/post-payroll-academic-year", postPayrollAcademicYear);
+router.get("/get-school-payroll-academic-year/:schoolId/:academicYear", getPayrollAcademicYear);
 
-// router.delete(
-//   "/delete-admission-prefix/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   deletAdmissionPrefix
-// );
+router.get("/get-pf-esi-settings/:schoolId", getPfEsiSettings);
+router.put("/update-pf-esi-settings", updatePfEsiSettings);
 
-// //----------------------------------------- Fine---------------------------------------//
-// router.post(
-//   "/create-fine",
-//   roleBasedMiddleware("Admin","School"),
-//   createFine
-// );
-
-// router.get(
-//   "/get-fine/:schoolId",
-//   roleBasedMiddleware("Admin","School"),
-// getFinesBySchoolId
-// );
-
-// router.delete(
-//   "/delete-fine/:id",
-//   roleBasedMiddleware("Admin","School"),
-//   deleteFineById
-// );
 export default router;

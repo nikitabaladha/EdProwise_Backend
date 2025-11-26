@@ -1,17 +1,17 @@
-import StudentRegistration from '../../../../models/FeesModule/RegistrationForm.js';
+import StudentRegistration from '../../../../models/FeesModule/RegistrationFormCopy.js';
 
 const getRegistrationsBySchoolId = async (req, res) => {
-  const { schoolId } = req.params;
+  const { schoolId,academicYear } = req.params;
 
-  if (!schoolId) {
+  if (!schoolId || !academicYear) {
     return res.status(400).json({
       hasError: true,
-      message: 'Missing schoolId in request parameters.',
+      message: "Both School ID and Academic Year are required.",
     });
   }
 
   try {
-    const students = await StudentRegistration.find({ schoolId });
+    const students = await StudentRegistration.find({ schoolId,academicYear });
 
     res.status(200).json({
       hasError: false,

@@ -38,7 +38,9 @@ import GlobalSearchRoutes from "./Procurement/global-search.js";
 
 import AdminSettingRoutes from "./FeesModule/AdminSetting.js";
 import FormRoutes from "./FeesModule/Form.js";
-import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js";
+import FeesReceiptsRoutes from "./FeesModule/FeesReceipts.js"
+import FeesManagementYearRoutes from "./FeesModule/FeesManagementYear.js";
+import Reports from "./FeesModule/Reports.js"
 
 // Umesh Routes
 import RequestForDemoRoutes from "./RequestForDemoRoutes/RequestForDemoRoutes.js";
@@ -50,15 +52,17 @@ import SignUPTemplatesRoutes from "./EmailTemplatesRoutes/SignUPTemplatesRoutes.
 import SellerEmailTemplateRoutes from "./EmailTemplatesRoutes/SellerEmailTemplateRoutes.js";
 import PasswordUpdateEmailTemplateRoutes from "./EmailTemplatesRoutes/PasswordUpdateEmailTemplateRoutes.js";
 import ForgotPasswordRoutes from "./ForgotPasswordRoutes/ForgotPasswordRoutes.js";
-// import PayrollAdminSettingRoutes "./PayrollModule/PayrollAdminSettingRoutes.js";
-import PayrollAdminSettingRoutes from "./PayrollModule/PayrollAdminSettingRoutes.js"
-// Blogs
-import Blogs from "./AdminRoutes/blogs.js"
 
-import sitemap from "./sitemap.js"
+// ==================Payroll Routes ========================
+import PayrollAcademicYear from "./PayrollModule/PayrollAcademicYear.js";
+import PayrollEmployerRoutes from "./PayrollModule/PayrollEmployerRoutes.js"
+import PayrollAdminSettingRoutes from "./PayrollModule/PayrollAdminSettingRoutes.js"
+import PayrollEmployeeSelfRoutes from "./PayrollModule/PayrollEmployeeSelfRoutes.js"
+
+import OperationRoutes from "./OperationalModule/OperationRoutes.js"
+
+import StudentRoutes from "./StudentRoutes/StudentRoutes.js"
 export default (app) => {
-  // PDF Routes
-  app.use("/api", PDFRoutes);
   // ==================Email Routes =========================
 
   app.use("/api", SMTPEmailSettings);
@@ -105,7 +109,10 @@ export default (app) => {
   // ================Fees Module====================
   app.use("/api", AdminSettingRoutes);
   app.use("/api", FormRoutes);
-  app.use("/api", FeesReceiptsRoutes);
+  app.use("/api",FeesReceiptsRoutes);
+  app.use("/api",FeesManagementYearRoutes);
+  app.use("/api",Reports)
+
 
   // Umesh Routes
 
@@ -116,4 +123,19 @@ export default (app) => {
 
   app.use("/api", Blogs);
   app.use("/api", PayrollAdminSettingRoutes);
+ 
+
+  // Payroll Routes
+  app.use("/api", PayrollAcademicYear);
+  app.use("/api", PayrollEmployerRoutes);
+  app.use("/api", PayrollAdminSettingRoutes);
+  app.use("/api", PayrollEmployeeSelfRoutes);
+
+  // operational Routes
+  app.use("/api", OperationRoutes);
+  
+  // Student Routes
+  app.use("/api", StudentRoutes);
+  
+  
 };

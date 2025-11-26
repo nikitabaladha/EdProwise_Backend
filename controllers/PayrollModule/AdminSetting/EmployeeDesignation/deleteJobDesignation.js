@@ -1,4 +1,4 @@
-import EmployeeDesignation from "../../../../models/PayrollModule/AdminSetting/EmployeeDesignation.js";
+import EmployeeDesignation from "../../../../models/PayrollModule/AdminSettings/EmployeeDesignation.js";
 
 // Delete Category
 const deleteJobDesignation = async (req, res) => {

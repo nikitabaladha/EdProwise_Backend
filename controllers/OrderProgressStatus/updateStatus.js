@@ -1875,6 +1875,7 @@ async function updateStatus(req, res) {
         );
       }
 
+<<<<<<< HEAD
       if (supplierStatus === "Delivered") {
         const productDetails = await OrderFromBuyer.find({
           enquiryNumber,
@@ -1906,6 +1907,8 @@ async function updateStatus(req, res) {
         });
       }
 
+=======
+>>>>>>> e93929508fbd115a6a602c56f7cc1c5172d308a6
       await session.commitTransaction();
       session.endSession();
 

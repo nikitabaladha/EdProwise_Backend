@@ -14,6 +14,7 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import SellerRegistrationEmailTemplate from "../../models/EmailTeamplates/SellerRegistrationEmailTemplate.js";
 
 function generateUserId() {
   const prefix = "SELID";
@@ -41,10 +42,14 @@ async function sendSellerRegistrationEmail(
     const smtpSettings = await SMTPEmailSetting.findOne();
     if (!smtpSettings) throw new Error("SMTP settings not found");
 
+    const emailTemplate = await SellerRegistrationEmailTemplate.findOne();
+    if (!emailTemplate) throw new Error("Email template not found");
+    console.log(emailTemplate);
+
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: smtpSettings.mailEncryption === "SSL",
+      secure: false,
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,

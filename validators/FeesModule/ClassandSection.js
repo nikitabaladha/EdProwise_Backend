@@ -13,6 +13,16 @@ const sectionSchema = Joi.object({
     "string.length": "Shift ID must be a valid ObjectId (24 chars).",
     "any.required": "Shift ID is required."
   })
+}).custom((value, helpers) => {
+  const sections = helpers.state.ancestors[0]?.sections || [value];
+  const sectionNames = sections.map((section) => section.name);
+  const uniqueSectionNames = new Set(sectionNames);
+  if (sectionNames.length !== uniqueSectionNames.size) {
+    return helpers.error("array.unique", {
+      message: "Duplicate section names are not allowed within the same class."
+    });
+  }
+  return value;
 });
 
 const ClassAndSectionValidator = {
@@ -21,6 +31,15 @@ const ClassAndSectionValidator = {
       "string.empty": "Class name is required.",
       "any.required": "Class name is required."
     }),
+    academicYear: Joi.string()
+      .trim()
+      .required()
+      .pattern(/^\d{4}-\d{4}$/)
+      .messages({
+        "string.empty": "Academic year is required.",
+        "any.required": "Academic year is required.",
+        "string.pattern.base": "Academic year must be in the format 'YYYY-YYYY' (e.g., '2024-2025')."
+      }),
     sections: Joi.array().min(1).items(sectionSchema).required().messages({
       "array.base": "Sections must be an array.",
       "array.min": "At least one section is required.",
@@ -33,6 +52,15 @@ const ClassAndSectionValidator = {
       "string.empty": "Class name is required.",
       "any.required": "Class name is required."
     }),
+    academicYear: Joi.string()
+      .trim()
+      .required()
+      .pattern(/^\d{4}-\d{4}$/)
+      .messages({
+        "string.empty": "Academic year is required.",
+        "any.required": "Academic year is required.",
+        "string.pattern.base": "Academic year must be in the format 'YYYY-YYYY' (e.g., '2024-2025')."
+      }),
     sections: Joi.array().min(1).items(sectionSchema).required().messages({
       "array.base": "Sections must be an array.",
       "array.min": "At least one section is required.",

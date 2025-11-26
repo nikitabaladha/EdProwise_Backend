@@ -20,7 +20,9 @@ export const validatePrefixSetting = (data) => {
       is: 'alphanumeric',
       then: Joi.number().required().label('Number'),
       otherwise: Joi.forbidden()
-    })
+    }),
+
+    academicYear: Joi.string().required().label('Academic Year'),
   }).validate(data);
 };
 

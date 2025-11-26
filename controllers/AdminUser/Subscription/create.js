@@ -1,7 +1,6 @@
 import Subscription from "../../../models/Subscription.js";
 import SubscriptionValidator from "../../../validators/AdminUser/SubscriptionValidator.js";
 import School from "../../../models/School.js";
-
 async function create(req, res) {
   try {
     const { error } =
@@ -23,39 +22,78 @@ async function create(req, res) {
       subscriptionNoOfMonth,
       monthlyRate,
     } = req.body;
-
     const schoolExists = await School.findOne({ schoolId });
     if (!schoolExists) {
       return res.status(404).json({
         hasError: true,
-        message: "school not found.",
+        message: "School not found.",
       });
     }
-
+ 
+    let startDate = new Date(subscriptionStartDate);
+    let endDate = new Date(startDate);
+ 
+    // CORRECT way to add months
+    endDate.setFullYear(
+      endDate.getFullYear() + Math.floor(subscriptionNoOfMonth / 12),
+      endDate.getMonth() + (subscriptionNoOfMonth % 12),
+      endDate.getDate()
+    );
+ 
+    let datesAdjusted = false;
+ 
+    const existingSubscription = await Subscription.findOne({
+      schoolId,
+      subscriptionFor,
+    }).sort({ subscriptionEndDate: -1 });
+ 
+    if (existingSubscription) {
+      const existingEndDate = new Date(
+        existingSubscription.subscriptionStartDate
+      );
+      existingEndDate.setFullYear(
+        existingEndDate.getFullYear() +
+          Math.floor(existingSubscription.subscriptionNoOfMonth / 12),
+        existingEndDate.getMonth() +
+          (existingSubscription.subscriptionNoOfMonth % 12),
+        existingEndDate.getDate()
+      );
+ 
+      if (startDate < existingEndDate) {
+        datesAdjusted = true;
+        startDate = new Date(existingEndDate);
+        startDate.setDate(startDate.getDate() + 1);
+        endDate = new Date(startDate);
+        endDate.setFullYear(
+          endDate.getFullYear() + Math.floor(subscriptionNoOfMonth / 12),
+          endDate.getMonth() + (subscriptionNoOfMonth % 12),
+          endDate.getDate()
+        );
+      }
+    }
+ 
     const newSubscription = new Subscription({
       schoolId,
       subscriptionFor,
-      subscriptionStartDate,
+      subscriptionStartDate: startDate,
       subscriptionNoOfMonth,
       monthlyRate,
+      subscriptionEndDate: endDate,
     });
-
+ 
     await newSubscription.save();
-
+ 
     return res.status(201).json({
       hasError: false,
-      message: "Subscription created successfully.",
+      message: datesAdjusted
+        ? `Subscription dates were adjusted to avoid overlap. New subscription runs from ${
+            startDate.toISOString().split("T")[0]
+          } to ${endDate.toISOString().split("T")[0]}`
+        : "Subscription created successfully.",
       data: newSubscription,
+      datesAdjusted,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        hasError: true,
-        message:
-          "This Subscription Details already exists for same school on same date.",
-      });
-    }
-
     console.error("Error submitting Subscription Details:", error);
     return res.status(500).json({
       hasError: true,

@@ -10,28 +10,32 @@ async function create(req, res) {
     }
 
     const schoolId = req.user?.schoolId;
-
     if (!schoolId) {
       return res.status(401).json({
         hasError: true,
-        message:
-          "Access denied: You do not have permission to create Fees Type.",
+        message: "Access denied: You do not have permission to create Fees Type.",
       });
     }
 
-    const { feesTypeName } = req.body;
+    const { feesTypeName, groupOfFees, academicYear } = req.body;
 
-    const existingFeesType = await FeesType.findOne({ feesTypeName, schoolId });
+    const existingFeesType = await FeesType.findOne({ 
+      feesTypeName, 
+      schoolId,
+      academicYear 
+    });
     if (existingFeesType) {
       return res.status(400).json({
         hasError: true,
-        message: `Fees Type with name "${feesTypeName}" already exists.`,
+        message: `Fees Type with name "${feesTypeName}" already exists for academic year ${academicYear} in this school.`,
       });
     }
 
     const feesType = new FeesType({
       schoolId,
       feesTypeName,
+      groupOfFees,
+      academicYear,
     });
 
     await feesType.save();
@@ -46,7 +50,7 @@ async function create(req, res) {
     if (error.code === 11000) {
       return res.status(400).json({
         hasError: true,
-        message: "This Fees Type already exists.",
+        message: `Fees Type with name "${req.body.feesTypeName}" already exists for academic year ${req.body.academicYear} in this school.`,
       });
     }
     return res.status(500).json({

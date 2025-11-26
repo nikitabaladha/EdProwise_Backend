@@ -1,4 +1,4 @@
-import EmployeeGrade from "../../../../models/PayrollModule/AdminSetting/EmployeeGrade.js";
+import EmployeeGrade from "../../../../models/PayrollModule/AdminSettings/EmployeeGrade.js";
 
 // Delete Category
 const deleteGrade = async (req, res) => {

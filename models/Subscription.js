@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const SubscriptionSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -14,6 +13,9 @@ const SubscriptionSchema = new mongoose.Schema(
     subscriptionStartDate: {
       type: Date,
       required: true,
+    },
+    subscriptionEndDate: {
+      type: Date,
     },
     subscriptionNoOfMonth: {
       type: Number,

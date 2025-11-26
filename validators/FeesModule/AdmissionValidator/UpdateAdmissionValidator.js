@@ -1,13 +1,15 @@
 import Joi from 'joi';
 
-export const AdmissionValidator = Joi.object({
+export const UpdateAdmissionValidator = Joi.object({
   schoolId: Joi.string().required().messages({
     "any.required": "School ID is required."
   }),
-
+  academicYear: Joi.string().required(),
   registrationNumber: Joi.string().allow(null, ""),
   AdmissionNumber: Joi.string().allow(null, ""),
-
+  studentPhoto: Joi.string().optional().messages({
+    "any.required": "Studentphoto is required."
+  }),
   firstName: Joi.string().required().messages({
     "any.required": "First name is required."
   }),
@@ -40,20 +42,29 @@ export const AdmissionValidator = Joi.object({
   masterDefineClass: Joi.string().required().messages({
     "any.required": "Class is required."
   }),
-   section: Joi.string().required().messages({
-      "any.required": "Class is required."
-    }),
+  section: Joi.string().required().messages({
+    "any.required": "Class is required."
+  }),
   masterDefineShift: Joi.string().required().messages({
     "any.required": "Shift is required."
   }),
-  motherLanguage: Joi.string().allow(null, ""),
+  motherTongue: Joi.string().allow(null, ""),
 
   currentAddress: Joi.string().required().messages({
     "any.required": "Current address is required."
   }),
-  cityStateCountry: Joi.string().required().messages({
-    "any.required": "City, state, and country information is required."
-  }),
+   country: Joi.string().required().messages({
+     "string.base": " Country must be a string.",
+     "any.required": " Country is required."
+   }),
+   state: Joi.string().required().messages({
+     "string.base": " State must be a string.",
+     "any.required": " State  is required."
+   }),
+   city: Joi.string().required().messages({
+     "string.base": "City must be a string.",
+     "any.required": "City is required."
+   }),
   pincode: Joi.string().pattern(/^[0-9]{6}$/).required().messages({
     "any.required": "Pincode is required.",
     "string.pattern.base": "Pincode must be a 6-digit number."
@@ -91,7 +102,7 @@ export const AdmissionValidator = Joi.object({
   castCertificate: Joi.string().allow(null, ""),
 
   siblingInfoChecked: Joi.boolean(),
-  relationType: Joi.string().valid('Brother', 'Sister').allow(null, ""),
+  relationType: Joi.string().allow(null, ""),
   siblingName: Joi.string().allow(null, ""),
   idCardFile: Joi.string().allow(null, ""),
 
@@ -116,10 +127,35 @@ export const AdmissionValidator = Joi.object({
     "any.only": "Agreement must be checked.",
     "any.required": "Agreement is required."
   }),
+    concessionType: Joi.when('concessionAmount', {
+      is: Joi.number().greater(0),
+      then: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').required().messages({
+        "string.base": "Concession type must be a string.",
+        "any.only": "Concession type must be one of 'EWS', 'SC', 'ST', 'OBC', 'Staff Children', or 'Other'.",
+        "any.required": "Concession type is required when concession amount is greater than zero."
+      }),
+      otherwise: Joi.string().valid('EWS', 'SC', 'ST', 'OBC', 'Staff Children', 'Other').allow(null, "").optional()
+    }),
+  admissionFees: Joi.number().required().messages({
+    "number.base": "Admission fees must be a valid number.",
+    "any.required": "Admission fees is required."
+  }),
+  // concessionAmount: Joi.number().messages({
+  //   "number.base": "Concession amount must be a valid number."
+  // }),
+  
+  // concessionAmount: Joi.number().required().messages({
+  //   "number.base": "Concession amount must be a valid number.",
+  //   "any.required": "Concession amount is required."
+  // }),
+  finalAmount: Joi.number().required().messages({
+    "number.base": "Final amount must be a valid number.",
+    "any.required": "Final amount is required."
+  }),
   name: Joi.string().required().messages({
     "any.required": "Name is required."
   }),
-  paymentMode: Joi.string().valid("Cash", "Cheque", "Online").required().messages({
+  paymentMode: Joi.string().valid("Cash", "Cheque", "Online","null").required().messages({
     "any.required": "Payment mode is required.",
     "any.only": "Payment mode must be Cash, Cheque, or Online."
   }),
@@ -127,5 +163,6 @@ export const AdmissionValidator = Joi.object({
   transactionNumber: Joi.string().allow(null, ""),
   receiptNumber: Joi.string().allow(null, ""),
   status: Joi.string().valid("Pending", "Approved", "Rejected").allow(null, ""),
-  applicationDate: Joi.date().allow(null, "")
+  applicationDate: Joi.date().allow(null, ""),
+    paymentDate: Joi.string().allow(null, ""),
 }).unknown(true);;

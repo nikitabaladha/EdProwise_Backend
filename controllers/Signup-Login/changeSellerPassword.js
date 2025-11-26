@@ -11,6 +11,7 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import passwordUpdateEmailTemplate from "../../models/EmailTeamplates/passwordUpdateEmailTemplate.js";
 
 async function sendPasswordUpdateEmail(
   sellerCompanyName,
@@ -24,6 +25,13 @@ async function sendPasswordUpdateEmail(
     const smtpSettings = await SMTPEmailSetting.findOne();
     if (!smtpSettings) {
       console.error("SMTP settings not found");
+      return false;
+    }
+
+    // 2. Get email template from database
+    const emailTemplate = await passwordUpdateEmailTemplate.findOne();
+    if (!emailTemplate) {
+      console.error("Email template not found");
       return false;
     }
 

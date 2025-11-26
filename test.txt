@@ -1,0 +1,5 @@
+User Created -> { userId: 'SAdmin_SID478637', password: 'mEp9O9RUJS' }
+User Created -> { userId: 'Principal_SID478637', password: 'DkyMSrBuUk' }
+User Created -> { userId: 'Audit_SID478637', password: 'QzreGdYgJK' }
+User Created -> { userId: 'User1_SID478637', password: '9Re3wowN7r' }
+User Created -> { userId: 'User2_SID478637', password: '7t0y4SUR4J' }

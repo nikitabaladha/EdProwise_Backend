@@ -26,12 +26,21 @@ const contactFormValidation = Joi.object({
       "string.pattern.base": "Phone number must be a valid 10-digit number.",
     }),
 
-  // Service is not validated (removed Joi validation)
-  service: Joi.string(),
+  service: Joi.string()
+    .valid("Web Development", "Web Design", "Marketing")
+    .required()
+    .messages({
+      "any.required": "Service is required.",
+      "string.empty": "Service cannot be empty.",
+      "any.only":
+        "Service must be one of: Web Development, Web Design, Marketing.",
+    }),
 
   note: Joi.string().optional().allow("").messages({
     "string.base": "Message must be a string.",
   }),
 });
 
-export default { contactFormValidation };
+export default {
+  contactFormValidation,
+};

@@ -1,9 +1,23 @@
-import SchoolFees from '../../../../models/FeesModule/SchoolFees.js';
+import mongoose from 'mongoose';
+import { SchoolFees, SchoolFeesCounter } from '../../../../models/FeesModule/SchoolFees.js';
+
+const getNextReceiptNumber = async (schoolId, session) => {
+  const counter = await SchoolFeesCounter.findOneAndUpdate(
+    { schoolId },
+    { $inc: { receiptSeq: 1 } },
+    { new: true, upsert: true, session }
+  );
+  return `REC-${counter.receiptSeq.toString().padStart(5, '0')}`;
+};
 
 const schoolFees = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const schoolId = req.user?.schoolId;
     if (!schoolId) {
+      await session.abortTransaction();
       return res.status(401).json({
         hasError: true,
         message: 'Access denied: School ID missing.'
@@ -15,98 +29,117 @@ const schoolFees = async (req, res) => {
       studentName,
       className,
       section,
-      receiptNumber,
       transactionNumber,
       paymentMode,
       collectorName,
       academicYear,
-      installments
+      installments,
+      chequeNumber,
+      bankName,
+      paymentDate
     } = req.body;
 
+
+    if (!studentAdmissionNumber || !studentName || !className || !section || !paymentMode || !collectorName || !academicYear) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        hasError: true,
+        message: 'Missing required fields: studentAdmissionNumber, studentName, className, section, paymentMode, collectorName, or academicYear.'
+      });
+    }
+
+
     if (!Array.isArray(installments) || installments.length === 0) {
+      await session.abortTransaction();
       return res.status(400).json({
         hasError: true,
         message: 'Installments data is required and must be a non-empty array.'
       });
     }
 
-    const processedInstallments = installments.map((inst, index) => ({
-      ...inst,
-      number: inst.number ?? index + 1
-    }));
-
-    const existingRecord = await SchoolFees.findOne({ schoolId, studentAdmissionNumber });
-
-    if (existingRecord) {
-
-      processedInstallments.forEach((newInstallment) => {
-        const existingInstallment = existingRecord.installments.find(
-          (inst) => inst.number === newInstallment.number
-        );
-
-        if (existingInstallment) {
-  
-          newInstallment.feeItems.forEach((newFeeItem) => {
-            const existingFeeItem = existingInstallment.feeItems.find(
-              (item) => item.feeTypeId === newFeeItem.feeTypeId
-            );
-
-            if (existingFeeItem) {
-            
-              existingFeeItem.amount = newFeeItem.amount;
-              existingFeeItem.concession = newFeeItem.concession;
-              existingFeeItem.fineAmount = newFeeItem.fineAmount;
-              existingFeeItem.payable = newFeeItem.payable;
-              existingFeeItem.paid = newFeeItem.paid;
-              existingFeeItem.balance = newFeeItem.balance;
-            } else {
-            
-              existingInstallment.feeItems.push(newFeeItem);
-            }
-          });
-        } else {
-     
-          existingRecord.installments.push(newInstallment);
-        }
-      });
-
    
-      await existingRecord.save();
+    for (const inst of installments) {
+      if (!inst.installmentName || !inst.dueDate || !Array.isArray(inst.feeItems) || inst.feeItems.length === 0) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          hasError: true,
+          message: 'Each installment must have installmentName, dueDate, and a non-empty feeItems array.'
+        });
+      }
+   
+      if (isNaN(new Date(inst.dueDate).getTime())) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          hasError: true,
+          message: `Invalid dueDate in installment ${inst.installmentName}.`
+        });
+      }
 
-      return res.status(200).json({
-        hasError: false,
-        message: 'School fee receipt updated successfully.',
-        receipt: existingRecord
-      });
-    } else {
-      const newSchoolFees = new SchoolFees({
-        schoolId,
-        studentAdmissionNumber,
-        studentName,
-        className,
-        section,
-        receiptNumber,
-        transactionNumber,
-        paymentMode,
-        collectorName,
-        academicYear,
-        installments: processedInstallments
-      });
-
-      await newSchoolFees.save();
-
-      return res.status(201).json({
-        hasError: false,
-        message: 'School fee receipt saved successfully.',
-        receipt: newSchoolFees
-      });
+      for (const feeItem of inst.feeItems) {
+        if (!feeItem.feeTypeId || typeof feeItem.amount !== 'number' || typeof feeItem.payable !== 'number' || typeof feeItem.balance !== 'number') {
+          await session.abortTransaction();
+          return res.status(400).json({
+            hasError: true,
+            message: `Invalid feeItem in installment ${inst.installmentName}: feeTypeId, amount, payable, and balance are required.`
+          });
+        }
+      }
     }
 
+    const newReceiptNumber = await getNextReceiptNumber(schoolId, session);
+
+    const processedInstallments = installments.map((inst, index) => ({
+      number: inst.number ?? index + 1,
+      installmentName: inst.installmentName,
+      dueDate: new Date(inst.dueDate), 
+      excessAmount: inst.excessAmount ?? 0,
+      fineAmount: inst.fineAmount ?? 0,
+      feeItems: inst.feeItems.map(feeItem => ({
+        feeTypeId: feeItem.feeTypeId,
+        amount: feeItem.amount,
+        concession: feeItem.concession ?? 0,
+        payable: feeItem.payable,
+        paid: feeItem.paid ?? 0,
+        balance: feeItem.balance
+      }))
+    }));
+
+    const newSchoolFees = new SchoolFees({
+      schoolId,
+      studentAdmissionNumber,
+      studentName,
+      className,
+      section,
+      receiptNumber: newReceiptNumber,
+      transactionNumber,
+      paymentMode,
+      collectorName,
+      academicYear,
+      chequeNumber,
+      bankName,
+      paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+      installments: processedInstallments
+    });
+
+    await newSchoolFees.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({
+      hasError: false,
+      message: 'New school fee record created successfully.',
+      receipt: newSchoolFees
+    });
+
   } catch (error) {
-    console.error('Error saving school fee receipt:', error);
-    res.status(500).json({
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error('Error in school fee API:', error);
+    return res.status(500).json({
       hasError: true,
-      message: 'Error saving school fee receipt',
+      message: 'Internal server error while saving fee receipt.',
       error: error.message
     });
   }

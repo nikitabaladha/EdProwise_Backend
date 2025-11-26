@@ -1,4 +1,5 @@
-import PrefixSetting from '../../../../../models/FeesModule/AdmissionPrefix.js';
+import mongoose from 'mongoose';
+import AdmissionPrefix from '../../../../../models/FeesModule/AdmissionPrefix.js';
 import validatePrefixSetting from '../../../../../validators/FeesModule/PrefixSetting.js';
 
 export const createprefix = async (req, res) => {
@@ -19,36 +20,44 @@ export const createprefix = async (req, res) => {
     });
   }
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const existing = await PrefixSetting.findOne({ schoolId });
+    const { type, value, prefix, number, academicYear } = req.body;
+
+    const existing = await AdmissionPrefix.findOne({ schoolId, academicYear }).session(session);
     if (existing) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         hasError: true,
-        message: "Prefix  already exists for this school. Only one is allowed.",
+        message: "Prefix already exists for this school and academic year.",
       });
     }
 
-    const { type, value, prefix, number } = req.body;
-
-    const payload = { schoolId, type };
-
+    const payload = { schoolId, academicYear, type };
     if (type === 'numeric') {
       payload.value = value;
     }
-
     if (type === 'alphanumeric') {
       payload.prefix = prefix;
       payload.number = number;
     }
 
-    const saved = await PrefixSetting.create(payload);
+    const saved = await AdmissionPrefix.create([payload], { session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json({
       hasError: false,
-      message: 'Prefix  saved successfully.',
-      data: saved,
+      message: 'Prefix saved successfully.',
+      data: saved[0],
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(err);
     res.status(500).json({
       hasError: true,

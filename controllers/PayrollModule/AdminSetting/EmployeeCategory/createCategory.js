@@ -1,4 +1,4 @@
-import EmployeeCategory from "../../../../models/PayrollModule/AdminSetting/EmployeeCategory.js";
+import EmployeeCategory from "../../../../models/PayrollModule/AdminSettings/EmployeeCategory.js";
 // Create Category
 const createCategory = async (req, res) => {
   try {

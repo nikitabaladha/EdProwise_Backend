@@ -10,6 +10,7 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import passwordUpdateEmailTemplate from "../../models/EmailTeamplates/passwordUpdateEmailTemplate.js";
 
 async function sendPasswordUpdateEmail(
   userFullName,
@@ -26,11 +27,18 @@ async function sendPasswordUpdateEmail(
       return false;
     }
 
-    // 2. Create Nodemailer transporter
+    // 2. Get email template from database
+    const emailTemplate = await passwordUpdateEmailTemplate.findOne();
+    if (!emailTemplate) {
+      console.error("Email template not found");
+      return false;
+    }
+
+    // 3. Create Nodemailer transporter
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: smtpSettings.mailEncryption === "SSL",
+      secure: false,
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,
@@ -316,7 +324,10 @@ async function changeAdminPassword(req, res) {
       });
     }
 
-    
+    const userFullName = `${user.firstName} ${user.lastName}`;
+
+    const userEmail = user.email;
+
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {

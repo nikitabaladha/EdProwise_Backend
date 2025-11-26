@@ -12,6 +12,7 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import SignUpEmailTemplate from "../../../models/SignUpEmailTemplate.js";
 
 function generateRandomPassword(length = 10) {
   const chars =
@@ -45,11 +46,22 @@ async function sendSchoolRegistrationEmail(
       return false;
     }
 
+    // 2. Get email template from database
+
+    const emailTemplate = await SignUpEmailTemplate.findOne();
+
+    if (!emailTemplate) {
+      console.error("Email template not found");
+
+      return false;
+    }
+
     // 3. Create Nodemailer transporter
+
     const transporter = nodemailer.createTransport({
       host: smtpSettings.mailHost,
       port: smtpSettings.mailPort,
-      secure: smtpSettings.mailEncryption === "SSL",
+      secure: false,
       auth: {
         user: smtpSettings.mailUsername,
         pass: smtpSettings.mailPassword,

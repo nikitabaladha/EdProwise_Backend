@@ -4,6 +4,7 @@ import roleBasedMiddleware from "../../middleware/index.js";
 import {
   createFeesType,
   getAllFeesType,
+  getFeeTypebyYear,
   deleteFeesType,
   updateFeesType,
 
@@ -11,9 +12,11 @@ import {
   getAllMasterDefineShift,
   updateMasterDefineShift,
   deleteMasterDefineShift,
+  getshiftbyyear,
 
   createClassAndSection,
   getClassAndSection,
+  getClassAndSectionsbyyear,
   deleteClassAndSection,
   updateClassAndSection,
 
@@ -33,9 +36,34 @@ import {
 
   createFine,
   getFinesBySchoolId,
-  deleteFineById
+  deleteFineById,
+
+  createOneTimeFees,
+  getOneTimeFeesBySchoolId,
+  deleteOneTimeFees,
+  updateOneTimeFees,
+  getAllBySchoolAndClass,
+  getAllBySchoolClassAndSection,
+
+  createBoardRegistrationFees,
+  getBoardRegistrationFees,
+  deleteBoardRegistrationFees,
+  updateBoardRegistrationFees,
+  getBySchoolClassAndSectionandyear,
+
+  createBoardExamFees,
+  getBoardExamFees,
+  deleteBoardExamFees,
+  updateBoardExamFees,
+  getexamBySchoolClassAndSectionandyear,
+
+  getAdmissionFormsByYearClassnsection,
+  promotestudent,
+  promoteStudentsBulk,
+  deleteAcademicHistoryById,
+  updateAcademicHistoryById
 } from "../../controllers/FeesModule/AdminSetting/index.js";
-// import deletePrefix from "../../controllers/FeesModule/AdminSetting/PrefixSetting/RegistrationPrefix/delete.js";
+
 
 const router = express.Router();
 
@@ -57,6 +85,13 @@ router.get(
   getAllFeesType,
 );
 
+router.get(
+  "/getall-fess-type-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+ getFeeTypebyYear
+);
+
+
 router.delete(
   "/delete-fees-type/:id",
   roleBasedMiddleware("Admin","School"),
@@ -73,6 +108,11 @@ router.get(
   "/master-define-shift/:schoolId",
   roleBasedMiddleware("Admin", "School"),
   getAllMasterDefineShift
+);
+router.get(
+  "/master-define-shift-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+   getshiftbyyear
 );
 router.put(
   "/master-define-shift/:id",
@@ -98,6 +138,12 @@ router.get(
  getClassAndSection
 );
 
+router.get(
+  "/get-class-and-section-year/:schoolId/year/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getClassAndSectionsbyyear
+);
+
 router.delete(
   "/delete-class-and-section/:id",
   roleBasedMiddleware("Admin","School"),
@@ -118,7 +164,7 @@ router.post(
 );
 
 router.get(
-  "/get-fees-structure/:schoolId",
+  "/get-fees-structure/:schoolId/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getFeesStructure
 );
@@ -149,7 +195,7 @@ router.post(
 );
 
 router.get(
-  "/get-prefix/:schoolId",
+  "/get-prefix/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getPrefixes
 );
@@ -169,7 +215,7 @@ router.post(
 );
 
 router.get(
-  "/get-admission-prefix/:schoolId",
+  "/get-admission-prefix/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
   getAdmissionPrefix
 );
@@ -188,7 +234,7 @@ router.post(
 );
 
 router.get(
-  "/get-fine/:schoolId",
+  "/get-fine/school/:schoolId/year/:academicYear",
   roleBasedMiddleware("Admin","School"),
 getFinesBySchoolId
 );
@@ -198,4 +244,143 @@ router.delete(
   roleBasedMiddleware("Admin","School"),
   deleteFineById
 );
+
+
+//----------------------------------------- One Time Fees---------------------------------------//
+router.post(
+  "/create-one-time-fees",
+  roleBasedMiddleware("Admin","School"),
+  createOneTimeFees
+);
+
+router.get(
+  "/get-one-time-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+   getOneTimeFeesBySchoolId
+);
+
+router.delete(
+  "/delete-one-time-fees/:id",
+  roleBasedMiddleware("Admin","School"),
+  deleteOneTimeFees
+);
+
+router.put(
+  "/update-one-time-fees/:id",
+  roleBasedMiddleware("Admin","School"),
+  updateOneTimeFees
+);
+
+router.get(
+  "/get-one-time-feesbyIds/:schoolId/:classId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+  getAllBySchoolAndClass 
+);
+
+router.get(
+  "/get-one-time-feesBysectionIds/:schoolId/:classId/:sectionId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+  getAllBySchoolClassAndSection
+);
+
+
+//------------------------------------------board-registration-fees----------------------------------//
+router.post(
+  "/create-board-registration-fees",
+  roleBasedMiddleware("Admin", "School"),
+  createBoardRegistrationFees
+);
+
+router.get(
+  "/get-board-registration-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getBoardRegistrationFees
+);
+
+router.get(
+   "/get-board-registration-fees-byIds/:schoolId/:academicYear/:classId/:sectionId?",
+  roleBasedMiddleware("Admin", "School"),
+ getBySchoolClassAndSectionandyear
+);
+
+
+
+
+router.delete(
+  "/delete-board-registration-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardRegistrationFees
+);
+
+router.put(
+  "/update-board-registration-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  updateBoardRegistrationFees
+);
+
+//------------------------------------------board-exam-fees----------------------------------//
+router.post(
+  "/create-board-exam-fees",
+  roleBasedMiddleware("Admin", "School"),
+  createBoardExamFees
+);
+
+router.get(
+  "/get-board-exam-fees/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin", "School"),
+  getBoardExamFees
+);
+
+router.delete(
+  "/delete-board-exam-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  deleteBoardExamFees
+);
+
+router.put(
+  "/update-board-exam-fees/:id",
+  roleBasedMiddleware("Admin", "School"),
+  updateBoardExamFees
+);
+
+router.get(
+   "/get-board-exam-fees-byIds/:schoolId/:academicYear/:classId/:sectionId?",
+  roleBasedMiddleware("Admin", "School"),
+ getexamBySchoolClassAndSectionandyear
+);
+
+
+//------------------------------------------promotion----------------------------------//
+
+router.post(
+  "/promote-student",
+  roleBasedMiddleware("Admin","School"),
+  promotestudent
+);
+
+router.post(
+  "/promote-students-bulk",
+  roleBasedMiddleware("Admin","School"),
+  promoteStudentsBulk
+)
+
+router.get(
+  "/get-admission-form-by-year-classnsection/:schoolId/:academicYear",
+  roleBasedMiddleware("Admin","School"),
+getAdmissionFormsByYearClassnsection
+);
+
+router.delete(
+  "/delete-promotion/:academicHistoryId",
+  roleBasedMiddleware("Admin","School"),
+deleteAcademicHistoryById
+);
+
+
+router.put(
+  "/update-promotion/:academicHistoryId",
+  roleBasedMiddleware("Admin","School"),
+updateAcademicHistoryById
+);
+
 export default router;

@@ -15,11 +15,14 @@ const createProduct = Joi.object({
   }),
   unit: Joi.string()
     .valid(
+      "Piece",
       "Monthly",
       "Yearly",
       "Quarterly",
+      "Kg",
       "Gram",
       "Project",
+      "Sq. feet",
       "Piece",
       "Monthly",
       "Yearly",

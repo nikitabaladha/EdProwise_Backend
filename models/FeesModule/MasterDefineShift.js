@@ -9,7 +9,6 @@ const MasterDefineShiftSchema = new mongoose.Schema(
     masterDefineShiftName: {
       type: String,
       required: true,
-      unique: true,
     },
     startTime: {
       type: Date,
@@ -19,12 +18,16 @@ const MasterDefineShiftSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    academicYear: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
 MasterDefineShiftSchema.index(
-  { schoolId: 1, masterDefineShiftName: 1, startTime: 1, endTime: 1 },
+  { schoolId: 1, masterDefineShiftName: 1, academicYear: 1 },
   { unique: true }
 );
 
