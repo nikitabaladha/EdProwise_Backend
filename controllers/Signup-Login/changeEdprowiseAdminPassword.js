@@ -345,9 +345,9 @@ async function changeAdminPassword(req, res) {
         .json({ hasError: true, message: "Admin User not found." });
     }
 
-    const userFullName = `${user.firstName} ${user.lastName}`;
+    // const userFullName = `${user.firstName} ${user.lastName}`;
 
-    const userEmail = user.email;
+    // const userEmail = user.email;
 
 
     const isPasswordValid = saltFunction.validatePassword(

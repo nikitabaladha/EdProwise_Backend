@@ -5,8 +5,10 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import routes from "./routes/index.js";
+import http from "http";
 import https from "https";
 import fs from "fs";
+import { Server } from "socket.io";
 import { constants } from "crypto";
 
 dotenv.config();
@@ -30,17 +32,27 @@ app.use("/Documents", express.static(path.resolve("Documents")));
 const PORT = process.env.PORT || 3001;
 
 let server;
-if (!process.env.isHttps) {
+if (process.env.isHttps !== "true") {
   server = http.createServer(app);
   server.listen(PORT, () => console.log(`🚀 Server started on port ${PORT}`));
 } else {
+  const keyPath = process.env.SSL_KEY_PATH;
+  const certPath = process.env.SSL_CERT_PATH;
+
+  if (!keyPath || !certPath) {
+    console.error(
+      "❌ SSL_KEY_PATH and SSL_CERT_PATH must be set in .env for HTTPS mode."
+    );
+    process.exit(1);
+  }
+
   server = https.createServer(
     {
       key: fs.readFileSync(
-        path.resolve("/etc/letsencrypt/live/edprowise.com/privkey.pem")
+        path.resolve(keyPath)
       ),
       cert: fs.readFileSync(
-        path.resolve("/etc/letsencrypt/live/edprowise.com/fullchain.pem")
+        path.resolve(certPath)
       ),
       secureOptions: constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
     },

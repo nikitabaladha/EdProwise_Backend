@@ -61,6 +61,9 @@ import PayrollEmployeeSelfRoutes from "./PayrollModule/PayrollEmployeeSelfRoutes
 
 import OperationRoutes from "./OperationalModule/OperationRoutes.js"
 
+import sitemap from "./sitemap.js";
+import Blogs from "./AdminRoutes/blogs.js"
+
 import StudentRoutes from "./StudentRoutes/StudentRoutes.js"
 export default (app) => {
   // ==================Email Routes =========================
