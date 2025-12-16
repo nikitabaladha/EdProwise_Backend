@@ -26,7 +26,7 @@ import getStudentRollNumbersbyClassAndSection from "./DefineRollNumber/getStuden
 import deleteStudentRollNumber from "./DefineRollNumber/deleteStudentRollNumber.js";
 
 // Attendance
-import markStudentAttendance from "./StudentAttendance/MarkStudentAttendance.js";
+import markStudentAttendance from "./StudentAttendance/markStudentAttendance.js";
 import getStudentAttendance from "./StudentAttendance/getStudentAttendance.js";
 import getStudentAttendanceforSchool from "./StudentAttendance/getStudentAttendanceforSchool.js";
 import updateStudentAttendance from "./StudentAttendance/updateStudentAttendance.js";
@@ -291,4 +291,3 @@ export {
   checkFavoriteChat,
   deleteChatMessage,
 };
- 
