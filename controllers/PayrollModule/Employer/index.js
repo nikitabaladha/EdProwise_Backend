@@ -7,7 +7,7 @@ import createorUpdateEmployeeCtc from "./EmployeeCTC/createorUpdateEmployeeCtc.j
 import getEmployeeCTCDetails from "./EmployeeCTC/getEmployeeCTCDetails.js";
 import deleteEmployeeCTC from "./EmployeeCTC/deleteEmployeeCTC.js";
 import getAllEmployeeCtc from "./EmployeeCTC/getAllEmployeeCtc.js";
-import salaryIncrementCtc from "./EmployeeCTC/SalaryIncrementCtc.js";
+import salaryIncrementCtc from "./EmployeeCTC/salaryIncrementCtc.js";
 
 import getAllLeaveRecords from "./EmployeeLeaveRecord/getAllLeaveRecord.js";
 import updateLeaveStatus from "./EmployeeLeaveRecord/updateLeaveStatus.js";

@@ -2,42 +2,78 @@ import EmployeeCTC from "../../../../models/PayrollModule/Employer/EmployeeCTC.j
 
 const salaryIncrementCtc = async (req, res) => {
   try {
-    const { schoolId, employeeId, academicYear, components, totalAnnualCost, applicableDate } = req.body;
+    const {
+      schoolId,
+      employeeId,
+      academicYear,
+      components,
+      totalAnnualCost,
+      applicableDate,
+    } = req.body;
 
     // Validation: Top-level required fields
     if (!schoolId) {
-      return res.status(400).json({ hasError: true, message: "schoolId is required." });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "schoolId is required." });
     }
     if (!employeeId) {
-      return res.status(400).json({ hasError: true, message: "employeeId is required." });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "employeeId is required." });
     }
     if (!academicYear) {
-      return res.status(400).json({ hasError: true, message: "academicYear is required." });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "academicYear is required." });
     }
     if (!Array.isArray(components) || components.length === 0) {
-      return res.status(400).json({ hasError: true, message: "components array is required and cannot be empty." });
+      return res.status(400).json({
+        hasError: true,
+        message: "components array is required and cannot be empty.",
+      });
     }
     if (!applicableDate || isNaN(new Date(applicableDate).getTime())) {
-      return res.status(400).json({ hasError: true, message: "Valid applicableDate is required." });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "Valid applicableDate is required." });
     }
     if (typeof totalAnnualCost !== "number" || totalAnnualCost < 0) {
-      return res.status(400).json({ hasError: true, message: "totalAnnualCost must be a non-negative number." });
+      return res.status(400).json({
+        hasError: true,
+        message: "totalAnnualCost must be a non-negative number.",
+      });
     }
 
     // Validate components
     for (let i = 0; i < components.length; i++) {
       const comp = components[i];
       if (!comp.ctcComponentId) {
-        return res.status(400).json({ hasError: true, message: `ctcComponentId is missing for component at index ${i}.` });
+        return res.status(400).json({
+          hasError: true,
+          message: `ctcComponentId is missing for component at index ${i}.`,
+        });
       }
       if (!comp.ctcComponentName) {
-        return res.status(400).json({ hasError: true, message: `ctcComponentName is missing for component at index ${i}.` });
+        return res.status(400).json({
+          hasError: true,
+          message: `ctcComponentName is missing for component at index ${i}.`,
+        });
       }
       if (typeof comp.annualAmount !== "number" || comp.annualAmount < 0) {
-        return res.status(400).json({ hasError: true, message: `annualAmount must be a non-negative number for component at index ${i}.` });
+        return res.status(400).json({
+          hasError: true,
+          message: `annualAmount must be a non-negative number for component at index ${i}.`,
+        });
       }
-      if (!comp.applicableDate || isNaN(new Date(comp.applicableDate).getTime())) {
-        return res.status(400).json({ hasError: true, message: `Valid applicableDate is required for component at index ${i}.` });
+      if (
+        !comp.applicableDate ||
+        isNaN(new Date(comp.applicableDate).getTime())
+      ) {
+        return res.status(400).json({
+          hasError: true,
+          message: `Valid applicableDate is required for component at index ${i}.`,
+        });
       }
       // Round annualAmount to two decimal places
       comp.annualAmount = parseFloat(comp.annualAmount.toFixed(2));
@@ -47,7 +83,11 @@ const salaryIncrementCtc = async (req, res) => {
     const roundedTotalAnnualCost = parseFloat(totalAnnualCost.toFixed(2));
 
     // Check for existing document
-    const existingCTC = await EmployeeCTC.findOne({ schoolId, employeeId, academicYear });
+    const existingCTC = await EmployeeCTC.findOne({
+      schoolId,
+      employeeId,
+      academicYear,
+    });
 
     let updatedCTC;
     if (existingCTC) {
@@ -83,7 +123,6 @@ const salaryIncrementCtc = async (req, res) => {
       message: "Employee CTC saved successfully.",
       data: updatedCTC,
     });
-
   } catch (error) {
     console.error("Error saving Employee CTC:", error);
     return res.status(500).json({
