@@ -48,12 +48,8 @@ if (process.env.isHttps !== "true") {
 
   server = https.createServer(
     {
-      key: fs.readFileSync(
-        path.resolve(keyPath)
-      ),
-      cert: fs.readFileSync(
-        path.resolve(certPath)
-      ),
+      key: fs.readFileSync(path.resolve(keyPath)),
+      cert: fs.readFileSync(path.resolve(certPath)),
       secureOptions: constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
     },
     app
