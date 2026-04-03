@@ -39,7 +39,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
-  })
+  }),
 );
 
 // ✅ Serve static files
@@ -53,7 +53,7 @@ let server;
 if (process.env.isHttps !== "true") {
   server = http.createServer(app);
   server.listen(PORT, () =>
-    console.log(`🚀 HTTP Server started on port ${PORT}`)
+    console.log(`🚀 HTTP Server started on port ${PORT}`),
   );
 } else {
   const keyPath = process.env.SSL_KEY_PATH;
@@ -61,7 +61,7 @@ if (process.env.isHttps !== "true") {
 
   if (!keyPath || !certPath) {
     console.error(
-      "❌ SSL_KEY_PATH and SSL_CERT_PATH must be set in .env for HTTPS mode."
+      "❌ SSL_KEY_PATH and SSL_CERT_PATH must be set in .env for HTTPS mode.",
     );
     process.exit(1);
   }
@@ -72,11 +72,11 @@ if (process.env.isHttps !== "true") {
       cert: fs.readFileSync(path.resolve(certPath)),
       secureOptions: constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
     },
-    app
+    app,
   );
 
   server.listen(PORT, () =>
-    console.log(`🚀 HTTPS Server started on port ${PORT}`)
+    console.log(`🚀 HTTPS Server started on port ${PORT}`),
   );
 }
 
