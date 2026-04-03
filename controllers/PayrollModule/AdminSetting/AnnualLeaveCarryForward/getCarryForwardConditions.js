@@ -20,16 +20,22 @@ import CarryForwardModel from "../../../../models/PayrollModule/AdminSettings/Sc
 // };
 // export default getCarryForwardConditions;
 
- const getCarryForwardConditions = async (req, res) => {
+const getCarryForwardConditions = async (req, res) => {
   try {
     const { schoolId, leaveTypeId } = req.params;
     const { academicYear } = req.query;
 
     if (!schoolId || !leaveTypeId || !academicYear) {
-      return res.status(400).json({ hasError: true, message: "Missing required params" });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "Missing required params" });
     }
 
-    const setting = await CarryForwardModel.findOne({ schoolId, academicYear, leaveTypeId });
+    const setting = await CarryForwardModel.findOne({
+      schoolId,
+      academicYear,
+      leaveTypeId,
+    });
 
     res.status(200).json({ hasError: false, data: setting || {} });
   } catch (error) {

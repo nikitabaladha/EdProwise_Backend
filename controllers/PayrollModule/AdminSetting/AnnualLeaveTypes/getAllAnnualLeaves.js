@@ -12,7 +12,10 @@ const getAllAnnualLeaves = async (req, res) => {
       });
     }
 
-    const leaves = await SchoolAnnualLeaveTypes.find({ schoolId, academicYear });
+    const leaves = await SchoolAnnualLeaveTypes.find({
+      schoolId,
+      academicYear,
+    });
 
     return res.status(200).json({
       hasError: false,

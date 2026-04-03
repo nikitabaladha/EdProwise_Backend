@@ -29,9 +29,9 @@ const UserLoginValidationSchema = Joi.object({
     "string.min": "Password must be at least 6 characters long.",
     "any.required": "Password is required.",
   }),
-  emailId: Joi.string().allow('', null).optional().messages({
-  "string.base": "emailId must be a string.",
-}),
+  emailId: Joi.string().allow("", null).optional().messages({
+    "string.base": "emailId must be a string.",
+  }),
 });
 
 export default {

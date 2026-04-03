@@ -152,13 +152,13 @@ import {
   deleteChatMessage,
 } from "../../controllers/OperationalModule/index.js";
 
-
-
 const router = express.Router();
 
-router.get("/get-student-details", 
-    // roleBasedMiddleware("School"),
-     getStudentInfo);
+router.get(
+  "/get-student-details",
+  // roleBasedMiddleware("School"),
+  getStudentInfo
+);
 
 router.post("/create-student-health-record", createStudentHealthRecord);
 router.get(
@@ -197,19 +197,22 @@ router.post("/save-roll-numbers", saveStudentRollNumbers);
 router.get(
   "/student-roll-numbers/by-school",
   getStudentRollNumbersBySchoolYear
-); 
+);
 router.get("/student-roll-numbers", getStudentRollNumbersbyClassAndSection);
 router.put("/update-student-roll-numbers/:id", updateStudentsRollNumbers);
 router.delete("/delete-student-roll-number/:id", deleteStudentRollNumber);
 
 // Attendance
 router.post("/mark-students-attendance", markStudentAttendance);
-router.get("/get-student-attendance-class-section", getStudentAttendance); 
+router.get("/get-student-attendance-class-section", getStudentAttendance);
 router.get("/get-student-attendance-school", getStudentAttendanceforSchool);
 router.put("/update-student-attendance", updateStudentAttendance);
 
 // Holiday
-router.get("/get-school-holidays-operational/:schoolId/:academicYear", getHolidays);
+router.get(
+  "/get-school-holidays-operational/:schoolId/:academicYear",
+  getHolidays
+);
 router.post("/add-school-holidays-operational", addHoliday);
 router.put("/update-school-holidays-operational", updateHoliday);
 router.delete(
@@ -223,13 +226,16 @@ router.get("/get-class-subjects", getSubjects);
 router.get("/get-all-class-subjects", getAllClassSubjects);
 router.put("/update-or-add-subject/:parentId/:subjectId?", updateSubject);
 router.delete("/delete-class-subjects/:parentId/:subjectId", deleteSubject);
-router.delete("/delete-class-section-subjects/:parentId", deleteClassSectionSubjects);
+router.delete(
+  "/delete-class-section-subjects/:parentId",
+  deleteClassSectionSubjects
+);
 
 // className
 router.get("/get-class-subjects-by-classid", getClassSubjectsByClassName);
 
 // TimePeriod
-router.get("/get-employees/:schoolId",getStaffDetails);
+router.get("/get-employees/:schoolId", getStaffDetails);
 router.post("/add-time-period", addTimePeriod);
 
 router.get(
@@ -246,7 +252,6 @@ router.get("/get-time-period/:schoolId/:academicYear", getTimePeriodForSchool);
 
 router.put("/update-time-period/:parentId", updateTimePeriod);
 
-
 router.delete("/delete-time-period/:parentId", deleteTimePeriodForClass);
 
 router.delete(
@@ -259,7 +264,6 @@ router.post("/add-exam-timetable", createExamTimeTable);
 router.get("/get-exam-timetables", getExamTimeTables);
 router.put("/update-exam-timetable/:id", updateExamTimeTable);
 router.delete("/delete-exam-timetable/:id", deleteExamTimeTable);
-  
 
 // Homework
 router.post("/add-homework", homeworkFileUpload, addOrUpdateHomework);
@@ -271,22 +275,21 @@ router.delete("/delete-homework/:id", deleteHomework);
 // Notics
 router.post("/add-notice", studentNoticeUpload, addNotice);
 router.get("/get-notices", getNotices);
-router.put(
-  "/update-notice/:id",
-  studentNoticeUpload,
-  updateNotice
-);
+router.put("/update-notice/:id", studentNoticeUpload, updateNotice);
 router.delete("/delete-student-notice/:id", deleteNotice);
 
 // Lesson Plan
 router.post("/add-lesson-plan", addLessonPlan);
-router.get("/get-lesson-plan", getLessonPlan); 
+router.get("/get-lesson-plan", getLessonPlan);
 router.put("/update-lesson-plans/:id", updateLessonPlan);
 router.get("/get-lesson-plan-by-subject", getLessonPlanBySubject);
 router.delete("/delete-lesson-plan/:id", deleteLessonPlan);
 
 // Assign Test
-router.get("/get-student-info-by-registration", getStudentInfoByRegistrationNumber);
+router.get(
+  "/get-student-info-by-registration",
+  getStudentInfoByRegistrationNumber
+);
 router.post("/post-assign-test", createAssignTest);
 router.get("/get-assign-tests", getAssignTests);
 
@@ -296,11 +299,11 @@ router.get("/teacher-feedback-students", getStudentDetailsFillTeacherFeedback);
 
 // Question set
 router.post("/create-or-update-question-set", createOrUpdateQuestionSet);
-router.get("/get-question-set-by-class-subjectid", getQuestionSetByClassAndSubject);
 router.get(
-  "/get-question-all-set",
-  getSchoolQuestionSets
+  "/get-question-set-by-class-subjectid",
+  getQuestionSetByClassAndSubject
 );
+router.get("/get-question-all-set", getSchoolQuestionSets);
 router.get("/get-question-set", getQuestionSet);
 router.put("/update-question-set/:id", updateQuestionSet);
 router.delete(
@@ -312,19 +315,19 @@ router.get("/get-question-set-subjects", getSubjectsFromQuestionSets);
 router.get(
   "/get-all-student-registraton-info-classid",
   getStudentRegistrationInfoByClassId
-); 
+);
 router.get("/get-students-with-assign-status", getStudentsWithAssignStatus);
 router.get("/get-students-assign-test", getAssignedTests);
- router.get("/get-student-assign-tests-details", getStudentAssignTests);
+router.get("/get-student-assign-tests-details", getStudentAssignTests);
 
 //  Entrance Subject
-router.post("/entrance-exam-subjects", createEntranceExamSubject); 
-router.get("/get-entrance-exam-subjects", getEntranceExamSubjects);    
+router.post("/entrance-exam-subjects", createEntranceExamSubject);
+router.get("/get-entrance-exam-subjects", getEntranceExamSubjects);
 router.put(
   "/put-entrance-exam-subjects/:parentId/:subjectId?",
   updateEntranceExamSubject
-); 
-router.delete("/delete-entrance-exam-subjects/:id", deleteEnteanceExam); 
+);
+router.delete("/delete-entrance-exam-subjects/:id", deleteEnteanceExam);
 router.delete(
   "/entrance-exam-subjects/:parentId/:subjectId",
   deleteEntranceExamSubject
@@ -341,18 +344,14 @@ router.post("/create-greeting-template", createGreetingTemplate);
 router.get("/get-greeting-template", getGreetingTemplates);
 router.delete("/delete-greeting-template/:id", deleteGreetingTemplate);
 
-   // Absent Sms
-   router.post("/create-absentsms-template", createAbsentsmsTemplate);
- router.get("/get-absentsms-template", getAbsentsmsTemplates);
- router.delete("/delete-absentsms-template/:id", deleteAbsentsmsTemplate);
+// Absent Sms
+router.post("/create-absentsms-template", createAbsentsmsTemplate);
+router.get("/get-absentsms-template", getAbsentsmsTemplates);
+router.delete("/delete-absentsms-template/:id", deleteAbsentsmsTemplate);
 
-//  Chatbox 
+//  Chatbox
 router.get("/get-schools-all-user-details/:schoolId", getAllUserDetails);
-router.post(
-  "/create-groups",
-  groupImageUpload,
-  createGroupConversation
-);
+router.post("/create-groups", groupImageUpload, createGroupConversation);
 router.post("/conversations", startOneToOneConversation);
 router.post("/send-message", messageFileUpload, sendMessage);
 // router.get("/get-messages", getMessages);
@@ -365,5 +364,4 @@ router.get("/check-favorite-chats", checkFavoriteChat);
 router.delete("/remove-chat-from-favorite/:favoriteId", removeChatFromFavorite);
 router.delete("/delete-chat-message/:messageId", deleteChatMessage);
 // deleteChatMessage
-export default router;   
-    
+export default router;

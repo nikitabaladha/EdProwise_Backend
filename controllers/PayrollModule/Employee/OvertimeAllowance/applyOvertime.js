@@ -16,9 +16,8 @@ const applyOvertime = async (req, res) => {
       calculatedAmount,
     } = req.body;
 
-
     // console.log(req.body);
-    
+
     // if (
     //   !schoolId ||
     //   !employeeId ||
@@ -36,33 +35,32 @@ const applyOvertime = async (req, res) => {
     // }
 
     if (
-  !schoolId ||
-  !employeeId ||
-  !academicYear ||
-  !category ||
-  !grade ||
-  !overtimeDate ||
-  !fromTime ||
-  !toTime
-) {
-  const missingFields = [];
-  
-  if (!schoolId) missingFields.push("schoolId");
-  if (!employeeId) missingFields.push("employeeId");
-  if (!academicYear) missingFields.push("academicYear");
-  if (!category) missingFields.push("category");
-  if (!grade) missingFields.push("grade");
-  if (!overtimeDate) missingFields.push("overtimeDate");
-  if (!fromTime) missingFields.push("fromTime");
-  if (!toTime) missingFields.push("toTime");
+      !schoolId ||
+      !employeeId ||
+      !academicYear ||
+      !category ||
+      !grade ||
+      !overtimeDate ||
+      !fromTime ||
+      !toTime
+    ) {
+      const missingFields = [];
 
-  return res.status(400).json({
-    hasError: true,
-    message: `Missing required fields: ${missingFields.join(", ")}`,
-    missingFields
-  });
-}
+      if (!schoolId) missingFields.push("schoolId");
+      if (!employeeId) missingFields.push("employeeId");
+      if (!academicYear) missingFields.push("academicYear");
+      if (!category) missingFields.push("category");
+      if (!grade) missingFields.push("grade");
+      if (!overtimeDate) missingFields.push("overtimeDate");
+      if (!fromTime) missingFields.push("fromTime");
+      if (!toTime) missingFields.push("toTime");
 
+      return res.status(400).json({
+        hasError: true,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      });
+    }
 
     const newRecord = new OvertimeApplications({
       schoolId,
@@ -76,7 +74,7 @@ const applyOvertime = async (req, res) => {
       totalHours: parseFloat(totalHours.toFixed(2)),
       rate: parseFloat(rate.toFixed(2)),
       calculatedAmount: parseFloat(calculatedAmount.toFixed(2)),
-      status: "pending", 
+      status: "pending",
     });
 
     await newRecord.save();

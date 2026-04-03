@@ -26,7 +26,6 @@
 
 // export default addCarryForwardConditions;
 
-
 // controllers/carryForwardController.js
 // import CarryForwardModel from "../../models/PayrollModule/Employee/SchoolCarryForwardConditions.js";
 // import SchoolAnnualLeaveTypes from "../../models/PayrollModule/Employee/SchoolAnnualLeaveTypes.js";
@@ -35,35 +34,56 @@ import SchoolAnnualLeaveTypes from "../../../../models/PayrollModule/AdminSettin
 // Utility to calculate mandatoryExpiredLeaves from percentage
 const calculateMandatoryFromPercentage = (days, percentage) => {
   const value = (percentage / 100) * days;
-  return Math.round(value);  
+  return Math.round(value);
 };
 
 const addCarryForwardConditions = async (req, res) => {
   try {
-    const { schoolId, academicYear, leaveTypeId, carryForwardPercentage, mandatoryExpiredLeaves } = req.body;
+    const {
+      schoolId,
+      academicYear,
+      leaveTypeId,
+      carryForwardPercentage,
+      mandatoryExpiredLeaves,
+    } = req.body;
 
     if (!schoolId || !academicYear || !leaveTypeId) {
-      return res.status(400).json({ hasError: true, message: "Missing required fields" });
+      return res
+        .status(400)
+        .json({ hasError: true, message: "Missing required fields" });
     }
 
     const leaveType = await SchoolAnnualLeaveTypes.findById(leaveTypeId);
     if (!leaveType) {
-      return res.status(404).json({ hasError: true, message: "Leave type not found" });
+      return res
+        .status(404)
+        .json({ hasError: true, message: "Leave type not found" });
     }
 
     const maxDays = leaveType.days;
 
     let finalMandatory = mandatoryExpiredLeaves;
 
-    if (carryForwardPercentage !== undefined && carryForwardPercentage !== null) {
+    if (
+      carryForwardPercentage !== undefined &&
+      carryForwardPercentage !== null
+    ) {
       if (carryForwardPercentage > 100) {
-        return res.status(400).json({ hasError: true, message: "Percentage cannot exceed 100" });
+        return res
+          .status(400)
+          .json({ hasError: true, message: "Percentage cannot exceed 100" });
       }
-      finalMandatory = calculateMandatoryFromPercentage(maxDays, carryForwardPercentage);
+      finalMandatory = calculateMandatoryFromPercentage(
+        maxDays,
+        carryForwardPercentage
+      );
     }
 
     if (finalMandatory > maxDays) {
-      return res.status(400).json({ hasError: true, message: "Mandatory expired leaves cannot exceed total leave days" });
+      return res.status(400).json({
+        hasError: true,
+        message: "Mandatory expired leaves cannot exceed total leave days",
+      });
     }
 
     const updatePayload = {
@@ -71,7 +91,7 @@ const addCarryForwardConditions = async (req, res) => {
       academicYear,
       leaveTypeId,
       mandatoryExpiredLeaves: finalMandatory,
-      carryForwardPercentage: carryForwardPercentage ?? null
+      carryForwardPercentage: carryForwardPercentage ?? null,
     };
 
     const updated = await CarryForwardModel.findOneAndUpdate(
@@ -80,8 +100,11 @@ const addCarryForwardConditions = async (req, res) => {
       { new: true, upsert: true }
     );
 
-    res.status(200).json({ hasError: false, message: "Carry forward setting saved successfully", data: updated });
-
+    res.status(200).json({
+      hasError: false,
+      message: "Carry forward setting saved successfully",
+      data: updated,
+    });
   } catch (error) {
     console.error("Error in createOrUpdateCarryForwardSetting:", error);
     res.status(500).json({ hasError: true, message: "Internal server error" });

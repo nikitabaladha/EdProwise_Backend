@@ -6,16 +6,13 @@ import {
   getEmployeeRegistration,
   updateEmployeeById,
   deleteEmployeeById,
-
   createorUpdateEmployeeCtc,
   getEmployeeCTCDetails,
   deleteEmployeeCTC,
   getAllEmployeeCtc,
   salaryIncrementCtc,
-
   getAllLeaveRecords,
   updateLeaveStatus,
-
   getAllOvertimeApplications,
   updateOvertimeStatus,
   getApproveOvertimeAllowance,
@@ -52,48 +49,47 @@ router.put(
 router.get(
   "/get-employee-registration/:schoolId",
   roleBasedMiddleware("School", "Admin"),
-  getEmployeeRegistration,
+  getEmployeeRegistration
 );
 
 router.delete(
   "/delete-employee-registration/:id",
   roleBasedMiddleware("School", "Admin"),
-  deleteEmployeeById,
+  deleteEmployeeById
 );
 
 router.post(
   "/create-update-employee-ctc",
-  roleBasedMiddleware("School",),
+  roleBasedMiddleware("School"),
   createorUpdateEmployeeCtc
 );
 
 router.post(
   "/increment-employee-ctc",
-  roleBasedMiddleware("School",),
+  roleBasedMiddleware("School"),
   salaryIncrementCtc
 );
 
 router.get(
   "/get-employee-ctc-details/:schoolId/:employeeId/:academicYear",
   // roleBasedMiddleware("School","Employee"),
-  getEmployeeCTCDetails,
+  getEmployeeCTCDetails
 );
 
 router.get(
   "/getAll-employee-ctc/:schoolId/:academicYear",
-  roleBasedMiddleware("School",),
-  getAllEmployeeCtc,
+  roleBasedMiddleware("School"),
+  getAllEmployeeCtc
 );
-
 
 router.delete(
   "/delete-employee-ctc-details/:id",
   roleBasedMiddleware("School"),
-  deleteEmployeeCTC,
+  deleteEmployeeCTC
 );
 
-router.get('/get-all-employee-leaves', getAllLeaveRecords);
-router.put('/update-employee-leave-status', updateLeaveStatus);
+router.get("/get-all-employee-leaves", getAllLeaveRecords);
+router.put("/update-employee-leave-status", updateLeaveStatus);
 
 router.get("/all-overtime-applications", getAllOvertimeApplications);
 router.put("/update-status/:id", updateOvertimeStatus);

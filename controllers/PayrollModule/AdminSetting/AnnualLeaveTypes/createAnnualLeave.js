@@ -38,7 +38,13 @@ import SchoolAnnualLeaveTypes from "../../../../models/PayrollModule/AdminSettin
 
 const createAnnualLeave = async (req, res) => {
   try {
-    const { schoolId, academicYear, annualLeaveTypeName, days, isCarryForward } = req.body;
+    const {
+      schoolId,
+      academicYear,
+      annualLeaveTypeName,
+      days,
+      isCarryForward,
+    } = req.body;
 
     if (!schoolId || !academicYear || !annualLeaveTypeName) {
       return res.status(400).json({
@@ -72,8 +78,3 @@ const createAnnualLeave = async (req, res) => {
 };
 
 export default createAnnualLeave;
-
-
-
-
-

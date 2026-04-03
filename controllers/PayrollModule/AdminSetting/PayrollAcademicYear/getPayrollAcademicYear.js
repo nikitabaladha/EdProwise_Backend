@@ -4,7 +4,9 @@ const getPayrollAcademicYear = async (req, res) => {
   const { schoolId, academicYear } = req.params;
 
   if (!schoolId || !academicYear) {
-    return res.status(400).json({ hasError: true, message: "Missing parameters" });
+    return res
+      .status(400)
+      .json({ hasError: true, message: "Missing parameters" });
   }
 
   try {

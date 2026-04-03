@@ -11,12 +11,12 @@ const getPayrollAcademicYear = async (req, res) => {
   }
   try {
     const currentYear = new Date().getFullYear();
-    const nextYearShort = String((currentYear + 1) % 100).padStart(2, '0'); 
+    const nextYearShort = String((currentYear + 1) % 100).padStart(2, "0");
     const currentAcademicYear = `${currentYear}-${nextYearShort}`;
 
     const existing = await PayrollAcademicYear.findOne({
       schoolId,
-      academicYear: currentAcademicYear
+      academicYear: currentAcademicYear,
     });
 
     if (!existing) {
@@ -26,15 +26,15 @@ const getPayrollAcademicYear = async (req, res) => {
       });
     }
 
-    const academicYears = await PayrollAcademicYear.find({ schoolId })
-      .sort({ academicYear: 1 });
+    const academicYears = await PayrollAcademicYear.find({ schoolId }).sort({
+      academicYear: 1,
+    });
 
     res.status(200).json({
       hasError: false,
       message: "Academic years fetched successfully.",
       data: academicYears,
     });
-
   } catch (error) {
     res.status(500).json({
       hasError: true,

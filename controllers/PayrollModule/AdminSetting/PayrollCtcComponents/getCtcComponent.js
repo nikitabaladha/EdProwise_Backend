@@ -50,11 +50,15 @@ const getCtcComponent = async (req, res) => {
     const query = { schoolId };
     if (academicYear) query.academicYear = academicYear;
 
-    const ctcComponent = await PayrollCtcComponents.find(query).sort({ createdAt: -1 });
+    const ctcComponent = await PayrollCtcComponents.find(query).sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({
       hasError: false,
-      message: ctcComponent.length ? "CTC Component fetched successfully." : "No CTC Component found.",
+      message: ctcComponent.length
+        ? "CTC Component fetched successfully."
+        : "No CTC Component found.",
       ctcComponent,
     });
   } catch (error) {

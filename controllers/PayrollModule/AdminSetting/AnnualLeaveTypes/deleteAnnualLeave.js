@@ -50,7 +50,9 @@ const deleteAnnualLeave = async (req, res) => {
     });
 
     if (carryForwardDeleteResult.deletedCount > 0) {
-      console.log(`Deleted ${carryForwardDeleteResult.deletedCount} carry forward rule(s) for leaveTypeId ${id}`);
+      console.log(
+        `Deleted ${carryForwardDeleteResult.deletedCount} carry forward rule(s) for leaveTypeId ${id}`
+      );
     }
 
     // Step 3: Delete the leave type itself
@@ -58,9 +60,9 @@ const deleteAnnualLeave = async (req, res) => {
 
     return res.status(200).json({
       hasError: false,
-      message: "Leave type and related carry forward rules deleted successfully.",
+      message:
+        "Leave type and related carry forward rules deleted successfully.",
     });
-
   } catch (error) {
     console.error("Delete Annual Leave Error:", error);
     return res.status(500).json({

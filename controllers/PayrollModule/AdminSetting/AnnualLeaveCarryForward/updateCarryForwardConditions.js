@@ -11,10 +11,16 @@ const updateCarryForwardConditions = async (req, res) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ hasError: true, message: "Conditions not found." });
+      return res
+        .status(404)
+        .json({ hasError: true, message: "Conditions not found." });
     }
 
-    res.status(200).json({ hasError: false, message: "Updated successfully", conditions: updated.conditions });
+    res.status(200).json({
+      hasError: false,
+      message: "Updated successfully",
+      conditions: updated.conditions,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ hasError: true, message: "Server error." });
